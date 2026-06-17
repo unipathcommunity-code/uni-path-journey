@@ -102,6 +102,13 @@ export function TenantProvider({
 
   async function resolveTenant() {
     setIsTenantLoading(true);
+    
+    // Safety timeout to prevent any query hang from blocking the UI spinner indefinitely
+    const localTimeout = setTimeout(() => {
+      console.warn("TenantProvider: resolveTenant query timed out. Forcing loading to false.");
+      setIsTenantLoading(false);
+    }, 2500);
+
     try {
       // 1. Active tenant from localStorage — either SuperAdmin impersonation
       //    or an owner switching between businesses they own.
@@ -293,6 +300,7 @@ export function TenantProvider({
       setActiveTenant(null);
       setIsImpersonating(false);
     } finally {
+      clearTimeout(localTimeout);
       setIsTenantLoading(false);
     }
   }
