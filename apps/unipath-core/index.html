@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+    <title>UniPath — Study Abroad Consulting CRM & SaaS Platform</title>
+    <meta name="description" content="UniPath — Ta'lim konsalting firmalari uchun professional B2B SaaS platforma. White-label portal, Telegram bot integratsiyasi, Kanban CRM, moliya va hujjat boshqaruvi — barchasi bir tizimda." />
+    <meta name="author" content="UniPath" />
+    <meta name="keywords" content="study abroad CRM, consulting firm software, ta'lim konsalting tizimi, white-label portal, Telegram bot, kanban CRM, visa consulting software, UniPath SaaS" />
+
+    <script>
+      (function() {
+        var hostname = window.location.hostname;
+        var coreDomains = ['unipath.me', 'unipath.uz', 'localhost', '127.0.0.1', 'vercel.app'];
+        var isCoreRoot = hostname === 'unipath.me' || hostname === 'www.unipath.me' || 
+                         hostname === 'unipath.uz' || hostname === 'www.unipath.uz' || 
+                         hostname === 'localhost' || hostname === '127.0.0.1' ||
+                         hostname === 'unipath-journey.vercel.app' || hostname === 'www.unipath-journey.vercel.app';
+        
+        if (!isCoreRoot) {
+          var matchedCore = coreDomains.find(function(d) { return hostname.endsWith('.' + d); });
+          if (matchedCore) {
+            var prefix = hostname.substring(0, hostname.length - matchedCore.length - 1);
+            var parts = prefix.split('.');
+            var sub = parts[parts.length - 1];
+            if (sub && sub !== 'www') {
+              var name = sub.charAt(0).toUpperCase() + sub.slice(1);
+              document.title = name + " — Workspace";
+              
+              // Remove the default favicon so it doesn't show UniPath's logo
+              document.addEventListener("DOMContentLoaded", function() {
+                var links = document.querySelectorAll("link[rel~='icon']");
+                links.forEach(function(l) { l.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">' + name.charAt(0) + '</text></svg>'; });
+              });
+            }
+          }
+        }
+      })();
+    </script>
+    
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://unipath.me/og-image.png">
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@UniPathSaaS" />
+    <meta name="twitter:image" content="https://unipath.me/og-image.png">
+    
+    <link rel="canonical" href="https://unipath.me" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="UniPath" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <!-- Theme color (dark UI) -->
+    <meta name="theme-color" content="#09090b" />
+    <meta name="msapplication-TileColor" content="#09090b" />
+
+    <!-- Mobile optimizations -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <meta property="og:title" content="UniPath — Smart CRM for Study Abroad Consulting Firms" />
+  <meta name="twitter:title" content="UniPath — Smart CRM for Study Abroad Consulting Firms" />
+  <meta property="og:description" content="UniPath — Ta'lim konsalting firmalari uchun professional B2B SaaS platforma. White-label portal, Telegram bot, Kanban CRM va moliya boshqaruvi — barchasi bir tizimda." />
+  <meta name="twitter:description" content="UniPath — Ta'lim konsalting firmalari uchun professional B2B SaaS platforma. White-label portal, Telegram bot, Kanban CRM va moliya boshqaruvi." />
+</head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

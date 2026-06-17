@@ -1,0 +1,1 @@
+ALTER TABLE public.universities ALTER COLUMN credit_cost SET DEFAULT 5;

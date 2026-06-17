@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@unipath/db": ["../../packages/db/src/index.ts"],
+      "@unipath/auth": ["../../packages/auth/src/index.ts"],
+      "@unipath/tenant": ["../../packages/tenant/src/index.ts"],
+      "@unipath/ui": ["./src/components/ui"],
+      "@unipath/unicoin": ["../../packages/unicoin/src/index.ts"],
+      "@unipath/telegram": ["../../packages/telegram/src/index.ts"]
+    },
+    "skipLibCheck": true,
+    "strict": false,
+    "target": "ES2020",
+    "useDefineForClassFields": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/tour",
+    "src/academy"
+  ]
+}
