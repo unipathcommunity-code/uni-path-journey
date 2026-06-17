@@ -24,6 +24,7 @@ const VERTICAL_ICONS: Record<BusinessVertical, string> = {
   cosmetics: '💄',
   stadium: '🏟️',
   pharmacy: '💊',
+  car_showroom: '🚗',
   consulting: '💼',
 };
 

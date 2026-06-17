@@ -1,4 +1,4 @@
-import { ArrowRight, Gift } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -20,7 +20,7 @@ const CtaBanner = () => {
 
           <div className="relative z-10 max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold mb-5 backdrop-blur">
-              <Gift className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5" />
               Bugun 14 kunlik bepul sinov
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-primary-foreground mb-4">

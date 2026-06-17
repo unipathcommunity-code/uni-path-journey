@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { PRICING_PLANS } from '@/core/constants/pricing';
-import { LandingPage } from '@/components/landing/landing-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +18,7 @@ import {
   Check,
   Building2,
   GraduationCap,
+  Sparkles,
   ChevronRight,
   Bot,
   Menu,
@@ -48,7 +48,6 @@ interface TenantLandingPageProps {
 }
 
 function TenantLandingPage({ tenant, isUz, navigate }: TenantLandingPageProps) {
-  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   
@@ -266,30 +265,19 @@ function TenantLandingPage({ tenant, isUz, navigate }: TenantLandingPageProps) {
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <div className="flex items-center gap-2 border-l border-white/10 pl-4">
-              {user ? (
-                <Button 
-                  onClick={() => navigate('/dashboard')} 
-                  className="bg-primary hover:bg-primary/90 text-white font-bold text-xs h-9 px-5 rounded-lg transition-all hover:scale-[1.02]"
-                >
-                  {isUz ? 'Boshqaruv paneli' : 'Dashboard'}
-                </Button>
-              ) : (
-                <>
-                  <Button 
-                    onClick={() => navigate('/auth?mode=login')} 
-                    variant="ghost"
-                    className="text-slate-300 hover:text-white text-xs h-9 px-4 rounded-lg transition-all"
-                  >
-                    {isUz ? 'Kirish' : 'Sign In'}
-                  </Button>
-                  <Button 
-                    onClick={() => navigate('/auth?mode=signup')} 
-                    className="bg-primary hover:bg-primary/90 text-white font-bold text-xs h-9 px-5 rounded-lg transition-all hover:scale-[1.02]"
-                  >
-                    {ctaLabel}
-                  </Button>
-                </>
-              )}
+              <Button 
+                onClick={() => navigate('/auth?mode=login')} 
+                variant="ghost"
+                className="text-slate-300 hover:text-white text-xs h-9 px-4 rounded-lg transition-all"
+              >
+                {isUz ? 'Kirish' : 'Sign In'}
+              </Button>
+              <Button 
+                onClick={() => navigate('/auth?mode=signup')} 
+                className="bg-primary hover:bg-primary/90 text-white font-bold text-xs h-9 px-5 rounded-lg transition-all hover:scale-[1.02]"
+              >
+                {ctaLabel}
+              </Button>
             </div>
           </div>
 
@@ -322,29 +310,18 @@ function TenantLandingPage({ tenant, isUz, navigate }: TenantLandingPageProps) {
             </nav>
             
             <div className="space-y-3 px-4">
-              {user ? (
-                <Button 
-                  onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
-                  className="w-full h-11 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-bold shadow-lg"
-                >
-                  {isUz ? 'Boshqaruv paneli' : 'Dashboard'}
-                </Button>
-              ) : (
-                <>
-                  <Button 
-                    onClick={() => { setMobileMenuOpen(false); navigate('/auth?mode=login'); }}
-                    className="w-full justify-center h-11 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl text-sm"
-                  >
-                    {isUz ? 'Kirish' : 'Sign In'}
-                  </Button>
-                  <Button 
-                    onClick={() => { setMobileMenuOpen(false); navigate('/auth?mode=signup'); }}
-                    className="w-full h-11 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-bold shadow-lg"
-                  >
-                    {ctaLabel}
-                  </Button>
-                </>
-              )}
+              <Button 
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth?mode=login'); }}
+                className="w-full justify-center h-11 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl text-sm"
+              >
+                {isUz ? 'Kirish' : 'Sign In'}
+              </Button>
+              <Button 
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth?mode=signup'); }}
+                className="w-full h-11 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-bold shadow-lg"
+              >
+                {ctaLabel}
+              </Button>
             </div>
           </motion.div>
         )}
@@ -604,7 +581,7 @@ function TenantLandingPage({ tenant, isUz, navigate }: TenantLandingPageProps) {
     </div>
   );
 }
-export default function Index({ forceSaaS }: { forceSaaS?: boolean } = {}) {
+export default function Index({ forceSaaS = false }: { forceSaaS?: boolean } = {}) {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const { language, activeTenant } = useApp();
@@ -629,11 +606,501 @@ export default function Index({ forceSaaS }: { forceSaaS?: boolean } = {}) {
 
   if (activeTenant && !forceSaaS) {
     return <TenantLandingPage tenant={activeTenant} isUz={isUz} navigate={navigate} />;
-  }  
+  }
+
+  const features = [
+    {
+      icon: Globe,
+      title: isUz ? 'White-Label, o\'z domeningizda' : isRu ? 'White-Label на вашем домене' : 'White-Label on Your Domain',
+      desc: isUz ? "Har bir biznes o'z subdomain yoki custom domenida ishlaydi. Brend, rang, logo — barchasi moslashtiriladi." : isRu ? "Каждый бизнес работает на своём поддомене или домене. Бренд, цвета, логотип — всё настраивается." : "Every business runs under its own subdomain or custom domain. Brand, colors, logo — all fully customizable."
+    },
+    {
+      icon: Bot,
+      title: isUz ? 'Telegram Bot (har biznes uchun)' : isRu ? 'Выделенный Telegram Bot' : 'Dedicated Telegram Bot',
+      desc: isUz ? "Har bir biznes uchun alohida Telegram bot. Mijozlar buyurtma, navbat, to'lov va holat tekshirishni botdan qiladi." : isRu ? "Каждый бизнес получает свой Telegram bot. Клиенты проверяют заказы, запись, оплату и статус без звонков." : "Each business gets its own Telegram bot. Clients can check orders, appointments, payments, and status without calling."
+    },
+    {
+      icon: Camera,
+      title: isUz ? 'AI Kamera Nazorat tizimi' : isRu ? 'AI-видеонаблюдение' : 'AI Camera Surveillance',
+      desc: isUz ? "Yong'in, tutun, bosqin va yuz tanish — real vaqtda AI aniqlash va Telegram orqali darhol ogohlantirish." : isRu ? "Пожар, дым, вторжение, распознавание лиц — AI-обнаружение в реальном времени с мгновенными Telegram-оповещениями." : "Fire, smoke, intrusion, face recognition — real-time AI detection with instant Telegram alerts."
+    },
+    {
+      icon: LayoutDashboard,
+      title: isUz ? 'CRM + ERP — bitta tizimda' : isRu ? 'CRM + ERP в одной платформе' : 'CRM + ERP in One Platform',
+      desc: isUz ? "Mijozlar, xodimlar, ombor, hisob-kitob va analitika — har bir biznes turiga moslashtirilgan bitta tizimda." : isRu ? "Клиенты, сотрудники, склад, биллинг и аналитика — всё в одной системе, адаптированной под ваш бизнес." : "Customers, staff, inventory, billing, and analytics — all in one system tailored to your business type."
+    },
+    {
+      icon: CreditCard,
+      title: isUz ? "Ko'p filial, ko'p valyuta" : isRu ? 'Мультифилиальность и мультивалютность' : 'Multi-Branch, Multi-Currency',
+      desc: isUz ? "Toshkent, Samarqand, Buxoro — barcha filiallaringizni bitta admin panelidan boshqaring. Valyuta va vaqt zonasi ham alohida." : isRu ? "Управляйте всеми филиалами из одной панели. Отдельная валюта, часовой пояс и настройки для каждого." : "Manage all your branches from one panel. Separate currency, timezone, and settings per branch."
+    },
+    {
+      icon: Users,
+      title: isUz ? 'Rollarga asoslangan huquqlar' : isRu ? 'Разграничение доступа по ролям' : 'Role-Based Access Control',
+      desc: isUz ? "Kassir, direktor, xodim, ombor mudir — har biri faqat o'ziga tegishli ma'lumotni ko'radi va tahrirlaydi." : isRu ? "Кассир, директор, сотрудник, кладовщик — каждый видит и редактирует только то, что ему разрешено." : "Cashier, director, staff, warehouse manager — each role sees and edits only what they're allowed to."
+    }
+  ];
+
+  const plans = PRICING_PLANS.map(plan => ({
+    id: plan.id,
+    name: plan.name,
+    price: `$${plan.priceMonthly}`,
+    period: isUz ? 'oyiga' : isRu ? '/мес' : '/mo',
+    popular: plan.popular,
+    desc: isUz ? plan.descUz : isRu ? plan.descRu : plan.descEn,
+    features: isUz ? plan.featuresUz : isRu ? plan.featuresRu : plan.featuresEn,
+    style: plan.style
+  }));
+
+  const steps = [
+    {
+      num: '01', icon: Building2,
+      title: isUz ? "Biznes turini tanlang" : isRu ? 'Выберите тип бизнеса' : 'Choose Your Business Type',
+      desc: isUz ? "Fitnes, ta'lim, restoran, mehmonxona, klinika yoki boshqa 20+ vertikal ichidan o'zingizga mosini tanlang." : isRu ? "Фитнес, образование, ресторан, отель, клиника — выбирайте из 20+ вертикалей." : "Pick from 20+ verticals — gym, education, restaurant, hotel, clinic, retail, and more."
+    },
+    {
+      num: '02', icon: Zap,
+      title: isUz ? 'Brendingizni sozlang' : isRu ? 'Настройте свой бренд' : 'Set Up Your Brand',
+      desc: isUz ? "Logo, rang, subdomain va Telegram bot — 15 daqiqada o'z nomingizda ishlaydigan tizim tayyor." : isRu ? "Логотип, цвет, поддомен и Telegram bot — ваша брендированная система за 15 минут." : "Logo, color, subdomain, and Telegram bot — your branded system ready in 15 minutes."
+    },
+    {
+      num: '03', icon: GraduationCap,
+      title: isUz ? 'Biznesingizni boshqaring' : isRu ? 'Управляйте и масштабируйтесь' : 'Run & Scale Your Business',
+      desc: isUz ? "Mijozlar, xodimlar, to'lovlar, ombor va AI-kamera — barchasini bitta dashboarddan nazorat qiling." : isRu ? "Клиенты, сотрудники, оплаты, склад и AI-камеры — всё управляется с одной мощной панели." : "Customers, staff, payments, inventory, and AI cameras — all from one powerful dashboard."
+    },
+  ];
+
   return (
-    <LandingPage 
-      onLogin={() => navigate('/auth')} 
-      onGetStarted={() => navigate('/tizimlashtirish')} 
-    />
+    <div className="min-h-screen bg-[#051424] text-[#d4e4fa] font-sans overflow-x-hidden selection:bg-[#d2bbff]/30 selection:text-white relative">
+      {/* Background radial effects */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#d2bbff]/10 blur-[150px] rounded-full mix-blend-screen" />
+        <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-[#4cd7f6]/8 blur-[150px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-[-15%] left-[20%] w-[60%] h-[60%] bg-[#8b5cf6]/10 blur-[180px] rounded-full mix-blend-screen" />
+        <div className="absolute inset-0 noise-overlay opacity-[0.03] pointer-events-none"></div>
+      </div>
+
+      {/* Header */}
+      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#051424]/80 backdrop-blur-2xl border-b border-white/10 py-3 shadow-lg shadow-[#051424]/20' : 'bg-transparent py-5'}`}>
+        <div className="container mx-auto flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#d2bbff] to-[#4cd7f6] rounded-xl flex items-center justify-center shadow-lg shadow-[#d2bbff]/20 border border-white/10">
+              <Globe className="w-6 h-6 text-[#051424]" />
+            </div>
+            <span className="font-bold text-2xl text-white tracking-tight font-['Sora']">
+              UniPath<span className="text-[#d2bbff]">.</span>
+            </span>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-8 bg-white/[0.03] backdrop-blur-xl px-6 py-2.5 rounded-full border border-white/10">
+            <a href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">{isUz ? 'Imkoniyatlar' : isRu ? 'Возможности' : 'Features'}</a>
+            <a href="#how-it-works" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">{isUz ? 'Qanday ishlaydi' : isRu ? 'Как работает' : 'How it works'}</a>
+            <a href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">{isUz ? 'Narxlar' : isRu ? 'Цены' : 'Pricing'}</a>
+          </nav>
+          
+          <div className="hidden md:flex items-center gap-4">
+            <LanguageSwitcher />
+            
+            <div className="flex items-center gap-2 border-l border-white/10 pl-4">
+              <Button
+                onClick={() => navigate('/auth')}
+                className="bg-white/5 hover:bg-white/10 text-white border border-white/10 font-medium h-10 px-4 rounded-lg backdrop-blur-md transition-all hover:scale-[1.02]"
+              >
+                <Users className="w-4 h-4 mr-2 text-[#d2bbff]" />
+                {isUz ? 'Kirish' : isRu ? 'Войти' : 'Login'}
+              </Button>
+
+              <Button
+                onClick={() => navigate('/tizimlashtirish')}
+                className="bg-gradient-to-r from-[#d2bbff] to-[#4cd7f6] text-[#051424] font-bold h-10 px-4 rounded-lg transition-all hover:opacity-90 hover:scale-[1.02]"
+              >
+                {isUz ? 'Boshlash' : isRu ? 'Начать' : 'Get Started'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="flex md:hidden items-center gap-4">
+            <LanguageSwitcher />
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 bg-white/5 border border-white/10 rounded-lg text-white"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-x-0 top-0 z-40 bg-[#051424]/98 backdrop-blur-3xl pt-24 pb-8 px-4 flex flex-col md:hidden border-b border-white/10 shadow-2xl"
+          >
+            <nav className="flex flex-col gap-6 mb-10">
+              <a onClick={() => setMobileMenuOpen(false)} href="#features" className="text-xl font-medium text-slate-200 hover:text-white transition-colors">{isUz ? 'Imkoniyatlar' : isRu ? 'Возможности' : 'Features'}</a>
+              <a onClick={() => setMobileMenuOpen(false)} href="#how-it-works" className="text-xl font-medium text-slate-200 hover:text-white transition-colors">{isUz ? 'Qanday ishlaydi' : isRu ? 'Как работает' : 'How it works'}</a>
+              <a onClick={() => setMobileMenuOpen(false)} href="#pricing" className="text-xl font-medium text-slate-200 hover:text-white transition-colors">{isUz ? 'Narxlar' : isRu ? 'Цены' : 'Pricing'}</a>
+            </nav>
+
+            <div className="space-y-4">
+              <div className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-2">
+                {isUz ? 'Tizimga kirish' : isRu ? 'Аккаунт' : 'Account'}
+              </div>
+              <Button
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth'); }}
+                className="w-full justify-center h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl text-base"
+              >
+                <Users className="w-5 h-5 mr-3 text-[#d2bbff]" />
+                {isUz ? 'Tizimga kirish' : isRu ? 'Войти' : 'Sign In'}
+              </Button>
+
+              <Button
+                onClick={() => { setMobileMenuOpen(false); navigate('/tizimlashtirish'); }}
+                className="w-full h-12 bg-gradient-to-r from-[#d2bbff] to-[#4cd7f6] text-[#051424] rounded-xl text-base font-bold shadow-lg shadow-[#d2bbff]/10"
+              >
+                {isUz ? 'Platformani ishga tushirish' : isRu ? 'Запустить платформу' : 'Launch Platform'}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="relative z-10 pt-28 pb-20 md:pt-40 md:pb-28">
+        
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 md:px-6 text-center max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[#d2bbff] mb-8 backdrop-blur-md"
+          >
+            <Zap className="w-4 h-4 text-[#4cd7f6] animate-pulse" />
+            <span className="text-sm font-medium tracking-wide">
+              {isUz ? 'Har qanday biznes uchun White-Label SaaS platforma' : isRu ? 'White-Label SaaS платформа для любого бизнеса' : 'White-Label SaaS Platform for Any Business'}
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-white mb-6 leading-[1.1] font-['Sora']"
+          >
+            {isUz ? "Har qanday biznesingizni" : isRu ? 'Переведите любой бизнес' : 'Run any business'}{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d2bbff] via-[#4cd7f6] to-[#d2bbff] bg-[length:200%_auto] animate-gradient">
+              {isUz ? "raqamlashtiring." : isRu ? 'в цифровой формат.' : 'fully digital.'}
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-lg md:text-xl text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed font-light"
+          >
+            {isUz
+              ? "Ta'lim konsalting, fitnes zal, restoran, mehmonxona, klinika, ulgurji savdo — istalgan biznes uchun o'z brendingizda CRM, ERP va AI-kuzatuv tizimi. Bir platformada."
+              : isRu
+              ? "Образовательный консалтинг, фитнес, ресторан, отель, клиника, оптовая торговля — полноценная CRM, ERP и AI-видеонаблюдение под вашим брендом. Одна платформа для любого бизнеса."
+              : "Education consulting, gym, restaurant, hotel, clinic, wholesale — a full CRM, ERP, and AI camera system under your own brand. One platform for every business type."}
+          </motion.p>
+
+          {/* Vertical pills */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="flex flex-wrap justify-center gap-2 mb-10 px-4"
+          >
+            {[
+              { emoji: '🎓', label: isUz ? 'Ta\'lim' : isRu ? 'Образование' : 'EdTech' },
+              { emoji: '💪', label: isUz ? 'Fitnes' : isRu ? 'Фитнес' : 'Gym' },
+              { emoji: '🏨', label: isUz ? 'Hotel' : isRu ? 'Отель' : 'Hotel' },
+              { emoji: '🍽️', label: isUz ? 'Restoran' : isRu ? 'Ресторан' : 'Restaurant' },
+              { emoji: '🏥', label: isUz ? 'Klinika' : isRu ? 'Клиника' : 'Clinic' },
+              { emoji: '📷', label: isUz ? 'AI Kamera' : isRu ? 'AI Камера' : 'AI Camera' },
+              { emoji: '🛒', label: isUz ? 'Savdo' : isRu ? 'Торговля' : 'Retail' },
+              { emoji: '🏟️', label: isUz ? 'Sport' : isRu ? 'Спорт' : 'Sports' },
+            ].map((v) => (
+              <span key={v.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-xs font-medium backdrop-blur-sm">
+                <span>{v.emoji}</span>{v.label}
+              </span>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4 mb-20"
+          >
+            <Button
+              onClick={() => navigate('/tizimlashtirish')}
+              size="lg"
+              className="w-full sm:w-auto h-14 px-8 text-lg rounded-full bg-gradient-to-r from-[#d2bbff] to-[#4cd7f6] text-[#051424] hover:opacity-90 font-bold shadow-lg shadow-[#d2bbff]/20 transition-all hover:scale-[1.03]"
+            >
+              {isUz ? 'Biznesni ulash' : isRu ? 'Начать бесплатно' : 'Get Started Free'} <ArrowUpRight className="ml-2 w-5 h-5" />
+            </Button>
+            <Button
+              onClick={() => navigate('/auth')}
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto h-14 px-8 text-lg rounded-full bg-white/[0.03] border-white/10 text-white hover:bg-white/10 backdrop-blur-md transition-all hover:scale-[1.03]"
+            >
+              {isUz ? "Tizimga kirish" : isRu ? 'Войти' : 'Log In'}
+            </Button>
+          </motion.div>
+        </section>
+
+
+
+        {/* Verticals Showcase */}
+        <section className="py-16 px-4 md:px-6 relative">
+          <div className="container mx-auto max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 font-['Sora']">
+                {isUz ? 'Uch kuchli platforma — bitta ekosistema' : isRu ? 'Три мощные платформы — одна экосистема' : 'Three Powerful Platforms, One Ecosystem'}
+              </h2>
+              <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto font-light">
+                {isUz ? 'Sohangizni tanlang — tizim avtomatik moslashadi.' : isRu ? 'Выберите свою отрасль — система автоматически адаптируется.' : 'Choose your industry — the platform adapts automatically.'}
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-5">
+              {[
+                {
+                  emoji: '🎓',
+                  color: 'from-violet-500/20 to-purple-500/10',
+                  border: 'border-violet-500/25 hover:border-violet-500/50',
+                  tag: 'NOVA',
+                  tagColor: 'bg-violet-500/15 text-violet-300 border-violet-500/25',
+                  title: isUz ? "O'quv Markazlar" : isRu ? 'Учебные Центры' : 'Education Centers',
+                  desc: isUz ? "Guruhlar, darslar, davomat, sertifikat, ota-ona portal, to'lov va AI dars rejalash." : isRu ? 'Группы, уроки, посещаемость, сертификаты, родительский портал, AI-планирование.' : 'Groups, lessons, attendance, certificates, parent portal, AI lesson planner & billing.',
+                  items: isUz ? ['O\'qituvchi & Talaba panel', 'Biometrik davomat', 'Website Builder', 'Sertifikat tizimi'] : isRu ? ['Панель учителя & студента', 'Биометрическое посещение', 'Конструктор сайтов', 'Система сертификатов'] : ['Teacher & Student panels', 'Biometric attendance', 'Website Builder', 'Certificate system'],
+                },
+                {
+                  emoji: '✈️',
+                  color: 'from-sky-500/20 to-cyan-500/10',
+                  border: 'border-sky-500/25 hover:border-sky-500/50',
+                  tag: 'UniTour',
+                  tagColor: 'bg-sky-500/15 text-sky-300 border-sky-500/25',
+                  title: isUz ? 'Tur Agentliklar' : isRu ? 'Тур Агентства' : 'Tour Agencies',
+                  desc: isUz ? "Turlar katalogi, online bron, agent tarmog'i, viza moduli va har agentlikka o'z public sayt." : isRu ? 'Каталог туров, онлайн бронирование, сеть агентов, визовый модуль и собственный сайт.' : 'Tour catalog, online booking, agent network, visa module & white-label public site per agency.',
+                  items: isUz ? ['Bronlar & Viza moduli', 'Agent komissiya tizimi', 'Public katalog', 'Brend sayt'] : isRu ? ['Бронирование & Виза', 'Комиссионная система', 'Публичный каталог', 'Брендовый сайт'] : ['Bookings & Visa module', 'Agent commission system', 'Public tour catalog', 'Branded website'],
+                },
+                {
+                  emoji: '🏢',
+                  color: 'from-emerald-500/20 to-green-500/10',
+                  border: 'border-emerald-500/25 hover:border-emerald-500/50',
+                  tag: 'UniPath Core',
+                  tagColor: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+                  title: isUz ? 'Universal Biznes' : isRu ? 'Универсальный Бизнес' : 'Universal Business',
+                  desc: isUz ? "Konsalting, fitnes, restoran, klinika, mehmonxona va 15+ soha uchun CRM, buxgalteriya, HR va ko'p-filial boshqaruvi." : isRu ? 'Консалтинг, фитнес, ресторан, клиника, отель — CRM, бухгалтерия, HR и управление филиалами.' : 'Consulting, gym, restaurant, clinic, hotel and 15+ verticals with CRM, accounting, HR & multi-branch.',
+                  items: isUz ? ['CRM Pipeline', 'Buxgalteriya & P&L', 'Ko\'p-filial boshqaruv', 'AI Kamera nazorat'] : isRu ? ['CRM Pipeline', 'Бухгалтерия & P&L', 'Управление филиалами', 'AI-камера контроль'] : ['CRM Pipeline', 'Accounting & P&L', 'Multi-branch management', 'AI Camera control'],
+                },
+              ].map((v, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * i }}
+                  className={`bg-gradient-to-br ${v.color} border ${v.border} rounded-3xl p-6 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xl">{v.emoji}</span>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${v.tagColor}`}>{v.tag}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-1.5">{v.title}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-light">{v.desc}</p>
+                  </div>
+                  <ul className="space-y-1.5 mt-auto">
+                    {v.items.map((item, j) => (
+                      <li key={j} className="flex items-center gap-2 text-xs text-slate-300">
+                        <Check className="w-3.5 h-3.5 text-current opacity-70 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Feature Grid Section */}
+        <section id="features" className="py-20 px-4 md:px-6 relative">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16 md:mb-24">
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight font-['Sora']">
+                {isUz ? 'Har bir biznes uchun kuchli qurollar' : isRu ? 'Всё что нужно вашему бизнесу' : 'Everything your business needs, built in'}
+              </h2>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto font-light">
+                {isUz ? 'Brendingizga moslashtiring, filiallaringizni boshqaring, Telegram bot ulang va AI kamera orqali real vaqtda nazorat qiling.' : isRu ? 'Настройте свой бренд, управляйте филиалами, подключите Telegram bot и следите за всем через AI-камеры — всё в одной платформе.' : 'White-label your brand, manage branches, plug in a Telegram bot, and monitor everything with AI cameras — all from one platform.'}
+              </p>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {features.map((f, i) => (
+                <div 
+                  key={i}
+                  className="bg-[#122131]/30 backdrop-blur-xl border border-white/5 p-8 rounded-3xl hover:bg-[#122131]/60 hover:border-[#d2bbff]/30 transition-all hover:-translate-y-1 group"
+                >
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 border border-white/10 group-hover:bg-[#d2bbff]/10 group-hover:border-[#d2bbff]/30 transition-colors">
+                    <f.icon className="w-6 h-6 text-[#d2bbff]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight font-['Sora']">{f.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed font-light">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="py-20 px-4 md:px-6 relative overflow-hidden bg-[#0d1c2d]/25 border-y border-white/5">
+          <div className="container mx-auto max-w-4xl relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight font-['Sora']">
+                {isUz ? 'Ishni boshlash juda oson' : isRu ? 'Начать очень просто' : 'Quick launch guide'}
+              </h2>
+              <p className="text-slate-400 text-base max-w-lg mx-auto font-light">
+                {isUz ? "3 ta oddiy qadamda tizimni firmangizga moslashtiring va xodimlarni taklif qiling" : isRu ? "3 простых шага — настройте систему под свою компанию и пригласите сотрудников" : "Set up your workspace and integrate staff in under 10 minutes"}
+              </p>
+            </div>
+            
+            <div className="space-y-4 md:space-y-6">
+              {steps.map((step, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-[#122131]/20 backdrop-blur-md border border-white/5 p-6 rounded-2xl hover:bg-[#122131]/40 transition-colors"
+                >
+                  <div className="shrink-0 w-14 h-14 bg-[#051424] rounded-xl flex items-center justify-center border border-[#d2bbff]/30 shadow-md">
+                    <step.icon className="w-6 h-6 text-[#4cd7f6]" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#d2bbff] font-bold tracking-widest mb-1 uppercase">{isUz ? 'Qadam' : isRu ? 'Шаг' : 'Step'} {step.num}</div>
+                    <h3 className="text-xl font-bold text-white mb-1.5 tracking-tight font-['Sora']">{step.title}</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed font-light">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section id="pricing" className="py-20 px-4 md:px-6 relative">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16 md:mb-24">
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight font-['Sora']">
+                {isUz ? 'Moslashuvchan tarif rejalar' : isRu ? 'Гибкие тарифные планы' : 'Pricing for growth'}
+              </h2>
+              <p className="text-slate-400 text-base max-w-lg mx-auto font-light">
+                {isUz ? 'Biznesingiz hajmiga mos tarifni tanlang. Istalgan vaqtda tarifni o\'zgartirishingiz mumkin.' : isRu ? 'Выберите тариф, подходящий для вашего бизнеса. Повысить или снизить план можно в любое время.' : 'Select the tier that best fits your workload. Upgrade or downgrade anytime.'}
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto items-stretch">
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`relative backdrop-blur-xl p-8 rounded-3xl flex flex-col justify-between transition-all duration-500 border ${plan.style}`}
+                >
+                  <div>
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#d2bbff] to-[#4cd7f6] text-[#051424] px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg whitespace-nowrap border border-white/20">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {isUz ? 'Eng ommabop' : isRu ? 'Самый популярный' : 'Most popular'}
+                      </div>
+                    )}
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold text-white mb-2 tracking-tight font-['Sora']">{plan.name}</h3>
+                      <p className="text-slate-400 text-xs font-light mb-4 min-h-[32px]">{plan.desc}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-bold text-white tracking-tighter font-['Sora']">{plan.price}</span>
+                        <span className="text-xs text-slate-400 font-medium">{plan.period}</span>
+                      </div>
+                    </div>
+                    
+                    <ul className="space-y-3.5 mb-10 pt-4 border-t border-white/5">
+                      {plan.features.map((f, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.popular ? 'text-[#4cd7f6]' : 'text-slate-500'}`} />
+                          <span className="text-sm text-slate-300 font-light">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button
+                    onClick={() => navigate('/tizimlashtirish')}
+                    className={`w-full rounded-xl h-11 font-bold text-sm transition-all ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-[#d2bbff] to-[#4cd7f6] text-[#051424] hover:opacity-95'
+                        : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    {isUz ? 'Tarifni tanlash' : isRu ? 'Выбрать тариф' : 'Choose plan'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 bg-[#010f1f] pt-16 pb-8 px-4 md:px-6 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+            <div className="col-span-2 md:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-[#122131] rounded-lg flex items-center justify-center border border-white/10">
+                  <Globe className="w-5 h-5 text-[#d2bbff]" />
+                </div>
+                <span className="font-bold text-xl text-white tracking-tight font-['Sora']">UniPath<span className="text-[#d2bbff]">.</span></span>
+              </div>
+              <p className="text-slate-500 text-xs leading-relaxed max-w-xs font-light">
+                {isUz ? "Har qanday biznesni raqamlashtiradigan kuchli White-Label SaaS platformasi." : isRu ? "Мощная White-Label SaaS платформа для цифровизации любого бизнеса." : "The all-in-one White-Label SaaS platform for any business vertical."}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-4 tracking-wide text-xs uppercase">{isUz ? 'Platforma' : isRu ? 'Платформа' : 'Platform'}</h4>
+              <ul className="space-y-3 text-xs font-light">
+                <li><a href="#features" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Imkoniyatlar' : isRu ? 'Возможности' : 'Features'}</a></li>
+                <li><a href="#pricing" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Narxlar' : isRu ? 'Цены' : 'Pricing'}</a></li>
+                <li><a href="#how-it-works" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Qanday ishlaydi' : isRu ? 'Как работает' : 'How it works'}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-4 tracking-wide text-xs uppercase">{isUz ? 'Kompaniya' : isRu ? 'Компания' : 'Company'}</h4>
+              <ul className="space-y-3 text-xs font-light">
+                <li><Link to="/about" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Biz haqimizda' : isRu ? 'О нас' : 'About'}</Link></li>
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">{isUz ? "Bog'lanish" : isRu ? 'Контакты' : 'Contact'}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-4 tracking-wide text-xs uppercase">{isUz ? 'Hujjatlar' : isRu ? 'Юридическое' : 'Legal'}</h4>
+              <ul className="space-y-3 text-xs font-light">
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Maxfiylik siyosati' : isRu ? 'Конфиденциальность' : 'Privacy'}</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">{isUz ? 'Foydalanish shartlari' : isRu ? 'Условия использования' : 'Terms'}</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-light">
+            <p className="text-center md:text-left">© 2026 UniPath SaaS. {isUz ? 'Barcha huquqlar himoyalangan.' : isRu ? 'Все права защищены.' : 'All rights reserved.'}</p>
+            <p className="font-semibold text-slate-400">unipath.me</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
+
+

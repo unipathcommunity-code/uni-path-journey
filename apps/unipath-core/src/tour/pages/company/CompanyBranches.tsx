@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useMyBranches, useUpsertBranch, useDeleteBranch, useBranchLimit, Branch } from '@/tour/hooks/useBranches';
+import { useMyBranches, useUpsertBranch, useDeleteBranch, useBranchLimit, Branch } from "@/hooks/useTourBranches";
 
 const empty = (companyId: string): Partial<Branch> => ({
   company_id: companyId, name: "", city: "", address: "", phone: "", email: "", is_active: true, is_main: false,

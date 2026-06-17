@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Phone, Mail, MessageSquare, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 import { format } from "date-fns";
 
 const STATUS_LABELS: Record<string, { label: string; tone: string }> = {

@@ -202,47 +202,36 @@ export default function StudentProfile() {
   const [errors, setErrors] = useState<{ phone?: string; telegram?: string }>({});
 
   useEffect(() => {
-    let active = true;
     async function fetchProfile() {
-      if (!user) {
-        if (active) setLoading(false);
-        return;
-      }
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('full_name, email, phone, telegram_username, selected_country, preferred_language, avatar_url, parent_name, parent_phone')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, email, phone, telegram_username, selected_country, preferred_language, avatar_url, parent_name, parent_phone')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (active) {
-          if (!error && data) {
-            setProfile({
-              full_name: data.full_name || user.user_metadata?.full_name || '',
-              email: data.email || user.email || '',
-              phone: data.phone || '',
-              telegram_username: data.telegram_username || '',
-              selected_country: data.selected_country || '',
-              preferred_language: data.preferred_language || 'en',
-              avatar_url: data.avatar_url || null,
-              parent_name: (data as any).parent_name || '',
-              parent_phone: (data as any).parent_phone || '',
-            });
-          } else {
-            setProfile(prev => ({
-              ...prev,
-              full_name: user.user_metadata?.full_name || '',
-              email: user.email || '',
-            }));
-          }
-          setLoading(false);
-        }
-      } catch (err) {
-        if (active) setLoading(false);
+      if (!error && data) {
+        setProfile({
+          full_name: data.full_name || user.user_metadata?.full_name || '',
+          email: data.email || user.email || '',
+          phone: data.phone || '',
+          telegram_username: data.telegram_username || '',
+          selected_country: data.selected_country || '',
+          preferred_language: data.preferred_language || 'en',
+          avatar_url: data.avatar_url || null,
+          parent_name: (data as any).parent_name || '',
+          parent_phone: (data as any).parent_phone || '',
+        });
+      } else {
+        setProfile(prev => ({
+          ...prev,
+          full_name: user.user_metadata?.full_name || '',
+          email: user.email || '',
+        }));
       }
+      setLoading(false);
     }
     fetchProfile();
-    return () => { active = false; };
   }, [user]);
 
   const handleAvatarClick = () => {

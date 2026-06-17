@@ -23,6 +23,7 @@ export const VERTICAL_DETECT_ORDER: BusinessVertical[] = [
   'cosmetics',
   'stadium',
   'pharmacy',
+  'car_showroom',
   'consulting', // ← MUST remain last
 ];
 
@@ -107,5 +108,6 @@ export const VERTICAL_LABELS: Record<BusinessVertical, { uz: string; ru: string;
   cosmetics: { uz: 'Kosmetika', ru: 'Косметика', en: 'Cosmetics' },
   stadium: { uz: 'Stadion', ru: 'Стадион', en: 'Stadium' },
   pharmacy: { uz: 'Dorixona', ru: 'Аптека', en: 'Pharmacy' },
+  car_showroom: { uz: 'Avtosalon', ru: 'Автосалон', en: 'Car Showroom' },
   consulting: { uz: 'Konsalting', ru: 'Консалтинг', en: 'Consulting' },
 };

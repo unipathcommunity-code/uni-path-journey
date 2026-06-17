@@ -6,6 +6,7 @@ import {
   Dumbbell, 
   Bed, 
   UtensilsCrossed, 
+  Car,
   Loader2 
 } from "lucide-react";
 
@@ -30,7 +31,7 @@ export default function DashboardRedirect() {
     'tour', 'academy', 'hotel', 'restaurant', 'clinic', 'gym',
     'manufacturing', 'parking', 'auto_service', 'wholesale',
     'wedding_hall', 'kindergarten', 'library', 'cosmetics',
-    'stadium', 'pharmacy', 'consulting',
+    'stadium', 'pharmacy', 'car_showroom', 'consulting',
   ];
   const rawV =
     (effectiveTenant as any)?.vertical ||
@@ -65,6 +66,9 @@ export default function DashboardRedirect() {
     } else if (vertical === "restaurant") {
       LoadingIcon = UtensilsCrossed;
       iconClass = "w-8 h-8 text-primary animate-pulse";
+    } else if (vertical === "car_showroom") {
+      LoadingIcon = Car;
+      iconClass = "w-8 h-8 text-primary animate-bounce";
     }
 
     return (
@@ -113,7 +117,13 @@ export default function DashboardRedirect() {
   }
 
   // From this point on, we are definitely on a subdomain (e.g. nova.unipath.me)
-  
+
+  // Super admin always goes to the global control panel, on any host — never
+  // let them fall through to the student dashboard.
+  if (role === "super_admin") {
+    return <Navigate to="/super-admin" replace />;
+  }
+
   if (tenantStatus === "pending") {
     return <Navigate to="/pending-approval" replace />;
   }

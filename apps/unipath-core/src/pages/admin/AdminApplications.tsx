@@ -49,7 +49,6 @@ import {
   Upload,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useApp } from '@/contexts/AppContext';
 
 interface StudentDocument {
   id: string;
@@ -101,7 +100,6 @@ const STATUS_OPTIONS = [
 
 export default function AdminApplications() {
   const { toast } = useToast();
-  const { activeTenant } = useApp();
   const [applications, setApplications] = useState<ApplicationWithDetails[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<ApplicationWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,8 +113,7 @@ export default function AdminApplications() {
 
   useEffect(() => {
     fetchApplications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTenant?.id]);
+  }, []);
 
   useEffect(() => {
     filterApplications();
@@ -136,14 +133,6 @@ export default function AdminApplications() {
   async function fetchApplications() {
     setIsLoading(true);
     try {
-      // Scope to the active tenant — otherwise a SuperAdmin impersonating a
-      // tenant (RLS sees all rows) would load every tenant's applications.
-      const tid = activeTenant?.id;
-      if (!tid) {
-        setApplications([]);
-        return;
-      }
-
       const { data: apps, error: appsError } = await supabase
         .from('applications')
         .select(`
@@ -161,7 +150,6 @@ export default function AdminApplications() {
           fee_paid,
           acceptance_letter_url
         `)
-        .eq('tenant_id', tid)
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;

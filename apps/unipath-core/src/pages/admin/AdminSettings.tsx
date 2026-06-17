@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone, Palette, Check, Send, ExternalLink, Copy, CheckCheck, MessageSquare, CreditCard } from "lucide-react";
+import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone, Palette, Check, Send, ExternalLink, Copy, CheckCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,27 +38,6 @@ const AdminSettings = () => {
     chat_id: (activeTenant?.config?.branding as any)?.telegram_chat_id || '',
   });
 
-  const [smsSaving, setSmsSaving] = useState(false);
-  const [smsTesting, setSmsTesting] = useState(false);
-  const [smsForm, setSmsForm] = useState({
-    eskiz_email: activeTenant?.config?.settings?.eskiz_email || '',
-    eskiz_token: activeTenant?.config?.settings?.eskiz_token || '',
-    auto_sms_enabled: activeTenant?.config?.settings?.auto_sms_enabled || false,
-  });
-
-  const [paymentSaving, setPaymentSaving] = useState(false);
-  const [paymentTesting, setPaymentTesting] = useState<Record<string, boolean>>({});
-  const [paymentForm, setPaymentForm] = useState({
-    click_merchant_id: activeTenant?.config?.settings?.click_merchant_id || '',
-    click_service_id: activeTenant?.config?.settings?.click_service_id || '',
-    click_secret_key: activeTenant?.config?.settings?.click_secret_key || '',
-    payme_merchant_id: activeTenant?.config?.settings?.payme_merchant_id || '',
-    payme_secret_key: activeTenant?.config?.settings?.payme_secret_key || '',
-    uzum_merchant_id: activeTenant?.config?.settings?.uzum_merchant_id || '',
-    uzum_secret_key: activeTenant?.config?.settings?.uzum_secret_key || '',
-    payment_test_mode: activeTenant?.config?.settings?.payment_test_mode || false,
-  });
-
   // Sync selectedTheme if tenant loads after mount
   useEffect(() => {
     if (activeTenant?.config?.branding?.theme_color) {
@@ -72,25 +51,7 @@ const AdminSettings = () => {
         chat_id: b.telegram_chat_id || '',
       });
     }
-    if (activeTenant?.config?.settings) {
-      const s = activeTenant.config.settings as any;
-      setSmsForm({
-        eskiz_email: s.eskiz_email || '',
-        eskiz_token: s.eskiz_token || '',
-        auto_sms_enabled: !!s.auto_sms_enabled,
-      });
-      setPaymentForm({
-        click_merchant_id: s.click_merchant_id || '',
-        click_service_id: s.click_service_id || '',
-        click_secret_key: s.click_secret_key || '',
-        payme_merchant_id: s.payme_merchant_id || '',
-        payme_secret_key: s.payme_secret_key || '',
-        uzum_merchant_id: s.uzum_merchant_id || '',
-        uzum_secret_key: s.uzum_secret_key || '',
-        payment_test_mode: !!s.payment_test_mode,
-      });
-    }
-  }, [activeTenant?.config]);
+  }, [activeTenant?.config?.branding]);
 
   const { data: profile } = useQuery({
     queryKey: ["admin-profile", user?.id],
@@ -129,79 +90,6 @@ const AdminSettings = () => {
     };
     const { error } = await supabase.from('tenants').update({ config: updatedConfig }).eq('id', activeTenant.id);
     if (error) throw error;
-  };
-
-  const saveSettings = async (settingsData: Record<string, any>) => {
-    if (!activeTenant?.id) throw new Error('Tenant topilmadi');
-    const currentConfig = (activeTenant.config as any) || {};
-    const updatedConfig = {
-      ...currentConfig,
-      settings: { ...(currentConfig.settings || {}), ...settingsData },
-    };
-    const { error } = await supabase.from('tenants').update({ config: updatedConfig }).eq('id', activeTenant.id);
-    if (error) throw error;
-  };
-
-  const handleSmsSave = async () => {
-    if (!activeTenant?.id) { toast.error('Tenant topilmadi'); return; }
-    setSmsSaving(true);
-    try {
-      await saveSettings(smsForm);
-      toast.success('Eskiz SMS sozlamalari muvaffaqiyatli saqlandi!');
-    } catch (err: any) {
-      toast.error(err.message || 'Xatolik yuz berdi');
-    } finally {
-      setSmsSaving(false);
-    }
-  };
-
-  const handleSmsTest = async () => {
-    if (!smsForm.eskiz_email || !smsForm.eskiz_token) {
-      toast.error("Email va Token kiritilishi shart");
-      return;
-    }
-    setSmsTesting(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success("Eskiz API ulanishi muvaffaqiyatli! Test SMS yuborildi.");
-    } catch (err) {
-      toast.error("Ulanishda xatolik yuz berdi");
-    } finally {
-      setSmsTesting(false);
-    }
-  };
-
-  const handlePaymentSave = async () => {
-    if (!activeTenant?.id) { toast.error('Tenant topilmadi'); return; }
-    setPaymentSaving(true);
-    try {
-      await saveSettings(paymentForm);
-      toast.success('To\'lov tizimlari sozlamalari muvaffaqiyatli saqlandi!');
-    } catch (err: any) {
-      toast.error(err.message || 'Xatolik yuz berdi');
-    } finally {
-      setPaymentSaving(false);
-    }
-  };
-
-  const handlePaymentTest = async (gateway: 'click' | 'payme' | 'uzum') => {
-    const merchantId = paymentForm[`${gateway}_merchant_id` as keyof typeof paymentForm];
-    const secretKey = paymentForm[`${gateway}_secret_key` as keyof typeof paymentForm];
-
-    if (!merchantId || !secretKey) {
-      toast.error(`${gateway.toUpperCase()} integratsiya ma'lumotlari to'liq emas`);
-      return;
-    }
-
-    setPaymentTesting(prev => ({ ...prev, [gateway]: true }));
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success(`${gateway.toUpperCase()} API testi muvaffaqiyatli yakunlandi! Test billing webhook faollashtirildi.`);
-    } catch (err) {
-      toast.error("Ulanishda xatolik");
-    } finally {
-      setPaymentTesting(prev => ({ ...prev, [gateway]: false }));
-    }
   };
 
   const handleTelegramSave = async () => {
@@ -562,7 +450,7 @@ const AdminSettings = () => {
               <Separator />
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Biznes turi</span>
-                <span className="font-medium capitalize">{activeTenant?.business_type || activeTenant?.config?.business_type || '—'}</span>
+                <span className="font-medium capitalize">{activeTenant?.business_type || '—'}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-sm">
@@ -571,198 +459,6 @@ const AdminSettings = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Conditional: Nova Academy Eskiz SMS Gateway Settings */}
-          {(activeTenant?.business_type === 'academy' || activeTenant?.config?.business_type === 'academy') && (
-            <Card className="border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)] bg-[#030712]/50 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-emerald-400 font-bold">
-                  <MessageSquare className="h-5 w-5" />
-                  Eskiz SMS Gateway
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-muted-foreground leading-relaxed">
-                  O'zbekistondagi eng barqaror SMS xizmati. Dars qoldirgan o'quvchilar va qarzdorlik haqida avtomatik bildirishnomalar yuborish uchun Eskiz API hisob ma'lumotlarini kiriting.
-                </div>
-                <div>
-                  <Label className="flex items-center gap-2 mb-1 text-xs">
-                    📧 Eskiz Email manzili
-                  </Label>
-                  <Input
-                    type="email"
-                    value={smsForm.eskiz_email}
-                    onChange={(e) => setSmsForm(p => ({ ...p, eskiz_email: e.target.value }))}
-                    placeholder="example@mail.com"
-                    className="mt-1 h-9 text-xs"
-                  />
-                </div>
-                <div>
-                  <Label className="flex items-center gap-2 mb-1 text-xs">
-                    🔑 Eskiz API Token
-                  </Label>
-                  <Input
-                    type="password"
-                    value={smsForm.eskiz_token}
-                    onChange={(e) => setSmsForm(p => ({ ...p, eskiz_token: e.target.value }))}
-                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    className="mt-1 font-mono text-xs h-9"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-white/5">
-                  <div>
-                    <p className="text-xs font-semibold">Avtomatik SMS yuborish</p>
-                    <p className="text-[10px] text-muted-foreground">Qarzdorlik va QR-davomat xabarlarini avtomat yuborish</p>
-                  </div>
-                  <Switch
-                    checked={smsForm.auto_sms_enabled}
-                    onCheckedChange={(checked) => setSmsForm(p => ({ ...p, auto_sms_enabled: checked }))}
-                  />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button onClick={handleSmsTest} disabled={smsTesting || !smsForm.eskiz_email || !smsForm.eskiz_token} variant="outline" className="flex-1 text-xs h-9">
-                    {smsTesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                    Test SMS
-                  </Button>
-                  <Button onClick={handleSmsSave} disabled={smsSaving} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-9">
-                    {smsSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                    Saqlash
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Conditional: UniTour click/payme/uzum payment settings */}
-          {(activeTenant?.business_type === 'tour' || activeTenant?.config?.business_type === 'tour') && (
-            <Card className="border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.05)] bg-[#030712]/50 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-400 font-bold">
-                  <CreditCard className="h-5 w-5" />
-                  To'lov Integratsiyalari (Click / Payme / Uzum)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-muted-foreground leading-relaxed">
-                  Mijozlaringizdan to'g'ridan-to'g'ri Click, Payme yoki Uzum orqali to'lovlarni qabul qilish uchun hisob sozlamarini kiriting.
-                </div>
-                
-                <div className="space-y-3 p-3 rounded-xl bg-muted/30 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-blue-400">⚡ CLICK.UZ</p>
-                    <Button onClick={() => handlePaymentTest('click')} disabled={paymentTesting.click} variant="outline" size="sm" className="text-[10px] h-7 px-2 border-blue-500/20 text-blue-400">
-                      {paymentTesting.click ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                      Integratsiya Testi
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-[10px]">Merchant ID</Label>
-                      <Input
-                        value={paymentForm.click_merchant_id}
-                        onChange={(e) => setPaymentForm(p => ({ ...p, click_merchant_id: e.target.value }))}
-                        placeholder="12345"
-                        className="h-8 mt-1 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-[10px]">Service ID</Label>
-                      <Input
-                        value={paymentForm.click_service_id}
-                        onChange={(e) => setPaymentForm(p => ({ ...p, click_service_id: e.target.value }))}
-                        placeholder="67890"
-                        className="h-8 mt-1 text-xs"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-[10px]">Secret Key</Label>
-                    <Input
-                      type="password"
-                      value={paymentForm.click_secret_key}
-                      onChange={(e) => setPaymentForm(p => ({ ...p, click_secret_key: e.target.value }))}
-                      placeholder="••••••••••••••••"
-                      className="h-8 mt-1 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3 p-3 rounded-xl bg-muted/30 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-purple-400">💳 PAYME.UZ</p>
-                    <Button onClick={() => handlePaymentTest('payme')} disabled={paymentTesting.payme} variant="outline" size="sm" className="text-[10px] h-7 px-2 border-purple-500/20 text-purple-400">
-                      {paymentTesting.payme ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                      Integratsiya Testi
-                    </Button>
-                  </div>
-                  <div>
-                    <Label className="text-[10px]">Merchant / Cash ID</Label>
-                    <Input
-                      value={paymentForm.payme_merchant_id}
-                      onChange={(e) => setPaymentForm(p => ({ ...p, payme_merchant_id: e.target.value }))}
-                      placeholder="60b12e345..."
-                      className="h-8 mt-1 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[10px]">Secret Key / Password</Label>
-                    <Input
-                      type="password"
-                      value={paymentForm.payme_secret_key}
-                      onChange={(e) => setPaymentForm(p => ({ ...p, payme_secret_key: e.target.value }))}
-                      placeholder="••••••••••••••••"
-                      className="h-8 mt-1 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3 p-3 rounded-xl bg-muted/30 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-yellow-500">💰 UZUM BANK</p>
-                    <Button onClick={() => handlePaymentTest('uzum')} disabled={paymentTesting.uzum} variant="outline" size="sm" className="text-[10px] h-7 px-2 border-yellow-500/20 text-yellow-500">
-                      {paymentTesting.uzum ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                      Integratsiya Testi
-                    </Button>
-                  </div>
-                  <div>
-                    <Label className="text-[10px]">Merchant ID</Label>
-                    <Input
-                      value={paymentForm.uzum_merchant_id}
-                      onChange={(e) => setPaymentForm(p => ({ ...p, uzum_merchant_id: e.target.value }))}
-                      placeholder="uzum_merch_777"
-                      className="h-8 mt-1 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[10px]">Secret Key</Label>
-                    <Input
-                      type="password"
-                      value={paymentForm.uzum_secret_key}
-                      onChange={(e) => setPaymentForm(p => ({ ...p, uzum_secret_key: e.target.value }))}
-                      placeholder="••••••••••••••••"
-                      className="h-8 mt-1 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-white/5">
-                  <div>
-                    <p className="text-xs font-semibold">Sinov rejasi (Test Mode)</p>
-                    <p className="text-[10px] text-muted-foreground">Haqiqiy to'lovlar o'rniga sinov tranzaksiyalari</p>
-                  </div>
-                  <Switch
-                    checked={paymentForm.payment_test_mode}
-                    onCheckedChange={(checked) => setPaymentForm(p => ({ ...p, payment_test_mode: checked }))}
-                  />
-                </div>
-
-                <Button onClick={handlePaymentSave} disabled={paymentSaving} className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs h-9">
-                  {paymentSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                  To'lov Sozlamalarini Saqlash
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </PageTransition>

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Loader2, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 
 const CompanyTours = () => {
   const { data } = useMyCompany();

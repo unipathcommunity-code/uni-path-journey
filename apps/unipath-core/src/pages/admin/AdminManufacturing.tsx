@@ -18,8 +18,10 @@ import {
   TrendingUp, 
   CheckCircle2, 
   ArrowRight,
-  TrendingDown
+  TrendingDown,
+  Camera
 } from 'lucide-react';
+import AdminCameras from './AdminCameras';
 
 interface MfgBOM {
   id: string;
@@ -44,6 +46,7 @@ interface MfgTask {
 export default function AdminManufacturing() {
   const { activeTenant } = useApp();
   const { toast } = useToast();
+  const [activeMfgTab, setActiveMfgTab] = useState<'production' | 'cameras'>('production');
   const [loading, setLoading] = useState(true);
   const [boms, setBoms] = useState<MfgBOM[]>([]);
   const [tasks, setTasks] = useState<MfgTask[]>([]);
@@ -281,7 +284,38 @@ export default function AdminManufacturing() {
         </div>
       </div>
 
-      {/* Metrics */}
+      {/* Tab Switcher */}
+      <div className="flex gap-2 border-b border-border pb-px overflow-x-auto select-none">
+        <button
+          type="button"
+          onClick={() => setActiveMfgTab('production')}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all shrink-0 ${
+            activeMfgTab === 'production' 
+              ? 'border-primary text-primary bg-primary/5' 
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          }`}
+        >
+          <Factory className="w-4 h-4 text-primary" />
+          Konveyer & Retseptlar
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMfgTab('cameras')}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all shrink-0 ${
+            activeMfgTab === 'cameras' 
+              ? 'border-primary text-primary bg-primary/5' 
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-primary" />
+          Live AI Kameralar (Hikvision)
+        </button>
+      </div>
+
+      {activeMfgTab === 'cameras' ? (
+        <AdminCameras />
+      ) : (
+        <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card border border-border">
           <CardContent className="p-5 flex items-center justify-between">
@@ -606,6 +640,8 @@ export default function AdminManufacturing() {
             </CardContent>
           </Card>
         </div>
+      )}
+        </>
       )}
     </div>
   );

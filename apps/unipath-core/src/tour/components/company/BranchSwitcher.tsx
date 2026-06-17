@@ -1,7 +1,7 @@
 import { Building2, Check, ChevronsUpDown, Layers } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 import { Link } from "react-router-dom";
 
 const BranchSwitcher = ({ dark = false }: { dark?: boolean }) => {

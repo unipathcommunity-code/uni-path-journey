@@ -97,7 +97,7 @@ export function useUserRole(client: TypedSupabaseClient): UserRoleState {
     }
 
     resolve();
-  }, [user, claims, client]);
+  }, [user?.id, claims?.role, claims?.tenant_id, client]);
 
   const isFetching = isLoading || (user !== null && resolvedUserId !== user.id);
 

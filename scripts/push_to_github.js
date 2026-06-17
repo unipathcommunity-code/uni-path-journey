@@ -81,7 +81,7 @@ async function main() {
         name: 'Antigravity AI',
         email: 'antigravity@gemini.ai',
       },
-      message: 'Fix infinite loading spinner hang in TenantProvider by adding safety timeout',
+      message: "Merge Claude's work (apps/nova, car_showroom) and fix redirection/spinner hangs",
     });
     console.log(`Committed successfully. Commit SHA: ${sha}`);
   } catch (err) {

@@ -388,26 +388,6 @@ export default function AdminTour() {
     { day: 2, title: 'Tarixiy obidalar ekskursiyasi', desc: 'Shahar markazidagi qadimiy obidalar va muzeylarga sayohat.' }
   ]);
 
-  // Synchronize itinerary inputs with number of days
-  useEffect(() => {
-    setItineraryInputs(prev => {
-      const currentDays = prev.length;
-      if (newTourDays === currentDays) return prev;
-      if (newTourDays > currentDays) {
-        // Add days
-        const added = Array.from({ length: newTourDays - currentDays }, (_, i) => ({
-          day: currentDays + i + 1,
-          title: `Kun ${currentDays + i + 1} rejasi`,
-          desc: 'Ushbu kun uchun rejalashtirilgan marshrut tavsifi.'
-        }));
-        return [...prev, ...added];
-      } else {
-        // Truncate days
-        return prev.slice(0, newTourDays);
-      }
-    });
-  }, [newTourDays]);
-
   // Booking Modal / Forms
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
@@ -1799,44 +1779,6 @@ export default function AdminTour() {
                     onChange={(e) => setNewTourDeparture(e.target.value)}
                     className="rounded-xl border-white/10 bg-white/5 text-white text-sm h-11"
                   />
-                </div>
-
-                {/* Day-by-Day Itinerary Builder Fields */}
-                <div className="space-y-3 pt-2">
-                  <Label className="text-xs font-bold text-white uppercase tracking-wider">Kunlik Dastur Sozlamalari (Marshrut)</Label>
-                  <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 border border-white/10 bg-white/[0.02] p-3 rounded-xl">
-                    {itineraryInputs.map((it, idx) => (
-                      <div key={it.day} className="space-y-2 p-2.5 rounded-lg bg-black/40 border border-white/5">
-                        <div className="flex items-center gap-2">
-                          <span className="bg-primary/20 text-primary font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0">
-                            {it.day}
-                          </span>
-                          <Input 
-                            placeholder={`Kun ${it.day} Sarlavhasi (Masalan: Mehmonxonaga joylashish)`}
-                            value={it.title}
-                            onChange={(e) => {
-                              const updated = [...itineraryInputs];
-                              updated[idx].title = e.target.value;
-                              setItineraryInputs(updated);
-                            }}
-                            className="rounded-lg border-white/10 bg-white/5 text-white text-xs h-8"
-                            required
-                          />
-                        </div>
-                        <Input 
-                          placeholder={`Kun ${it.day} marshrut tavsifi...`}
-                          value={it.desc}
-                          onChange={(e) => {
-                            const updated = [...itineraryInputs];
-                            updated[idx].desc = e.target.value;
-                            setItineraryInputs(updated);
-                          }}
-                          className="rounded-lg border-white/10 bg-white/5 text-white text-xs h-8"
-                          required
-                        />
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4 border-t border-white/5">

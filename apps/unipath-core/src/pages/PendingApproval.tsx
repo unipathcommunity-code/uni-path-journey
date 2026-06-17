@@ -45,7 +45,7 @@ export default function PendingApproval() {
 
   // If approved, redirect to dashboard redirect page to go to correct admin route
   useEffect(() => {
-    if (tenantStatus === 'active') {
+    if (tenantStatus === 'approved' || tenantStatus === 'active') {
       toast({
         title: 'Tabriklaymiz!',
         description: 'Tizimingiz faollashtirildi. CRM panelingizga yo\'naltirilmoqdasiz.',

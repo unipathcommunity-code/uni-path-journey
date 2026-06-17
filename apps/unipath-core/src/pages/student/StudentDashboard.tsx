@@ -187,10 +187,15 @@ export default function StudentDashboard() {
   if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
   if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
 
-  // Vertical routing is handled centrally by EcosystemRouter (App.tsx); a
-  // tour/academy tenant never reaches this consulting dashboard. No external
-  // redirects — everything stays inside the one unipath.me app.
-  void vertical;
+  // If strictly an academy or tour tenant, force redirect to the hosted app path
+  if (vertical === 'academy') {
+    window.location.href = '/nova/';
+    return null;
+  }
+  if (vertical === 'tour') {
+    window.location.href = '/unitour/';
+    return null;
+  }
 
   const { balance } = useCredits();
   const { isUniCoin } = useBusinessMode();

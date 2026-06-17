@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Users, Loader2, Crown, UserCircle2, UserPlus, Trash2, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useMyBranches, useBranch } from '@/tour/hooks/useBranches';
+import { useMyBranches, useBranch, Branch } from "@/hooks/useTourBranches";
 
 const CompanyTeam = () => {
   const { data } = useMyCompany();
@@ -36,7 +36,7 @@ const CompanyTeam = () => {
     },
   });
 
-  const branchMap = new Map(branches.map((b) => [b.id, b]));
+  const branchMap = new Map<string, Branch>(branches.map((b) => [b.id, b]));
 
   const updateBranch = useMutation({
     mutationFn: async ({ id, branch_id }: { id: string; branch_id: string | null }) => {
@@ -116,7 +116,7 @@ const CompanyTeam = () => {
           ) : (
             <div className="space-y-1">
               {members.filter((m: any) => m.is_active).map((m: any) => {
-                const branch: any = branchMap.get(m.branch_id);
+                const branch = branchMap.get(m.branch_id);
                 return (
                   <div key={m.id} className="flex items-center justify-between gap-3 p-2.5 rounded-lg hover:bg-muted/40 transition">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">

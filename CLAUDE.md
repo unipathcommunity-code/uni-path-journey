@@ -2,13 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> ⚠️ **Two-agent workflow:** Claude (builds code) and Antigravity (commits + deploys)
-> share this folder. Read **`COLLABORATION.md`** before editing — it defines the
-> file-ownership split and the "never co-edit a file" rule. Claude owns
-> `packages/**`, `apps/unipath-core/src/**` (incl. `App.tsx`) and authors `.sql`
-> migrations; Antigravity owns git/deploy, `vercel.json`, `scripts/`, configs, and
-> runs migrations in Supabase.
-
 ---
 
 ## Commands

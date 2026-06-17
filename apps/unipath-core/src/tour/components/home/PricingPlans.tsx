@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Check, Flame } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -77,7 +77,7 @@ const PricingPlans = () => {
             >
               {plan.highlight && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5">
-                  <Flame className="h-3 w-3" />
+                  <Sparkles className="h-3 w-3" />
                   Eng mashhur
                 </div>
               )}

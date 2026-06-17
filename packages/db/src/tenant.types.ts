@@ -31,6 +31,7 @@ export interface TenantModules {
   cosmetics?: boolean;
   stadium?: boolean;
   pharmacy?: boolean;
+  car_showroom?: boolean;
   // Legacy aliases (mapped to canonical names at read time)
   nova?: boolean;
   unitour?: boolean;

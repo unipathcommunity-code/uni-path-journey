@@ -64,9 +64,10 @@ const VERTICAL_DEFAULT_THEME: Record<string, string> = {
   wedding_hall:  'rose',
   kindergarten:  'emerald',
   library:       'purple',
-  cosmetics:     'rose',
   stadium:       'emerald',
+  cosmetics:     'rose',
   pharmacy:      'blue',
+  car_showroom:  'blue',
 };
 
 const BUSINESS_TYPES = [
@@ -85,13 +86,590 @@ const BUSINESS_TYPES = [
   { id: 'kindergarten', name: 'Bog\'cha (Kindergarten)', icon: Baby, desc: 'Bolalar ro\'yxati, davomomat, guruhlar va to\'lovlar.' },
   { id: 'library', name: 'Kutubxona (Library)', icon: BookOpen, desc: 'Kitoblar fondi, a\'zolar, berilgan va qaytarilgan kitoblar.' },
   { id: 'cosmetics', name: 'Kosmetika (Cosmetics)', icon: Scissors, desc: 'Mahsulotlar zaxirasi, sotuvlar, yaroqlilik muddati va ogohlantirishlar.' },
-  { id: 'stadium', name: 'Stadion (Stadium)', icon: Trophy, desc: 'Sport maydonlari bandligi va soatlik ijara nazorati.' }
+  { id: 'stadium', name: 'Stadion (Stadium)', icon: Trophy, desc: 'Sport maydonlari bandligi va soatlik ijara nazorati.' },
+  { id: 'car_showroom', name: 'Avtosalon (Car Dealership)', icon: Car, desc: 'Avtomobillar zaxirasi, lizing va shartnomalar, test-drayv boshqaruvi.' }
 ];
 
 import { PRICING_PLANS } from '@/core/constants/pricing';
 
+const getPlansForVertical = (vertical: string) => {
+  const v = String(vertical || 'consulting').toLowerCase().trim();
+
+  if (v === 'academy') {
+    return [
+      {
+        id: 'Repetitor Starter',
+        name: 'Repetitor Starter',
+        price: '99 000',
+        currency: 'UZS',
+        desc: 'Yakka repetitor va individual o\'qituvchilar uchun',
+        features: ['30 o\'quvchi', '1 ustoz', '5/18 faol modul', 'Guruhlar boshqaruvi', 'QR davomat']
+      },
+      {
+        id: 'Repetitor Pro',
+        name: 'Repetitor Pro',
+        price: '199 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional repetitorlar va kichik guruhlar uchun',
+        features: ['80 o\'quvchi', '1 ustoz', '12/18 faol modul', 'Ota-ona oynasi', 'To\'lovlar nazorati']
+      },
+      {
+        id: 'Kurs Xona',
+        name: 'Kurs Xona',
+        price: '299 000',
+        currency: 'UZS',
+        desc: 'Kichik kurs xonalari va maxsus to\'garaklar uchun',
+        features: ['100 o\'quvchi', '3 ta dars xonasi', '6/18 faol modul', 'Moliya va hisobot', 'Telegram Bot']
+      },
+      {
+        id: 'Center Starter',
+        name: 'Center Starter',
+        price: '499 000',
+        currency: 'UZS',
+        desc: 'Kichik o\'quv markazlari va o\'quv kurslari uchun',
+        features: ['200 o\'quvchi', '5 ustoz', '8/18 faol modul', 'Telegram xabarnomalar', 'Moliya nazorati']
+      },
+      {
+        id: 'Center Pro',
+        name: 'Center Pro',
+        price: '799 000',
+        currency: 'UZS',
+        desc: 'Rivojlanayotgan o\'quv markazlari uchun eng yaxshi tanlov',
+        features: ['500 o\'quvchi', '15 ustoz', '16/18 faol modul', 'Biometrik FaceID', 'Keng analitika']
+      },
+      {
+        id: 'Center Premium',
+        name: 'Center Premium',
+        price: '1 299 000',
+        currency: 'UZS',
+        desc: 'Katta o\'quv markazlari va ko\'p filialli tarmoqlar uchun',
+        features: ['1000 o\'quvchi', '40 ustoz', 'Barcha modullar yoqilgan', 'Custom Domain', '24/7 VIP ko\'mak']
+      },
+      {
+        id: 'Academy Enterprise',
+        name: 'Academy Enterprise',
+        price: '1 990 000',
+        currency: 'UZS',
+        desc: 'Yirik ta\'lim akademiyalari va o\'quv muassasalari uchun',
+        features: ['2000 o\'quvchi', 'Cheksiz ustozlar', 'NovaCoins loyallik do\'koni', 'Custom SMS Gateway', 'SLA kafolati']
+      },
+      {
+        id: 'School Basic',
+        name: 'School Basic',
+        price: '2 990 000',
+        currency: 'UZS',
+        desc: 'Xususiy maktablar va litseylar uchun maxsus boshqaruv tizimi',
+        features: ['3000 o\'quvchi', '100 ustoz', 'Dars jadvali generatori', 'SMS debt gateway', 'Dedicated server']
+      }
+    ];
+  }
+
+  if (v === 'tour') {
+    return [
+      {
+        id: 'Tour Starter',
+        name: 'Tour Starter',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Yangi boshlayotgan turistik agentliklar uchun',
+        features: ['50 ta faol buyurtma', '2 ta xodim boshqaruvi', 'Turlar katalogi', 'Invoys PDF yaratish', 'Mijozlar bazasi (CRM)']
+      },
+      {
+        id: 'Tour Pro',
+        name: 'Tour Pro',
+        price: '349 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Tez o\'sayotgan turizm agentliklari uchun',
+        features: ['250 ta faol buyurtma', '10 ta xodim boshqaruvi', 'Komissiya & Markup nazorati', 'Telegram Bot va veb-sayt ulanishi', 'Buxgalteriya va hisobotlar']
+      },
+      {
+        id: 'Tour Premium',
+        name: 'Tour Premium',
+        price: '799 000',
+        currency: 'UZS',
+        desc: 'Katta va faol turistik kompaniyalar uchun',
+        features: ['1000 ta faol buyurtma', '30 ta xodim boshqaruvi', 'GDS Flight & Hotel integratsiyasi', 'API va xalqaro hamkorlik tizimi', 'SMS debt gateway integratsiyasi']
+      },
+      {
+        id: 'Tour Enterprise',
+        name: 'Tour Enterprise',
+        price: '1 499 000',
+        currency: 'UZS',
+        desc: 'Cheksiz filiallar va yirik turistik tarmoqlar uchun',
+        features: ['Cheksiz buyurtmalar', 'Cheksiz xodimlar boshqaruvi', '100% Ma\'lumotlar izolyatsiyasi', 'Custom Domain ulanishi', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'car_showroom') {
+    return [
+      {
+        id: 'Showroom Starter',
+        name: 'Showroom Starter',
+        price: '249 000',
+        currency: 'UZS',
+        desc: 'Kichik avtosalonlar yoki dilerlik do\'konlari uchun',
+        features: ['50 ta avtomobil limiti', '2 ta xodim boshqaruvi', 'Test-drive taqvimi', 'Standard CRM', 'Shartnomalar PDF']
+      },
+      {
+        id: 'Showroom Pro',
+        name: 'Showroom Pro',
+        price: '549 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional avtosalonlar va dilerlik tarmoqlari uchun',
+        features: ['250 ta avtomobil limiti', '10 ta xodim boshqaruvi', 'Lizing & Kredit kalkulyatori', 'Batafsil savdo tahlili', 'Telegram Bot xabarnomalari']
+      },
+      {
+        id: 'Showroom Enterprise',
+        name: 'Showroom Enterprise',
+        price: '1 299 000',
+        currency: 'UZS',
+        desc: 'Yirik dilerlik markazlari va ko\'p filialli tarmoqlar uchun',
+        features: ['Cheksiz avtomobillar', 'Cheksiz xodimlar boshqaruvi', 'Custom domain', 'Avtoservis tizimi integratsiyasi', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'hotel') {
+    return [
+      {
+        id: 'Hotel Starter',
+        name: 'Hostel / Kichik Mehmonxona',
+        price: '199 000',
+        currency: 'UZS',
+        desc: 'Hostellar, mehmon uylari va kichik mehmonxonalar uchun',
+        features: ['15 ta xona limiti', '3 ta xodim boshqaruvi', 'Xonalar jadvali & Bron', 'Standard CRM', 'Invoys PDF yaratish']
+      },
+      {
+        id: 'Hotel Pro',
+        name: 'Boutique Hotel',
+        price: '499 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'O\'rta kattalikdagi butik mehmonxonalar uchun',
+        features: ['50 ta xona limiti', '15 ta xodim boshqaruvi', 'Xonalarni tozalash jadvali', 'Restoran & POS integratsiyasi', 'Telegram Bot ogohlantirishlari']
+      },
+      {
+        id: 'Hotel Premium',
+        name: 'Premium Hotel',
+        price: '999 000',
+        currency: 'UZS',
+        desc: 'Katta mehmonxonalar va dam olish maskanlari uchun',
+        features: ['150 ta xona limiti', '40 ta xodim boshqaruvi', 'Channel Manager integratsiyasi', 'Batafsil moliya va audit', 'Custom domain & brendlash']
+      },
+      {
+        id: 'Hotel Enterprise',
+        name: 'Resort Enterprise',
+        price: '1 990 000',
+        currency: 'UZS',
+        desc: 'Ko\'p filialli yirik mehmonxona tarmoqlari uchun',
+        features: ['Cheksiz xonalar', 'Cheksiz xodimlar', '100% Ma\'lumotlar izolyatsiyasi', 'API va hamkorlar tizimi', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'restaurant') {
+    return [
+      {
+        id: 'Restaurant Starter',
+        name: 'Kafe / Qahvaxona',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Kichik kafelar, qahvaxonalar va fast-food shoxobchalari uchun',
+        features: ['1 ta kassa (POS)', 'Stollar xaritasi', 'Raqamli menyu (QR)', 'Buyurtmalar navbati', 'Standard hisobotlar']
+      },
+      {
+        id: 'Restaurant Pro',
+        name: 'Restoran Pro',
+        price: '399 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional restoran va kafe-barlar uchun',
+        features: ['3 ta kassa (POS)', 'Oshpaz ekrani (Kitchen Display)', 'Ofitsiantlar mobil ilovasi', 'Omborxona va kalkulyatsiya', 'Telegram Bot integratsiyasi']
+      },
+      {
+        id: 'Restaurant Enterprise',
+        name: 'Restoran Tarmog\'i',
+        price: '899 000',
+        currency: 'UZS',
+        desc: 'Yirik restoran tarmoqlari va umumiy ovqatlanish markazlari uchun',
+        features: ['Cheksiz kassalar', 'Filiallararo ombor integratsiyasi', 'Yetkazib berish boshqaruvi', 'Keng moliyaviy tahlil', 'Custom domain & 24/7 VIP yordam']
+      }
+    ];
+  }
+
+  if (v === 'pharmacy') {
+    return [
+      {
+        id: 'Pharmacy Starter',
+        name: 'Yakka Dorixona',
+        price: '199 000',
+        currency: 'UZS',
+        desc: 'Kichik yakka tartibdagi dorixonalar uchun',
+        features: ['10 000 ta dori limiti', '2 ta kassir boshqaruvi', 'Standard savdo oynasi', 'Yaroqlilik muddati nazorati', 'Barcode scanner integratsiyasi']
+      },
+      {
+        id: 'Pharmacy Pro',
+        name: 'Dorixona Pro',
+        price: '499 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional dorixonalar uchun to\'liq boshqaruv',
+        features: ['50 000 ta dori limiti', '10 ta kassir boshqaruvi', 'Yetkazib beruvchilar bazasi', 'Avtomatik buyurtma tizimi', 'Soliq & Chek integratsiyasi']
+      },
+      {
+        id: 'Pharmacy Enterprise',
+        name: 'Dorixona Tarmog\'i',
+        price: '1 199 000',
+        currency: 'UZS',
+        desc: 'Yirik dorixona tarmoqlari va markaziy omborxonalar uchun',
+        features: ['Cheksiz dori limiti', 'Cheksiz filiallar & kassirlar', 'Markaziy ombor nazorati', 'Keng dorixona analitikasi', 'Custom domain & SLA kafolati']
+      }
+    ];
+  }
+
+  if (v === 'gym') {
+    return [
+      {
+        id: 'Gym Starter',
+        name: 'Fitness Studiya',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Kichik fitness studiyalar va yoga markazlari uchun',
+        features: ['150 ta faol a\'zo', '3 ta murabbiy boshqaruvi', 'A\'zolik paketlari', 'Standard CRM', 'Darslar jadvali']
+      },
+      {
+        id: 'Gym Pro',
+        name: 'Fitness Club Pro',
+        price: '399 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Kattaroq fitness klublari va sport zallari uchun',
+        features: ['500 ta faol a\'zo', '15 ta murabbiy boshqaruvi', 'QR / FaceID kirish nazorati', 'Shkafchalar nazorati', 'Telegram bildirishnomalar']
+      },
+      {
+        id: 'Gym Enterprise',
+        name: 'Sport Kompleks Premium',
+        price: '899 000',
+        currency: 'UZS',
+        desc: 'Yirik sport majmualari va ko\'p tarmoqli fitness zanjirlari uchun',
+        features: ['Cheksiz faol a\'zolar', 'Cheksiz murabbiylar', 'Hovuz/Spa band qilish modullari', 'Batafsil moliya va HR', 'Custom Domain & VIP yordam']
+      }
+    ];
+  }
+
+  if (v === 'manufacturing') {
+    return [
+      {
+        id: 'Mfg Starter',
+        name: 'Kichik Sex / Ustaxona',
+        price: '299 000',
+        currency: 'UZS',
+        desc: 'Kichik ishlab chiqarish sexlari va xususiy ustaxonalar uchun',
+        features: ['Xomashyo ombori', 'BOM (Mahsulot tarkibi)', 'Oddiy ishlab chiqarish bosqichlari', 'Tayyor mahsulot hisobi', 'Invoyslar PDF']
+      },
+      {
+        id: 'Mfg Pro',
+        name: 'Zavod Pro',
+        price: '799 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional zavodlar va ishlab chiqarish korxonalari uchun',
+        features: ['Ko\'p bosqichli ishlab chiqarish', 'Ishbay oylik hisobi', 'Mahsulot tannarxi kalkulyatori', 'Omborlararo transfer', 'Sifat nazorati (QA) moduli']
+      },
+      {
+        id: 'Mfg Enterprise',
+        name: 'Sanoat Enterprise',
+        price: '1 699 000',
+        currency: 'UZS',
+        desc: 'Yirik sanoat korxonalari va ko\'p sexli kombinatlar uchun',
+        features: ['Cheksiz xomashyo va mahsulotlar', 'Ta\'minot zanjiri boshqaruvi', 'Barcode/RFID nazorati', 'Dastgohlar yuklama tahlili', 'SLA kafolati & VIP yordam']
+      }
+    ];
+  }
+
+  if (v === 'auto_service') {
+    return [
+      {
+        id: 'Auto Starter',
+        name: 'Kichik Avtoservis',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Kichik ustaxonalar va shinalar montaji nuqtalari uchun',
+        features: ['3 ta ta\'mirlash boksi', 'Navbatlar boshqaruvi', 'Mijozlar bazasi', 'Ehtiyot qismlar hisobi', 'Cheklar PDF']
+      },
+      {
+        id: 'Auto Pro',
+        name: 'Auto Kompleks Pro',
+        price: '399 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Katta avtoservislar va texnik xizmat ko\'rsatish markazlari uchun',
+        features: ['10 ta ta\'mirlash boksi', 'Usta ish taqsimoti', 'Ehtiyot qismlar ombori (Kalkulyatsiya)', 'Telegram Bot bildirishnomalar', 'Standard CRM Pipeline']
+      },
+      {
+        id: 'Auto Enterprise',
+        name: 'Dilerlik Servisi',
+        price: '899 000',
+        currency: 'UZS',
+        desc: 'Yirik servis markazlari va dilerlik texnik tarmoqlari uchun',
+        features: ['Cheksiz ta\'mirlash bokslari', 'Avtomatlashtirilgan hisob-kitoblar', 'SMS debt gateway integratsiyasi', 'Moliya va to\'liq audit', 'Custom domain & SLA kafolati']
+      }
+    ];
+  }
+
+  if (v === 'clinic') {
+    return [
+      {
+        id: 'Clinic Starter',
+        name: 'Shifokorlik Kabineti',
+        price: '199 000',
+        currency: 'UZS',
+        desc: 'Yakka shifokorlar va xususiy kichik kabinetlar uchun',
+        features: ['3 ta shifokor limiti', 'Bemorlar navbati taqvimi', 'Elektron tibbiy kartalar', 'Kassir & To\'lovlar', 'Invoys PDF']
+      },
+      {
+        id: 'Clinic Pro',
+        name: 'Klinika Pro',
+        price: '599 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional xususiy klinikalar va tashxis markazlari uchun',
+        features: ['15 ta shifokor limiti', 'Bemorlarni qabul qilish navbati', 'Retsept va yo\'llanmalar', 'Laboratoriya integratsiyasi', 'Telegram Bot ogohlantirishlari']
+      },
+      {
+        id: 'Clinic Enterprise',
+        name: 'Klinika Markazi',
+        price: '1 299 000',
+        currency: 'UZS',
+        desc: 'Ko\'p tarmoqli yirik klinikalar va kasalxonalar uchun',
+        features: ['Cheksiz shifokorlar', 'Dorixona moduli integratsiyasi', 'Batafsil shifokorlar analitikasi', 'Custom domain & RLS ma\'lumotlar himoyasi', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'parking') {
+    return [
+      {
+        id: 'Parking Starter',
+        name: 'Kichik Parking',
+        price: '99 000',
+        currency: 'UZS',
+        desc: 'Kichik ochiq avtoturargohlar uchun',
+        features: ['1 ta kirish to\'sig\'i (shlagbaum)', 'Soatbay to\'lov hisoblagichi', 'Band joylar nazorati', 'Mijozlar ro\'yxati', 'Standard hisobotlar']
+      },
+      {
+        id: 'Parking Pro',
+        name: 'Parking Pro',
+        price: '249 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional yopiq va ko\'p qavatli parkinglar uchun',
+        features: ['3 ta kirish to\'sig\'i', 'Kamera (ANPR) integratsiyasi', 'Abonementlar nazorati', 'SMS debt gateway integratsiyasi', 'Telegram Bot boshqaruvi']
+      },
+      {
+        id: 'Parking Enterprise',
+        name: 'Smart Parking Enterprise',
+        price: '599 000',
+        currency: 'UZS',
+        desc: 'Aeroportlar, savdo markazlari va yirik parking tarmoqlari uchun',
+        features: ['Cheksiz kirish to\'siqlari', 'Smart datchiklar xaritasi', 'Avtomatik to\'lov terminallari', 'Batafsil moliyaviy tahlil', 'SLA kafolati & VIP yordam']
+      }
+    ];
+  }
+
+  if (v === 'wedding_hall') {
+    return [
+      {
+        id: 'Wedding Starter',
+        name: 'Kichik To\'yxona',
+        price: '299 000',
+        currency: 'UZS',
+        desc: 'Kichik tadbirlar zallari va kafelar uchun',
+        features: ['Tadbirlar bandlik taqvimi', 'Menyu konstruktori', 'Mijozlar bazasi', 'Avans to\'lovlari hisobi', 'Hisobotlar PDF']
+      },
+      {
+        id: 'Wedding Pro',
+        name: 'To\'yxona Pro',
+        price: '699 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional tantanalar zallari va to\'yxonalar uchun',
+        features: ['Ko\'p zalli taqvim boshqaruvi', 'Xomashyo & Mahsulotlar ombori', 'Taomlar kalkulyatsiyasi', 'Hamkorlar (musiqachilar/boshlovchilar) bazasi', 'Telegram Bot ogohlantirishlari']
+      },
+      {
+        id: 'Wedding Enterprise',
+        name: 'Tantanalar Saroyi',
+        price: '1 399 000',
+        currency: 'UZS',
+        desc: 'Hashamatli tantanalar saroylari va restoran majmualari uchun',
+        features: ['Cheksiz tadbirlar & zallar', '3D stollar joylashuv xaritasi', 'Batafsil HR va moliya nazorati', 'Custom domain & VIP yordam', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'kindergarten') {
+    return [
+      {
+        id: 'Kdg Starter',
+        name: 'Oilaviy Bog\'cha',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Oilaviy bog\'chalar va kichik guruhlar uchun',
+        features: ['30 ta bola limiti', '2 ta tarbiyachi boshqaruvi', 'Davomat tizimi', 'Ota-onalar bilan bog\'lanish', 'To\'lovlar hisobi']
+      },
+      {
+        id: 'Kdg Pro',
+        name: 'Bog\'cha Pro',
+        price: '399 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Xususiy bog\'chalar va bolalar markazlari uchun',
+        features: ['100 ta bola limiti', '10 ta tarbiyachi boshqaruvi', 'Guruhlar va dars jadvallari', 'Taomnoma (ovqatlanish) hisobi', 'Telegram Bot xabarnomalari']
+      },
+      {
+        id: 'Kdg Enterprise',
+        name: 'Bog\'cha Tarmog\'i',
+        price: '899 000',
+        currency: 'UZS',
+        desc: 'Yirik bog\'cha tarmoqlari va xususiy maktabgacha ta\'lim muassasalari uchun',
+        features: ['Cheksiz bolalar & tarbiyachilar', 'Avtomatik oylik billing to\'lovlari', 'Bolalar rivojlanish hisobotlari', 'Custom domain & brending', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'library') {
+    return [
+      {
+        id: 'Lib Starter',
+        name: 'Book Cafe / Kutubxona',
+        price: '99 000',
+        currency: 'UZS',
+        desc: 'Kitob kafelari va kichik xususiy kutubxonalar uchun',
+        features: ['1000 ta kitob limiti', 'Kitobxon a\'zolik kartalari', 'Kitob berish va qaytarish', 'Muddati o\'tganlik ogohlantirishlari', 'Standard hisobotlar']
+      },
+      {
+        id: 'Lib Pro',
+        name: 'Kutubxona Pro',
+        price: '249 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional kutubxonalar va maktab kutubxonalari uchun',
+        features: ['10 000 ta kitob limiti', 'Barcode/QR tizimi', 'Kutubxona navbatlar taqvimi', 'Kitobxonlar jarimalari hisobi', 'Telegram Bot integratsiyasi']
+      },
+      {
+        id: 'Lib Enterprise',
+        name: 'Kutubxonalar Tarmog\'i',
+        price: '599 000',
+        currency: 'UZS',
+        desc: 'Yirik davlat va xususiy kutubxona tarmoqlari uchun',
+        features: ['Cheksiz kitoblar', 'Raqamli kutubxona (E-book) moduli', 'Filiallararo kitob qidiruv tizimi', 'Custom domain ulanishi', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'cosmetics') {
+    return [
+      {
+        id: 'Cosmetics Starter',
+        name: 'Kichik Do\'kon',
+        price: '149 000',
+        currency: 'UZS',
+        desc: 'Kichik kosmetika do\'konlari va orollar uchun',
+        features: ['1 ta kassa (POS)', 'Mahsulotlar ombori', 'Standard CRM', 'Yaroqlilik muddati nazorati', 'Barcode scanner integratsiyasi']
+      },
+      {
+        id: 'Cosmetics Pro',
+        name: 'Kosmetika Pro',
+        price: '349 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Professional kosmetika do\'konlari uchun to\'liq boshqaruv',
+        features: ['3 ta kassa (POS)', 'Mijozlar loyallik tizimi (Bonuslar)', 'Brendlar bo\'yicha zaxira tahlili', 'Telegram Bot integratsiyasi', 'Buxgalteriya va hisobotlar']
+      },
+      {
+        id: 'Cosmetics Enterprise',
+        name: 'Do\'konlar Tarmog\'i',
+        price: '799 000',
+        currency: 'UZS',
+        desc: 'Yirik kosmetika do\'konlari zanjirlari va tarqatuvchilar uchun',
+        features: ['Cheksiz kassalar & do\'konlar', 'Markaziy ulgurji ombor', 'Avtomatik buyurtmalar va yetkazib berish', 'Custom domain & 24/7 VIP yordam', 'SLA barqarorlik kafolati']
+      }
+    ];
+  }
+
+  if (v === 'stadium') {
+    return [
+      {
+        id: 'Stadium Starter',
+        name: 'Yakka Stadion',
+        price: '129 000',
+        currency: 'UZS',
+        desc: 'Kichik yakka tartibdagi sun\'iy qoplamali stadionlar uchun',
+        features: ['1 ta maydon limiti', 'Soatbay bandlik taqvimi', 'Mijozlar ro\'yxati', 'Yoritish & Dush xizmatlari hisobi', 'Invoyslar PDF']
+      },
+      {
+        id: 'Stadium Pro',
+        name: 'Sport Majmuasi Pro',
+        price: '299 000',
+        currency: 'UZS',
+        popular: true,
+        desc: 'Kattaroq sport majmualari va ko\'p maydonli stadionlar uchun',
+        features: ['5 ta maydon limiti', 'Kiyinish xonalari taqsimoti', 'Mijozlar avans to\'lovlari nazorati', 'Telegram Bot integratsiyasi', 'Standard CRM Pipeline']
+      },
+      {
+        id: 'Stadium Enterprise',
+        name: 'Stadiumlar Zanjiri',
+        price: '699 000',
+        currency: 'UZS',
+        desc: 'Yirik sport arenalari va stadionlar zanjirlari uchun',
+        features: ['Cheksiz maydonlar', 'Onlayn band qilish vidjeti', 'Mijozlar loyallik tizimi', 'SMS debt gateway integratsiyasi', 'Custom domain & SLA kafolati']
+      }
+    ];
+  }
+
+  // Default / Consulting / UniPath
+  return [
+    {
+      id: 'Consulting Starter',
+      name: 'Consulting Starter',
+      price: '199 000',
+      currency: 'UZS',
+      desc: 'Kichik konsalting va viza markazlari uchun',
+      features: ['100 ta arizachi limiti', '3 ta xodim boshqaruvi', 'Hujjatlarni avtomatlashtirish', 'E\'lonlar taxtasi', 'Standard CRM Pipeline']
+    },
+    {
+      id: 'Consulting Pro',
+      name: 'Consulting Pro',
+      price: '499 000',
+      currency: 'UZS',
+      popular: true,
+      desc: 'Professional konsalting agentliklari uchun',
+      features: ['500 ta arizachi limiti', '15 ta xodim boshqaruvi', 'Chet el universitetlari API sinxronizatsiyasi', 'Buxgalteriya va to\'lovlar nazorati', 'Telegram Bot va bildirishnomalar']
+    },
+    {
+      id: 'Consulting Premium',
+      name: 'Consulting Premium',
+      price: '1 199 000',
+      currency: 'UZS',
+      desc: 'Yirik konsalting tarmoqlari va agentliklari uchun',
+      features: ['1500 ta arizachi limiti', '40 ta xodim boshqaruvi', 'Hamkor xalqaro universitetlar portali', 'Mentor va kutib olish modullari', 'Custom branding va rang sxemalari']
+    },
+    {
+      id: 'Office Enterprise',
+      name: 'Office Enterprise',
+      price: '2 499 000',
+      currency: 'UZS',
+      desc: 'Transmilliy va yirik korporativ tarmoqlar uchun',
+      features: ['Cheksiz arizachilar', 'Cheksiz xodimlar boshqaruvi', 'Custom Domain ulanishi', 'VIP 24/7 bag\'ishlangan yordam', 'SLA kafolati va yuqori xavfsizlik']
+    }
+  ];
+};
+
 export default function Systematize() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
@@ -108,7 +686,7 @@ export default function Systematize() {
     companyName: '',
     subdomain: '',
     businessType: 'consulting',
-    plan: 'Pro',
+    plan: 'Consulting Pro',
     branchName: 'Main Branch / Bosh Filial',
     branchAddress: 'Tashkent, Uzbekistan',
     timezone: 'Asia/Tashkent',
@@ -116,15 +694,55 @@ export default function Systematize() {
     themeColor: 'emerald'
   });
 
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+
   useEffect(() => {
-    if (user?.email) {
-      setFormData(prev => ({
-        ...prev,
-        email: user.email || '',
-        ownerName: user.user_metadata?.full_name || prev.ownerName
-      }));
+    async function loadPlans() {
+      setIsLoadingPlans(true);
+      try {
+        const { data, error } = await (supabase as any)
+          .from('pricing_plans')
+          .select('*')
+          .eq('vertical', formData.businessType);
+        
+        let activePlans = [];
+        if (error) throw error;
+        if (data && data.length > 0) {
+          activePlans = data.map((item: any) => ({
+            id: item.name,
+            name: item.name,
+            price: item.price,
+            currency: item.currency,
+            desc: item.description,
+            features: Array.isArray(item.features) ? item.features : [],
+            popular: !!item.popular
+          }));
+          setDbPlans(activePlans);
+        } else {
+          activePlans = getPlansForVertical(formData.businessType);
+          setDbPlans(activePlans);
+        }
+
+        const planExists = activePlans.some(p => p.id === formData.plan);
+        if (!planExists && activePlans.length > 0) {
+          const popularPlan = activePlans.find(p => p.popular) || activePlans[0];
+          setFormData(prev => ({ ...prev, plan: popularPlan.id }));
+        }
+      } catch (err) {
+        const fallbackPlans = getPlansForVertical(formData.businessType);
+        setDbPlans(fallbackPlans);
+        const planExists = fallbackPlans.some(p => p.id === formData.plan);
+        if (!planExists && fallbackPlans.length > 0) {
+          const popularPlan = fallbackPlans.find(p => p.popular) || fallbackPlans[0];
+          setFormData(prev => ({ ...prev, plan: popularPlan.id }));
+        }
+      } finally {
+        setIsLoadingPlans(false);
+      }
     }
-  }, [user]);
+    loadPlans();
+  }, [formData.businessType]);
 
   // Check subdomain availability
   useEffect(() => {
@@ -172,7 +790,7 @@ export default function Systematize() {
 
     setIsSubmitting(true);
     try {
-      // 1. Create the tenant first with status Approved to allow instant access
+      // 1. Create the tenant first with status Pending to allow superadmin approval
       const { data: tenant, error: tenantError } = await (supabase as any)
         .from('tenants')
         .insert({
@@ -183,6 +801,7 @@ export default function Systematize() {
           owner_name: formData.ownerName,
           owner_email: formData.email,
           owner_phone: formData.phone,
+          vertical: formData.businessType,
           config: {
             business_type: formData.businessType,
             branding: {
@@ -208,6 +827,7 @@ export default function Systematize() {
               library:       formData.businessType === 'library',
               cosmetics:     formData.businessType === 'cosmetics',
               stadium:       formData.businessType === 'stadium',
+              car_showroom:  formData.businessType === 'car_showroom',
               ai_camera:     formData.plan !== 'Starter',
               billing:       true
             }
@@ -218,22 +838,18 @@ export default function Systematize() {
 
       if (tenantError) throw tenantError;
 
-      // 2. Register Owner User first (this creates the auth session) if not logged in
-      let currentUserId = user?.id;
-      if (!user) {
-        const { data: signUpData, error: signUpError } = await signUp(
-          formData.email,
-          formData.password,
-          formData.ownerName,
-          {
-            tenant_id: tenant.id,
-            role: 'owner'
-          }
-        );
+      // 2. Register Owner User first (this creates the auth session)
+      const { data: signUpData, error: signUpError } = await signUp(
+        formData.email,
+        formData.password,
+        formData.ownerName,
+        {
+          tenant_id: tenant.id,
+          role: 'owner'
+        }
+      );
 
-        if (signUpError) throw signUpError;
-        currentUserId = signUpData?.user?.id;
-      }
+      if (signUpError) throw signUpError;
 
       // 3. Insert the initial Branch AFTER signup so RLS sees authenticated user
       // Wait a moment for session to propagate
@@ -256,10 +872,10 @@ export default function Systematize() {
         if (!branchError && branch) {
           branchId = branch.id;
           // Update profile with branch_id
-          if (currentUserId) {
+          if (signUpData?.user?.id) {
             await (supabase as any).from('profiles')
               .update({ branch_id: branchId })
-              .eq('user_id', currentUserId);
+              .eq('user_id', signUpData.user.id);
           }
         }
       } catch (branchErr) {
@@ -268,16 +884,12 @@ export default function Systematize() {
       }
 
       toast({
-        title: user ? 'Yangi biznes qo\'shildi!' : 'Muvaffaqiyatli ro\'yxatdan o\'tildi!',
-        description: 'Sizning biznes tizimingiz muvaffaqiyatli sozlandi va ishga tushdi.'
+        title: 'Muvaffaqiyatli ro\'yxatdan o\'tildi!',
+        description: 'Sizning so\'rovingiz muvaffaqiyatli yuborildi. Super admin tasdiqlashini kuting.'
       });
 
-      // Navigate to hub if already logged in, else pending-approval
-      if (user) {
-        navigate('/hub');
-      } else {
-        navigate('/pending-approval');
-      }
+      // Navigate to pending approval screen after successful registration
+      navigate('/pending-approval');
 
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -372,7 +984,17 @@ export default function Systematize() {
                         key={type.id}
                         onClick={() => {
                           const defaultTheme = VERTICAL_DEFAULT_THEME[type.id] || 'emerald';
-                          setFormData({ ...formData, businessType: type.id, themeColor: defaultTheme });
+                          let defaultPlan = 'Consulting Pro';
+                          if (type.id === 'academy') defaultPlan = 'Tutor Pro';
+                          else if (type.id === 'tour') defaultPlan = 'Tour Pro';
+                          else if (type.id === 'car_showroom') defaultPlan = 'Showroom Pro';
+                          
+                          setFormData({ 
+                            ...formData, 
+                            businessType: type.id, 
+                            themeColor: defaultTheme,
+                            plan: defaultPlan
+                          });
                           injectTheme(defaultTheme);
                         }}
                         className={`cursor-pointer border p-6 rounded-2xl transition-all duration-300 flex flex-col justify-between hover:bg-[#151515] ${
@@ -422,56 +1044,67 @@ export default function Systematize() {
                   <p className="text-white/60 max-w-lg mx-auto">Sizning biznesingizga to'g'ri keladigan eng maqbul tarif rejasini tanlang va professional boshqaruvga ega bo'ling.</p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  {PRICING_PLANS.map((plan) => (
-                    <div 
-                      key={plan.id}
-                      onClick={() => setFormData({ ...formData, plan: plan.id })}
-                      className={`group cursor-pointer relative overflow-hidden bg-[#111111]/80 backdrop-blur-xl border p-8 rounded-[2rem] transition-all duration-300 flex flex-col justify-between hover:bg-[#151515] ${
-                        formData.plan === plan.id 
-                          ? 'border-primary shadow-[0_0_30px_rgba(212,175,55,0.15)] bg-[#131313]' 
-                          : 'border-white/5 hover:border-white/10'
-                      }`}
-                    >
-                      {plan.popular && (
-                        <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1">
-                          Tavsiya
-                        </div>
-                      )}
-                      
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-extrabold text-white">${plan.priceMonthly}</span>
-                            <span className="text-white/50 text-sm">/oyiga</span>
-                          </div>
-                        </div>
-
-                        <ul className="space-y-3">
-                          {plan.featuresUz.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm text-white/70">
-                              <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="mt-8 pt-4 border-t border-white/5">
-                        <Button 
-                          type="button"
-                          className={`w-full rounded-full transition-all ${
-                            formData.plan === plan.id 
-                              ? 'bg-primary hover:bg-primary/95 text-primary-foreground' 
-                              : 'bg-white/5 text-white hover:bg-white/10'
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                  {isLoadingPlans ? (
+                    <div className="col-span-full flex justify-center py-12">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                  ) : dbPlans.length === 0 ? (
+                    <div className="col-span-full text-center text-white/40 text-sm py-12">Tariflar topilmadi</div>
+                  ) : (
+                    dbPlans.map((p) => {
+                      const isSelected = formData.plan === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => setFormData({ ...formData, plan: p.id })}
+                          className={`relative cursor-pointer border p-6 rounded-[2rem] transition-all duration-300 flex flex-col justify-between hover:bg-[#151515] ${
+                            isSelected
+                              ? 'border-primary bg-primary/5 shadow-[0_0_30px_rgba(var(--primary),0.15)] ring-1 ring-primary/20'
+                              : 'border-white/5 bg-[#111111]/80 hover:border-white/10'
                           }`}
                         >
-                          Tanlash
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                          {p.popular && (
+                            <span className="absolute -top-3 right-6 bg-primary text-primary-foreground text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                              Mashhur
+                            </span>
+                          )}
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="font-extrabold text-white text-lg">{p.name}</h3>
+                              <p className="text-white/50 text-xs mt-1 leading-relaxed min-h-[32px]">{p.desc}</p>
+                            </div>
+                            
+                            <div className="py-2">
+                              <span className="text-3xl font-black text-white">{p.price}</span>
+                              <span className="text-white/40 text-xs ml-1 font-semibold">{p.currency}/oy</span>
+                            </div>
+
+                            <div className="border-t border-white/5 pt-4 space-y-2">
+                              {p.features.map((feat: string, idx: number) => (
+                                <div key={idx} className="flex items-start gap-2 text-xs">
+                                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                  <span className="text-white/70 leading-normal">{feat}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-6">
+                            <Button
+                              className={`w-full font-bold rounded-xl h-11 transition-all ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground hover:bg-primary/95'
+                                  : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                              }`}
+                            >
+                              {isSelected ? "Tanlandi" : "Tanlash"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
 
                 <div className="flex justify-between items-center pt-4">
@@ -703,81 +1336,69 @@ export default function Systematize() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <Card className="bg-[#111111]/80 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 space-y-6">
-                    {!user ? (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="ownerName" className="text-white/80 font-medium">To'liq ism va familiyangiz</Label>
-                          <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                            <Input
-                              id="ownerName"
-                              type="text"
-                              placeholder="John Doe"
-                              className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                              value={formData.ownerName}
-                              onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="email" className="text-white/80 font-medium">Email manzilingiz (Login uchun)</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="example@mail.com"
-                              className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                              value={formData.email}
-                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="phone" className="text-white/80 font-medium">Telefon raqam</Label>
-                          <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                            <Input
-                              id="phone"
-                              type="tel"
-                              placeholder="+998 (90) 123-45-67"
-                              className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                              value={formData.phone}
-                              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="pass" className="text-white/80 font-medium">Parol yarating</Label>
-                          <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                            <Input
-                              id="pass"
-                              type="password"
-                              placeholder="••••••••"
-                              className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                              value={formData.password}
-                              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                              required
-                            />
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-6">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <User className="w-8 h-8 text-primary" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">{user.user_metadata?.full_name || 'Hurmatli Mijoz'}</h3>
-                        <p className="text-white/60 mb-6">Yangi biznesingiz ushbu hisobingizga avtomatik biriktiriladi.</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="ownerName" className="text-white/80 font-medium">To'liq ism va familiyangiz</Label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Input
+                          id="ownerName"
+                          type="text"
+                          placeholder="John Doe"
+                          className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                          value={formData.ownerName}
+                          onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                          required
+                        />
                       </div>
-                    )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white/80 font-medium">Email manzilingiz (Login uchun)</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="example@mail.com"
+                          className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-white/80 font-medium">Telefon raqam</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="+998 (90) 123-45-67"
+                          className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pass" className="text-white/80 font-medium">Parol yarating</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Input
+                          id="pass"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
                   </Card>
 
                   <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-2xl text-sm">
@@ -798,9 +1419,9 @@ export default function Systematize() {
                       <ArrowLeft className="mr-2 w-5 h-5" /> Orqaga
                     </Button>
                     
-                    <Button
+                    <Button 
                       type="submit"
-                      disabled={isSubmitting || (!user && (!formData.ownerName || !formData.email || !formData.phone || formData.password.length < 6))}
+                      disabled={isSubmitting || !formData.ownerName || !formData.email || !formData.phone || formData.password.length < 6}
                       className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 rounded-full shadow-[0_0_20px_rgba(212,175,55,0.2)] disabled:opacity-40 flex items-center gap-2"
                     >
                       {isSubmitting ? (

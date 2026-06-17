@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Edit, Trash2, Hotel, Loader2, Star, Wifi, Car, Waves, Dumbbell, Flower, Wind, Utensils } from "lucide-react";
+import { Plus, Edit, Trash2, Hotel, Loader2, Star, Wifi, Car, Waves, Dumbbell, Sparkles, Wind, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,7 +97,7 @@ const AdminHotels = () => {
                 </div>
                 <div className="space-y-2"><Label>{t("admin.imageUrl")}</Label><Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} /></div>
                 <div className="space-y-3 pt-2"><Label className="text-base font-semibold">Wi-Fi / Parking / Pool</Label><div className="grid grid-cols-2 gap-3">
-                  {[{ key: "has_wifi", label: "Wi-Fi", icon: Wifi }, { key: "has_parking", label: "Parking", icon: Car }, { key: "has_pool", label: "Pool", icon: Waves }, { key: "has_gym", label: "Gym", icon: Dumbbell }, { key: "has_spa", label: "SPA", icon: Flower }, { key: "has_air_conditioning", label: "A/C", icon: Wind }, { key: "has_restaurant", label: "Restaurant", icon: Utensils }].map(({ key, label, icon: Icon }) => (
+                  {[{ key: "has_wifi", label: "Wi-Fi", icon: Wifi }, { key: "has_parking", label: "Parking", icon: Car }, { key: "has_pool", label: "Pool", icon: Waves }, { key: "has_gym", label: "Gym", icon: Dumbbell }, { key: "has_spa", label: "SPA", icon: Sparkles }, { key: "has_air_conditioning", label: "A/C", icon: Wind }, { key: "has_restaurant", label: "Restaurant", icon: Utensils }].map(({ key, label, icon: Icon }) => (
                     <div key={key} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"><div className="flex items-center gap-2"><Icon className="h-4 w-4 text-muted-foreground" /><span className="text-sm">{label}</span></div><Switch checked={formData[key as keyof HotelForm] as boolean} onCheckedChange={(checked) => setFormData({ ...formData, [key]: checked })} /></div>
                   ))}
                 </div></div>

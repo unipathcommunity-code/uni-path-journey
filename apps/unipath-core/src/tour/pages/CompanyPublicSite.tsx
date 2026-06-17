@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useQuery } from "@tanstack/react-query";
 import {
   Loader2, Phone, Mail, MapPin, Globe, Instagram, Send, MessageCircle, Search, Star,
-  Calendar, Users, ChevronRight, Award, Shield, HeartHandshake, ArrowRight, CheckCircle2,
+  Calendar, Users, ChevronRight, Award, Shield, HeartHandshake, ArrowRight, CheckCircle2, Sparkles,
   LogIn, UserPlus, LogOut, User as UserIcon, Plane,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -263,7 +263,7 @@ const CompanyPublicSite = ({ slugOverride }: { slugOverride?: string } = {}) => 
         <motion.div style={{ opacity: heroOpacity }} className="relative text-center container px-4 z-10 max-w-4xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Badge className="bg-white/20 backdrop-blur border-white/30 text-white mb-5 hover:bg-white/30">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
+              <Sparkles className="h-3 w-3 mr-1" />
               Rasmiy tour operator
             </Badge>
           </motion.div>

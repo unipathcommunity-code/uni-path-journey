@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Star } from "lucide-react";
+import { ArrowRight, Sparkles, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SaaSHero = () => {
@@ -22,7 +22,7 @@ const SaaSHero = () => {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary mb-5"
             >
-              <Star className="h-3.5 w-3.5 fill-current" />
+              <Sparkles className="h-3.5 w-3.5" />
               Tour kompaniyalar uchun #1 platforma
             </motion.div>
 

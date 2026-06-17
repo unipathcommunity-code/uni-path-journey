@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 
 const Stat = ({ icon: Icon, label, value, delay }: any) => (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.3 }}>

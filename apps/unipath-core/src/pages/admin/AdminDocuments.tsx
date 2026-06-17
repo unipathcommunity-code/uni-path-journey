@@ -20,7 +20,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useApp } from '@/contexts/AppContext';
 import {
   Search,
   FileText,
@@ -89,7 +88,6 @@ const DOCUMENT_LABELS: Record<string, string> = {
 
 export default function AdminDocuments() {
   const { toast } = useToast();
-  const { activeTenant } = useApp();
   const [documents, setDocuments] = useState<DocumentWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,8 +112,7 @@ export default function AdminDocuments() {
   useEffect(() => {
     fetchDocuments();
     fetchAgentAssignments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTenant?.id]);
+  }, []);
 
   async function fetchAgentAssignments() {
     // Fetch agent assignments
@@ -146,19 +143,9 @@ export default function AdminDocuments() {
   }
 
   async function fetchDocuments() {
-    // Scope to the active tenant — otherwise a SuperAdmin impersonating a
-    // tenant (RLS sees all rows) would load every tenant's documents.
-    const tid = activeTenant?.id;
-    if (!tid) {
-      setDocuments([]);
-      setLoading(false);
-      return;
-    }
-
     const { data: docs, error } = await supabase
       .from('documents')
       .select('*')
-      .eq('tenant_id', tid)
       .order('created_at', { ascending: false });
 
     if (!error && docs) {

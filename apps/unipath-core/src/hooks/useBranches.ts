@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, type ReactNode } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenantStore, BranchConfig } from '@/store/useTenantStore';
 import { useApp } from '@/contexts/AppContext';
@@ -177,14 +177,6 @@ export function useBranches() {
     maxBranches,
     branchCount: availableBranches.length,
   };
-}
-
-// ── Passthrough provider ──────────────────────────────────────────────────────
-// Branch state lives in the Zustand store + useBranches hook, so no real context
-// provider is needed. This passthrough exists only to satisfy legacy imports
-// (e.g. tour CompanyLayout) during the ecosystem unification.
-export function BranchProvider({ children }: { children: ReactNode }) {
-  return children as ReactNode;
 }
 
 // ── Shared Aliases for Company Pages ──────────────────────────────────────────

@@ -26,6 +26,31 @@ export interface ThemePreset {
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
+    id: 'luxury',
+    name: 'Cosmic Luxury',
+    nameUz: 'Kosmik Lyuks',
+    nameRu: 'Космический Люкс',
+    colorHex: '#6366f1',
+    light: {
+      primary: '243 75% 59%',
+      primaryGlow: '243 75% 69%',
+      ring: '243 75% 59%',
+      secondary: '243 30% 96%',
+      secondaryForeground: '243 50% 25%',
+      accent: '243 40% 92%',
+      accentForeground: '243 60% 30%',
+      sidebarPrimary: '243 75% 59%',
+      sidebarRing: '243 75% 59%',
+    },
+    dark: {
+      primary: '245 80% 64%',
+      primaryGlow: '245 80% 74%',
+      ring: '245 80% 64%',
+      sidebarPrimary: '245 80% 64%',
+      sidebarRing: '245 80% 64%',
+    }
+  },
+  {
     id: 'emerald',
     name: 'Emerald Green',
     nameUz: 'Zumrad Yashil',

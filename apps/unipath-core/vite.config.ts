@@ -12,13 +12,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@unipath/db": path.resolve(__dirname, "../../packages/db/src/index.ts"),
-      "@unipath/auth": path.resolve(__dirname, "../../packages/auth/src/index.ts"),
-      "@unipath/tenant": path.resolve(__dirname, "../../packages/tenant/src/index.ts"),
-      "@unipath/ui": path.resolve(__dirname, "./src/components/ui/index.ts"),
-      "@unipath/unicoin": path.resolve(__dirname, "../../packages/unicoin/src/index.ts"),
-      "@unipath/telegram": path.resolve(__dirname, "../../packages/telegram/src/index.ts"),
     },
-    dedupe: ["react", "react-dom"],
   },
 }));

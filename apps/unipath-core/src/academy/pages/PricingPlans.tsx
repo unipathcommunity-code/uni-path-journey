@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Award, ArrowRight, Loader2 } from "lucide-react";
+import { Check, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -100,7 +100,7 @@ export default function PricingPlans() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-5"
           >
-            <Award className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5" />
             NOVA tariflari
           </motion.div>
           <motion.h1

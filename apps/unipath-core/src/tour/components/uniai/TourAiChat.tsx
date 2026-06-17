@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plane, Search, Lightbulb, Send, MessageCircle, X, ChevronRight, Loader2, Minimize2 } from "lucide-react";
+import { Send, X, Search, Sparkles, Loader2, Plane, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,7 @@ const TourAiChat = () => {
       case "search":
         return { icon: Search, title: "Qidiruv", placeholder: "Tur qidirish...", welcome: "Qaysi turni qidiryapsiz? Masalan: 'Dubayga tur' yoki 'Arzon oilaviy turlar'" };
       case "recommendation":
-        return { icon: Lightbulb, title: "Tavsiya", placeholder: "Sizga qanday tur kerak?", welcome: "Byudjetingiz, vaqtingiz va xohishlaringiz haqida ayting, men sizga eng mos turlarni tavsiya qilaman!" };
+        return { icon: Sparkles, title: "Tavsiya", placeholder: "Sizga qanday tur kerak?", welcome: "Byudjetingiz, vaqtingiz va xohishlaringiz haqida ayting, men sizga eng mos turlarni tavsiya qilaman!" };
       default:
         return { icon: Plane, title: "TourAi", placeholder: "Savolingizni yozing...", welcome: "Salom! Men TourAi - sizning sayohat yordamchingizman. Sizga qanday yordam bera olaman?" };
     }

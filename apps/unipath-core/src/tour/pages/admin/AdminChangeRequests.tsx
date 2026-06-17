@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Inbox, Check, X, CheckCheck, Pen, Building2, Clock, MessageSquare } from "lucide-react";
+import { Loader2, Inbox, Check, X, Sparkles, Building2, Clock, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 const TABS = [
   { key: "pending", label: "Kutilmoqda", icon: Clock },
   { key: "approved", label: "Tasdiqlangan", icon: Check },
-  { key: "applied", label: "Qo'llangan", icon: CheckCheck },
+  { key: "applied", label: "Qo'llangan", icon: Sparkles },
   { key: "rejected", label: "Rad etilgan", icon: X },
 ];
 
@@ -151,7 +151,7 @@ const AdminChangeRequests = () => {
                           </Button>
                           <a href={`/admin/site-editor/${c?.id}`}>
                             <Button size="sm" className="rounded-lg h-8 text-xs">
-                              <Pen className="h-3.5 w-3.5 mr-1" strokeWidth={1.75} /> Tahrir
+                              <Sparkles className="h-3.5 w-3.5 mr-1" strokeWidth={1.75} /> Tahrir
                             </Button>
                           </a>
                         </div>

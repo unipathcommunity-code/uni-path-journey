@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/layout/Layout";
 import { 
-  Star, Wifi, Car, Waves, Dumbbell, Flower, Wind, 
+  Star, Wifi, Car, Waves, Dumbbell, Sparkles, Wind, 
   UtensilsCrossed, Coffee, Loader2, MapPin, Phone, Mail
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -126,7 +126,7 @@ const HotelsPage = () => {
                     )}
                     {hotel.has_spa && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs">
-                        <Flower className="h-3 w-3" /> SPA
+                        <Sparkles className="h-3 w-3" /> SPA
                       </span>
                     )}
                     {hotel.has_air_conditioning && (

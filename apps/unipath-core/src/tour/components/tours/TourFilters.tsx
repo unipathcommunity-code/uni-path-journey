@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, X, Star } from "lucide-react";
+import { Search, SlidersHorizontal, X, Star, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -232,7 +232,7 @@ const TourFilters = ({
 
       {hasActiveFilters && (
         <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/40">
-          <SlidersHorizontal className="h-4 w-4 text-primary" />
+          <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm text-muted-foreground">{t("tours.filtersLabel")}</span>
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-destructive ml-auto rounded-lg">
             <X className="h-4 w-4 mr-1" />

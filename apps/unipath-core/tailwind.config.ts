@@ -51,12 +51,6 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-        lime: {
-          DEFAULT: "var(--lime)",
-          bright: "var(--lime-bright)",
-        },
-        forest: "var(--forest)",
-        "slate-ink": "var(--slate-ink)",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

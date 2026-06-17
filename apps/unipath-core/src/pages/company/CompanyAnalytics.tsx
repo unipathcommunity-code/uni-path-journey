@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { BarChart3, Eye, Package, Calendar, MessageSquare, FileText, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 
 const Stat = ({ icon: Icon, label, value, accent, delay }: any) => (
   <motion.div

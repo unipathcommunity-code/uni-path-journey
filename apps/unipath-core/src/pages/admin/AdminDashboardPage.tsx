@@ -13,21 +13,15 @@ import AdminKindergarten from './AdminKindergarten';
 import AdminLibrary from './AdminLibrary';
 import AdminCosmetics from './AdminCosmetics';
 import AdminStadium from './AdminStadium';
+import AdminCarShowroom from './AdminCarShowroom';
 import AdminConsulting from './AdminConsulting';
 
 export default function AdminDashboardPage() {
   const { activeTenant } = useApp();
 
   // ── VERTICAL DETECTION ──────────────────────────────────────────────────────
-  // Guard the parse: a malformed/stale `active_tenant` must never crash the
-  // whole admin panel (would render a blank screen via ErrorBoundary).
-  let impersonatedTenant: any = null;
-  try {
-    const raw = localStorage.getItem('active_tenant');
-    if (raw) impersonatedTenant = JSON.parse(raw);
-  } catch {
-    impersonatedTenant = null;
-  }
+  const impersonatedTenantRaw = localStorage.getItem('active_tenant');
+  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
   const effectiveTenant = impersonatedTenant || activeTenant;
   const activeModules = (effectiveTenant?.config?.modules ?? {}) as Record<string, boolean>;
 
@@ -48,6 +42,7 @@ export default function AdminDashboardPage() {
     'cosmetics',
     'stadium',
     'pharmacy',
+    'car_showroom',
     'consulting',
   ];
 
@@ -79,6 +74,7 @@ export default function AdminDashboardPage() {
   if (vertical === 'library')       return <AdminLibrary />;
   if (vertical === 'cosmetics')     return <AdminCosmetics />;
   if (vertical === 'stadium')       return <AdminStadium />;
+  if (vertical === 'car_showroom')  return <AdminCarShowroom />;
 
   // Default consulting dashboard fallback
   return <AdminConsulting />;

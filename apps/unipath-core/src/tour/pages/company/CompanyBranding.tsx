@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, ExternalLink, Send, ShieldCheck, Type } from "lucide-react";
+import { Lock, ExternalLink, Send, ShieldCheck, Sparkles } from "lucide-react";
 import { useMyCompany } from "@/hooks/useTourCompany";
 import ChangeRequestDialog from "@/components/company/ChangeRequestDialog";
 import { useQuery } from "@tanstack/react-query";
@@ -89,7 +89,7 @@ const CompanyBranding = () => {
             </div>
           ))}
           <div className="md:col-span-3 flex items-center gap-2 pt-2 mt-1 border-t border-border/60 text-xs">
-            <Type className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
+            <Sparkles className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
             <span className="text-muted-foreground">Shrift:</span>
             <span className="font-medium" style={{ fontFamily: company.font_family }}>{company.font_family}</span>
           </div>

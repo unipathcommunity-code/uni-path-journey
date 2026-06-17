@@ -24,6 +24,7 @@ export type BusinessVertical =
   | 'cosmetics'
   | 'stadium'
   | 'pharmacy'
+  | 'car_showroom'
   | 'consulting';
 
 // ---------------------------------------------------------------------------
@@ -80,22 +81,12 @@ export interface TenantContextValue {
   isImpersonating: boolean;
   /** End impersonation and return to the SuperAdmin's own tenant */
   endImpersonation: () => void;
-
-  // ── Multi-business (owner) support ───────────────────────────────────────
-  /** All tenants owned by the signed-in user (matched by owner_email). */
+  /** Owned tenants for the user (specifically SaaS owners) */
   ownedTenants: Tenant[];
-  /** Refetch the owned-tenants list from DB. */
+  /** Refetch owned tenants from DB */
   refetchOwnedTenants: () => Promise<void>;
-  /**
-   * Switch the active tenant to another business the user owns. Persists the
-   * selection to localStorage and re-resolves. No-op if the target is not
-   * owned by the current user.
-   */
+  /** Switch to a different owned tenant */
   switchTenant: (tenantId: string) => void;
-  /**
-   * True when the active tenant was selected via an owner business-switch
-   * (owner viewing one of their own businesses) — distinct from SuperAdmin
-   * impersonation (`isImpersonating`).
-   */
+  /** Whether the active tenant was switched by the owner */
   isOwnerSwitch: boolean;
 }

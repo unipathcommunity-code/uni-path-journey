@@ -1,4 +1,4 @@
-import { Star, Wifi, Utensils, Car, Waves, Dumbbell, Flower, Wind, MapPin, Calendar, Clock } from "lucide-react";
+import { Star, Utensils, Wifi, Car, Waves, Dumbbell, Sparkles, Wind, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Hotel {
@@ -44,7 +44,7 @@ const HotelCard = ({ tourHotel }: HotelCardProps) => {
     { icon: Car, label: "Parking", available: hotel.has_parking },
     { icon: Waves, label: "Basseyn", available: hotel.has_pool },
     { icon: Dumbbell, label: "Sport zal", available: hotel.has_gym },
-    { icon: Flower, label: "SPA", available: hotel.has_spa },
+    { icon: Sparkles, label: "SPA", available: hotel.has_spa },
     { icon: Wind, label: "Konditsioner", available: hotel.has_air_conditioning },
   ].filter(a => a.available);
 

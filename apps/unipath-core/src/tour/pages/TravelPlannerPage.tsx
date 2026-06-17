@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Plane, Loader2, Wand2, MapPin, Calendar, Clock, DollarSign, RefreshCw, Send, Check, Users, RotateCcw, Heart, Download, ChevronDown } from "lucide-react";
+import { Plane, MapPin, DollarSign, Calendar, Users, Sparkles, Loader2, RotateCcw, Heart, Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -143,7 +143,7 @@ const TravelPlannerPage = () => {
               className="text-center max-w-3xl mx-auto mb-12"
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                <Wand2 className="h-4 w-4" />
+                <Sparkles className="h-4 w-4" />
                 AI bilan sayohat rejasi
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
@@ -271,7 +271,7 @@ const TravelPlannerPage = () => {
                       </>
                     ) : (
                       <>
-                        <Wand2 className="h-5 w-5" />
+                        <Sparkles className="h-5 w-5" />
                         Sayohat rejasini tuzing
                       </>
                     )}

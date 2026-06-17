@@ -128,6 +128,7 @@ const AdminKindergarten = lazy(() => import("./pages/admin/AdminKindergarten"));
 const AdminLibrary = lazy(() => import("./pages/admin/AdminLibrary"));
 const AdminCosmetics = lazy(() => import("./pages/admin/AdminCosmetics"));
 const AdminStadium = lazy(() => import("./pages/admin/AdminStadium"));
+const AdminCarShowroom = lazy(() => import("./pages/admin/AdminCarShowroom"));
 
 // Owner Hub
 const OwnerHub = lazy(() => import("./pages/owner/OwnerHub"));
@@ -676,6 +677,7 @@ const App = () => (
               <Route path="/admin/library" element={<ProtectedRoute requireAdmin><AdminLayout><AdminLibrary /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/cosmetics" element={<ProtectedRoute requireAdmin><AdminLayout><AdminCosmetics /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/stadium" element={<ProtectedRoute requireAdmin><AdminLayout><AdminStadium /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/car-showroom" element={<ProtectedRoute requireAdmin><AdminLayout><AdminCarShowroom /></AdminLayout></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
               </Routes>

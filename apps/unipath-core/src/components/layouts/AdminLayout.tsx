@@ -9,7 +9,6 @@ import { useTranslation } from '@/lib/i18n';
 import { Logo } from '@/components/Logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useUserRole } from '@/hooks/useUserRole';
-import { BusinessSwitcher } from '@/components/BusinessSwitcher';
 import {
   LayoutDashboard,
   Users,
@@ -51,7 +50,6 @@ import {
   Plane,
   MapPin,
   LucideIcon,
-  ArrowLeftRight,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -147,13 +145,13 @@ const VERTICAL_NAV: Record<string, VerticalNavItem[]> = {
 // Each vertical surfaces the relevant vertical-specific app module in the
 // dropdown so operators can deep-link directly from the switcher.
 
-function buildAppsForVertical(vertical: string, lang: string): AppEntry[] {
+function buildAppsForVertical(vertical: string, lang: string, tenantName?: string): AppEntry[] {
   if (vertical === 'academy') {
     return [
       {
         id: 'nova',
         icon: '🎓',
-        label: lang === 'uz' ? 'NOVA Academy' : lang === 'ru' ? 'NOVA Академия' : 'NOVA Academy',
+        label: tenantName || (lang === 'uz' ? 'O\'quv Markazi' : lang === 'ru' ? 'Учебный Центр' : 'Academy'),
         href: '/admin/academy',
       },
     ];
@@ -163,7 +161,7 @@ function buildAppsForVertical(vertical: string, lang: string): AppEntry[] {
       {
         id: 'unitour',
         icon: '✈️',
-        label: lang === 'uz' ? 'UniTour' : lang === 'ru' ? 'UniTour' : 'UniTour',
+        label: tenantName || (lang === 'uz' ? 'Turizm Boshqaruvi' : lang === 'ru' ? 'Управление турами' : 'Tour Management'),
         href: '/admin/tour',
       },
     ];
@@ -180,7 +178,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { tier, features, hasMentors, hasInvoices } = usePlanLimits();
   const t = useTranslation(language);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAccountant, isOwner, isSuperAdmin } = useUserRole();
+  const { isAccountant } = useUserRole();
 
   // Vertical is already resolved by mapTenant() inside TenantProvider
   const vertical = (activeTenant?.business_type as string) || 'consulting';
@@ -300,7 +298,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isRestrictedRole = isAccountant;
 
   // ── Cross-app entries for BranchSwitcher ─────────────────────────────────
-  const appsForSwitcher = buildAppsForVertical(vertical, language);
+  const appsForSwitcher = buildAppsForVertical(vertical, language, activeTenant?.name);
 
   // ── Render helpers ──────────────────────────────────────────────────────────
 
@@ -486,32 +484,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Bottom: Settings + Logout */}
           <div className={`px-3 py-3 border-t ${isAcademy || isTour ? 'border-white/10' : 'border-border'} space-y-0.5`}>
-            {(isOwner || isSuperAdmin) && (
-              <button
-                onClick={() => {
-                  localStorage.removeItem('active_tenant');
-                  navigate('/hub');
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${isAcademy || isTour ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-              >
-                <ArrowLeftRight className="w-4 h-4 shrink-0" />
-                <span>{language === 'ru' ? 'Сменить бизнес' : language === 'uz' ? 'Biznesni almashtirish' : 'Switch Business'}</span>
-              </button>
-            )}
             <NavLink icon={Settings} label={language === 'ru' ? 'Настройки' : language === 'uz' ? 'Sozlamalar' : 'Settings'} href="/admin/settings" />
-              <button
-                onClick={handleSignOut}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${isAcademy || isTour ? 'text-white/60 hover:bg-white/5 hover:text-rose-400' : 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive'}`}
-              >
-                <LogOut className="w-4 h-4 shrink-0" />
-                <span>{t.adminLogout}</span>
-              </button>
-            </div>
-
+            <button
+              onClick={handleSignOut}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${isAcademy || isTour ? 'text-white/60 hover:bg-white/5 hover:text-rose-400' : 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive'}`}
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span>{t.adminLogout}</span>
+            </button>
           </div>
-        </aside>
 
-        {/* ── Main content ── */}
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
       <main className="flex-1 min-w-0">
         {/* Top bar */}
         <header className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isAcademy || isTour ? 'bg-[#09090b]/80 border-white/10 text-white dark' : 'bg-background/80 border-border text-foreground'}`}>
@@ -536,7 +522,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <BusinessSwitcher />
               <LanguageSwitcher />
               <button
                 onClick={handleSignOut}

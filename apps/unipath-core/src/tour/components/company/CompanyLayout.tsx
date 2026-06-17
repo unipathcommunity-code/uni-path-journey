@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { BranchProvider } from '@/tour/hooks/useBranches';
+import { BranchProvider } from "@/hooks/useTourBranches";
 import BranchSwitcher from "@/components/company/BranchSwitcher";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import logo from "@/assets/unitour-logo-new.png";

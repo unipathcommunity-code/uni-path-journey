@@ -90,70 +90,65 @@ export const useStudentDashboard = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      try {
-        const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayEnd = new Date(todayStart.getTime() + 86400000);
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 86400000);
 
-        // Today's lessons — only ones tied to groups the student belongs to
-        const { data: gm } = await supabase
-          .from("group_members")
-          .select("group_id, groups(subject_id, teacher_id)")
-          .eq("student_id", user.id);
-        const subjectIds = Array.from(new Set((gm || []).map((g: any) => g.groups?.subject_id).filter(Boolean)));
-        const teacherIds = Array.from(new Set((gm || []).map((g: any) => g.groups?.teacher_id).filter(Boolean)));
+      // Today's lessons — only ones tied to groups the student belongs to
+      const { data: gm } = await supabase
+        .from("group_members")
+        .select("group_id, groups(subject_id, teacher_id)")
+        .eq("student_id", user.id);
+      const subjectIds = Array.from(new Set((gm || []).map((g: any) => g.groups?.subject_id).filter(Boolean)));
+      const teacherIds = Array.from(new Set((gm || []).map((g: any) => g.groups?.teacher_id).filter(Boolean)));
 
-        let lessonsQ = supabase
-          .from("lessons")
-          .select("*, rooms(name), subjects(name), teacher_profile:profiles!lessons_teacher_id_fkey(full_name)")
-          .gte("starts_at", todayStart.toISOString())
-          .lt("starts_at", todayEnd.toISOString())
-          .order("starts_at");
-        if (subjectIds.length > 0) lessonsQ = lessonsQ.in("subject_id", subjectIds);
-        const { data: lessons } = await lessonsQ;
+      let lessonsQ = supabase
+        .from("lessons")
+        .select("*, rooms(name), subjects(name), teacher_profile:profiles!lessons_teacher_id_fkey(full_name)")
+        .gte("starts_at", todayStart.toISOString())
+        .lt("starts_at", todayEnd.toISOString())
+        .order("starts_at");
+      if (subjectIds.length > 0) lessonsQ = lessonsQ.in("subject_id", subjectIds);
+      const { data: lessons } = await lessonsQ;
 
-        if (lessons) {
-          const filtered = subjectIds.length === 0
-            ? [] // student has no group yet
-            : lessons.filter((l: any) =>
-                teacherIds.length === 0 || teacherIds.includes(l.teacher_id)
-              );
-          const mapped: ScheduleItem[] = filtered.map((l: any) => {
-            const start = new Date(l.starts_at);
-            const end = new Date(l.ends_at);
-            let status: "completed" | "live" | "upcoming" = "upcoming";
-            if (now >= start && now <= end) status = "live";
-            else if (now > end) status = "completed";
-            return {
-              id: l.id,
-              subject: l.subjects?.name || l.title,
-              room: l.rooms?.name || "TBD",
-              teacher: l.teacher_profile?.full_name || "—",
-              startsAt: start,
-              endsAt: end,
-              status,
-            };
-          });
-          setSchedule(mapped);
-        }
-
-        // Notifications
-        const { data: notifs } = await supabase
-          .from("notifications")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("is_read", false)
-          .order("created_at", { ascending: false })
-          .limit(10);
-        if (notifs) setNotifications(notifs);
-
-        await fetchHomework(user.id);
-        await fetchProgress(user.id);
-      } catch (err) {
-        console.error("Error fetching student dashboard data:", err);
-      } finally {
-        setLoading(false);
+      if (lessons) {
+        const filtered = subjectIds.length === 0
+          ? [] // student has no group yet
+          : lessons.filter((l: any) =>
+              teacherIds.length === 0 || teacherIds.includes(l.teacher_id)
+            );
+        const mapped: ScheduleItem[] = filtered.map((l: any) => {
+          const start = new Date(l.starts_at);
+          const end = new Date(l.ends_at);
+          let status: "completed" | "live" | "upcoming" = "upcoming";
+          if (now >= start && now <= end) status = "live";
+          else if (now > end) status = "completed";
+          return {
+            id: l.id,
+            subject: l.subjects?.name || l.title,
+            room: l.rooms?.name || "TBD",
+            teacher: l.teacher_profile?.full_name || "—",
+            startsAt: start,
+            endsAt: end,
+            status,
+          };
+        });
+        setSchedule(mapped);
       }
+
+      // Notifications
+      const { data: notifs } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_read", false)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (notifs) setNotifications(notifs);
+
+      await fetchHomework(user.id);
+      await fetchProgress(user.id);
+      setLoading(false);
     };
 
     // Real progress: real attendance %, real avg score from graded HW, real coin-derived level,

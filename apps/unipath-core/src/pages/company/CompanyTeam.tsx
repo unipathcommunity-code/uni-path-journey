@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Users, Loader2, Crown, UserCircle2, UserPlus, Trash2, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useMyBranches, useBranch } from '@/tour/hooks/useBranches';
+import { useMyBranches, useBranch, Branch } from "@/hooks/useTourBranches";
 
 const CompanyTeam = () => {
   const { data } = useMyCompany();
@@ -36,7 +36,7 @@ const CompanyTeam = () => {
     },
   });
 
-  const branchMap = new Map(branches.map((b) => [b.id, b]));
+  const branchMap = new Map<string, Branch>(branches.map((b) => [b.id, b]));
 
   const updateBranch = useMutation({
     mutationFn: async ({ id, branch_id }: { id: string; branch_id: string | null }) => {

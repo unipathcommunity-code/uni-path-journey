@@ -29,7 +29,7 @@ interface CrmClient {
   email: string | null;
   telegram_username: string | null;
   stage: CrmStage;
-  crm_stage_id: string | null;
+  agent_student_id: string | null;
   notes: string | null;
   assigned_at: string | null;
   selected_country: string | null;
@@ -51,15 +51,9 @@ export default function AdminCRM() {
 
   const tid = activeTenant?.id ?? tenantId;
 
-  // Resolve current tenant vertical (guard parse so a stale/malformed
-  // `active_tenant` can never crash the CRM page).
-  let impersonatedTenant: any = null;
-  try {
-    const raw = localStorage.getItem('active_tenant');
-    if (raw) impersonatedTenant = JSON.parse(raw);
-  } catch {
-    impersonatedTenant = null;
-  }
+  // Resolve current tenant vertical
+  const impersonatedTenantRaw = localStorage.getItem('active_tenant');
+  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
   const effectiveTenant = impersonatedTenant || activeTenant;
   let vertical = effectiveTenant?.business_type || effectiveTenant?.config?.business_type || effectiveTenant?.vertical || 'consulting';
   if (vertical === 'tour_farm') vertical = 'tour';
@@ -102,7 +96,7 @@ export default function AdminCRM() {
     return language === 'ru' ? s.labelRu : language === 'uz' ? s.labelUz : s.labelEn;
   };
 
-  // ── Fetch clients from profiles + crm_stages ──────────────────────────────
+  // ── Fetch clients from profiles + agent_students ──────────────────────────
   const fetchClients = useCallback(async () => {
     if (!tid) {
       setLoading(false);
@@ -125,27 +119,26 @@ export default function AdminCRM() {
         return;
       }
 
-      // Get CRM pipeline stages (decoupled from agent_students so the
-      // board never overwrites the agent-assignment status).
-      const { data: crmRows } = await supabase
-        .from('crm_stages')
-        .select('id, user_id, stage, notes, created_at')
-        .eq('tenant_id', tid);
+      // Get agent_students for stages
+      const { data: agentStudents } = await supabase
+        .from('agent_students')
+        .select('id, student_id, status, notes, assigned_at')
+        .eq('agent_id', tid); // using tenant as agent_id proxy
 
-      const stageMap = new Map<string, { id: string; stage: string; notes: string | null; created_at: string }>();
-      crmRows?.forEach((r: any) => {
-        stageMap.set(r.user_id, {
-          id: r.id,
-          stage: r.stage,
-          notes: r.notes,
-          created_at: r.created_at,
+      const stageMap = new Map<string, { id: string; status: string; notes: string | null; assigned_at: string }>();
+      agentStudents?.forEach(as => {
+        stageMap.set(as.student_id, {
+          id: as.id,
+          status: as.status,
+          notes: as.notes,
+          assigned_at: as.assigned_at,
         });
       });
 
       const defaultStage = vertical === 'consulting' ? 'lead' : 'new';
 
       const mapped: CrmClient[] = (profiles ?? []).map(p => {
-        const rec = stageMap.get(p.user_id);
+        const as = stageMap.get(p.user_id);
         return {
           id: p.id,
           user_id: p.user_id,
@@ -154,10 +147,10 @@ export default function AdminCRM() {
           email: p.email,
           telegram_username: p.telegram_username,
           selected_country: p.selected_country,
-          stage: rec?.stage ?? defaultStage,
-          crm_stage_id: rec?.id ?? null,
-          notes: rec?.notes ?? null,
-          assigned_at: rec?.created_at ?? null,
+          stage: as?.status ?? defaultStage,
+          agent_student_id: as?.id ?? null,
+          notes: as?.notes ?? null,
+          assigned_at: as?.assigned_at ?? null,
         };
       });
 
@@ -176,13 +169,20 @@ export default function AdminCRM() {
   const moveToStage = async (client: CrmClient, newStage: CrmStage) => {
     setMovingId(client.id);
     try {
-      const { error: stageError } = await supabase
-        .from('crm_stages')
-        .upsert(
-          { tenant_id: tid, user_id: client.user_id, stage: newStage },
-          { onConflict: 'tenant_id,user_id' }
-        );
-      if (stageError) throw stageError;
+      if (client.agent_student_id) {
+        await supabase
+          .from('agent_students')
+          .update({ status: newStage })
+          .eq('id', client.agent_student_id);
+      } else {
+        await supabase
+          .from('agent_students')
+          .insert({
+            agent_id: tid,
+            student_id: client.user_id,
+            status: newStage,
+          });
+      }
 
       // Automatically trigger telegram bot and SMS notifications
       const stageText = stageLabel(newStage);
@@ -205,7 +205,7 @@ export default function AdminCRM() {
           .insert({
             tenant_id: tid,
             type: 'telegram',
-            target: `@${client.telegram_username.replace(/^@/, '')}`,
+            target: `@${client.telegram_username}`,
             payload: { message }
           });
       }
@@ -414,7 +414,7 @@ export default function AdminCRM() {
                   </div>
                 )}
                 {selectedClient.telegram_username && (
-                  <a href={`https://t.me/${selectedClient.telegram_username.replace(/^@/, '')}`} target="_blank" rel="noreferrer"
+                  <a href={`https://t.me/${selectedClient.telegram_username}`} target="_blank" rel="noreferrer"
                     className="flex items-center gap-2 text-sm text-sky-400 hover:text-sky-300">
                     <MessageCircle className="w-4 h-4" />
                     @{selectedClient.telegram_username}

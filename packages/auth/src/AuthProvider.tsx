@@ -111,6 +111,9 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
   };
 
   const signOut = async () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('active_tenant');
+    }
     await client.auth.signOut();
   };
 

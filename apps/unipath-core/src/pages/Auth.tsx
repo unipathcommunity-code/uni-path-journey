@@ -40,26 +40,13 @@ const Auth = () => {
   const { Icon, label, color } = verticalMeta(vertical);
   const logoUrl     = activeTenant?.config?.branding?.logo_url;
 
-  const { user, signOut } = useAuth(); // Import useAuth from contexts/AuthContext or hooks/useAuth
+  const { user } = useAuth(); // Import useAuth from contexts/AuthContext or hooks/useAuth
   
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("error") === "wrong_domain") {
-        if (user) {
-          await signOut();
-        }
-        toast.error("Siz o'quv markazingiz yoki biznesingiz domeni orqali kirishingiz kerak!");
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-      
-      if (user && !loading) {
-        navigate("/dashboard");
-      }
-    };
-    checkAuthStatus();
-  }, [user, loading, navigate, signOut]);
+    if (user && !loading) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,11 +1,11 @@
 import { Building2, Check, ChevronsUpDown, Layers } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 import { Link } from "react-router-dom";
 
 const BranchSwitcher = ({ dark = false }: { dark?: boolean }) => {
-  const { branches, currentBranchId, setCurrentBranchId, current } = useBranch();
+  const { branches, currentBranchId, switchBranch, current } = useBranch();
 
   const label = current ? current.name : "Hamma filiallar";
 
@@ -31,7 +31,7 @@ const BranchSwitcher = ({ dark = false }: { dark?: boolean }) => {
       </PopoverTrigger>
       <PopoverContent className="w-64 p-1.5" align="start">
         <button
-          onClick={() => setCurrentBranchId(null as any)}
+          onClick={() => switchBranch(null as any)}
           className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm hover:bg-muted text-left"
         >
           <Layers className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
@@ -42,7 +42,7 @@ const BranchSwitcher = ({ dark = false }: { dark?: boolean }) => {
         {branches.map((b) => (
           <button
             key={b.id}
-            onClick={() => setCurrentBranchId(b.id)}
+            onClick={() => switchBranch(b.id)}
             className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm hover:bg-muted text-left"
           >
             <Building2 className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />

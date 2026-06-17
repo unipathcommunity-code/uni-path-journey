@@ -52,12 +52,6 @@ export interface TenantConfig {
     custom_domain?: string;
     telegram_bot_token?: string;
     telegram_bot_username?: string;
-    // Public-site content (used by TenantPublicPage across all verticals)
-    hero_title?: string;
-    hero_subtitle?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
   };
   settings?: {
     emailNotifications?: boolean;

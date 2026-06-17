@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, LayoutGrid, DollarSign, User } from "lucide-react";
+import { Home, Sparkles, DollarSign, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 
@@ -17,7 +17,7 @@ const MobileBottomNav = () => {
 
   const tabs = [
     { href: "/", label: "Bosh sahifa", icon: Home },
-    { href: "/#features", label: "Imkoniyatlar", icon: LayoutGrid },
+    { href: "/#features", label: "Imkoniyatlar", icon: Sparkles },
     { href: "/#pricing", label: "Narxlar", icon: DollarSign },
     { href: dashboardHref, label: user ? "Panelim" : "Kirish", icon: User },
   ];

@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Plus, Trash2, Wand2, Loader2, FileSpreadsheet, FileText, Send, BookOpen } from "lucide-react";
+import {
+  Plus, Trash2, Sparkles, Loader2, FileSpreadsheet, FileText, Send, BookOpen,
+} from "lucide-react";
 
 type Question = {
   id?: string;
@@ -106,7 +108,7 @@ const TestBuilder = () => {
       {resources.length > 0 && (
         <div className="glass-strong p-3 space-y-2">
           <p className="text-xs font-semibold flex items-center gap-1.5">
-            <Wand2 className="w-3.5 h-3.5 text-accent" /> Yuklangan kitobdan avtomatik test
+            <Sparkles className="w-3.5 h-3.5 text-accent" /> Yuklangan kitobdan avtomatik test
           </p>
           {resources.map((r: any) => (
             <div key={r.id} className="flex items-center gap-2">
@@ -114,7 +116,7 @@ const TestBuilder = () => {
               <span className="flex-1 text-xs truncate">{r.title}</span>
               <button onClick={() => generateFromPdf(r.id)} disabled={generating}
                 className="bg-gradient-to-br from-accent to-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 disabled:opacity-50">
-                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                {generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                 Tuzish
               </button>
             </div>

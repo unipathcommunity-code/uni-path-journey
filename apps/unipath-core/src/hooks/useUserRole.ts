@@ -28,11 +28,14 @@ export function useUserRole() {
   useEffect(() => {
     let active = true;
 
-    // Safety timeout of 3.5 seconds to prevent infinite hangs
+    // Safety timeout of 3.5 seconds to prevent infinite hangs. For a known
+    // super-admin email, default to 'super_admin' (not 'user') so the platform
+    // owner is never locked out by a slow role lookup.
     const timeoutId = setTimeout(() => {
       if (active && isLoading) {
-        console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting to user role.');
-        setRole('user');
+        const isSa = !!user?.email && SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase());
+        console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role.');
+        setRole(isSa ? 'super_admin' : 'user');
         setLoadedUserId(user ? user.id : null);
         setIsLoading(false);
       }

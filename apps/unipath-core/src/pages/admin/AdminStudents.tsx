@@ -48,7 +48,7 @@ interface Student {
 }
 
 export default function AdminStudents() {
-  const { language, activeTenant } = useApp();
+  const { language } = useApp();
   const t = useTranslation(language);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,33 +66,21 @@ export default function AdminStudents() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => fetchStudents())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTenant?.id]);
+  }, []);
 
   async function fetchStudents() {
     setLoading(true);
-
-    // Scope to the active tenant. Without this, a SuperAdmin impersonating a
-    // tenant (whose RLS sees every row) would get all tenants' students mixed.
-    const tid = activeTenant?.id;
-    if (!tid) {
-      setStudents([]);
-      setLoading(false);
-      return;
-    }
-
+    
     const { data: profiles, error } = await supabase
       .from('profiles')
       .select('id, user_id, full_name, email, phone, telegram_username, selected_country, created_at')
-      .eq('tenant_id', tid)
       .order('created_at', { ascending: false });
 
     if (!error && profiles) {
-      // Fetch application counts for each user (this tenant only)
+      // Fetch application counts for each user
       const { data: applications } = await supabase
         .from('applications')
-        .select('user_id')
-        .eq('tenant_id', tid);
+        .select('user_id');
 
       const appCounts: Record<string, number> = {};
       applications?.forEach(app => {

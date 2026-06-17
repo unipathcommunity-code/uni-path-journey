@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowUp, ArrowDown, CheckCircle2, Circle, Eye, EyeOff, Save, Loader2, Wand2 } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, CheckCircle2, Circle, Sparkles, Loader2 } from "lucide-react";
 
 /**
  * SyllabusManager — har bir fan uchun mavzular ketma-ketligi.
@@ -125,7 +125,7 @@ const SyllabusManager = () => {
           {resources.length > 0 && (
             <div className="glass-strong p-3 space-y-2">
               <p className="text-xs font-semibold flex items-center gap-1.5">
-                <Wand2 className="w-3.5 h-3.5 text-accent" /> Yuklangan kitobdan avtomatik tuzish
+                <Sparkles className="w-3.5 h-3.5 text-accent" /> Yuklangan kitobdan avtomatik tuzish
               </p>
               <div className="flex gap-2">
                 <select value={generatingFrom} onChange={(e) => setGeneratingFrom(e.target.value)}
@@ -135,7 +135,7 @@ const SyllabusManager = () => {
                 </select>
                 <button onClick={generateFromResource} disabled={busy || !generatingFrom}
                   className="bg-gradient-to-br from-accent to-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 disabled:opacity-50">
-                  {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                  {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                   Tuzish
                 </button>
               </div>

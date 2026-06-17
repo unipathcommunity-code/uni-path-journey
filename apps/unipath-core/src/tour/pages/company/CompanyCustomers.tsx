@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Search, UserRound, Phone, Mail, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyCompany } from "@/hooks/useTourCompany";
-import { useBranch } from '@/tour/hooks/useBranches';
+import { useBranch } from "@/hooks/useTourBranches";
 import { format } from "date-fns";
 
 type Customer = {
@@ -71,7 +71,7 @@ const CompanyCustomers = () => {
     },
   });
 
-  const branchMap = useMemo(() => new Map(branches.map((b) => [b.id, b.name])), [branches]);
+  const branchMap = useMemo(() => new Map<string, string>(branches.map((b) => [b.id, b.name])), [branches]);
   const filtered = useMemo(() => {
     if (!rows) return [];
     if (!q.trim()) return rows;
@@ -131,7 +131,7 @@ const CompanyCustomers = () => {
                     <Badge variant="secondary" className="text-[10px] font-normal">{c.bookings} ta buyurtma</Badge>
                     {Array.from(c.branches).slice(0, 2).map((bid) => (
                       <Badge key={bid} variant="outline" className="text-[10px] font-normal">
-                        {(branchMap.get(bid) as string) || "—"}
+                        {branchMap.get(bid) || "—"}
                       </Badge>
                     ))}
                   </div>
