@@ -81,7 +81,7 @@ async function main() {
         name: 'Antigravity AI',
         email: 'antigravity@gemini.ai',
       },
-      message: "Merge Claude's work (apps/nova, car_showroom) and fix redirection/spinner hangs",
+      message: "Delete old SaaS landing page and redirect root domain directly to auth/dashboard",
     });
     console.log(`Committed successfully. Commit SHA: ${sha}`);
   } catch (err) {

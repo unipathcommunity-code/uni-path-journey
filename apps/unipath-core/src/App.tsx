@@ -30,7 +30,6 @@ import { WishlistProvider } from "@/hooks/useWishlist";
 
 
 // Public Pages
-import Index from "./pages/Index";
 import TenantPublicPage from "./pages/TenantPublicPage";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
@@ -168,13 +167,16 @@ function TenantRootRoute() {
                      hostname === 'unipath-journey.vercel.app' || hostname === 'www.unipath-journey.vercel.app';
 
   // If strictly on the core root domain and no tenant parameter is present in URL,
-  // we must show the SaaS landing page or redirect logged-in users, but NEVER show a tenant public page!
+  // we must redirect to auth or dashboard, but NEVER show a tenant public page!
   const urlParams = new URLSearchParams(window.location.search);
   const tenantParam = urlParams.get('tenant') || urlParams.get('company');
   const hasTenantOverride = !!(tenantParam || window.sessionStorage.getItem('unipath_session_tenant'));
 
   if (isCoreRoot && !hasTenantOverride) {
-    return <Index forceSaaS={true} />;
+    if (user) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/auth" replace />;
   }
 
   // On a tenant subdomain with no logged-in user → public site
@@ -189,8 +191,11 @@ function TenantRootRoute() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Root domain (unipath.me) → main landing
-  return <Index />;
+  // Root domain (unipath.me) → redirect to auth or dashboard
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Navigate to="/auth" replace />;
 }
 
 
