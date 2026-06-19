@@ -81,7 +81,7 @@ async function main() {
         name: 'Antigravity AI',
         email: 'antigravity@gemini.ai',
       },
-      message: "Delete old SaaS landing page and redirect root domain directly to auth/dashboard",
+      message: "Display new green tech landing page on root domain unipath.me",
     });
     console.log(`Committed successfully. Commit SHA: ${sha}`);
   } catch (err) {

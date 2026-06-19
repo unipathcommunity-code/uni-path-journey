@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@unipath/tenant";
@@ -30,6 +30,7 @@ import { WishlistProvider } from "@/hooks/useWishlist";
 
 
 // Public Pages
+import { LandingPage } from "@/components/landing/landing-page";
 import TenantPublicPage from "./pages/TenantPublicPage";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
@@ -142,6 +143,7 @@ const queryClient = new QueryClient();
  * Otherwise show the main UniPath SaaS landing page.
  */
 function TenantRootRoute() {
+  const navigate = useNavigate();
   const { activeTenant, isTenantLoading } = useApp();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -176,7 +178,12 @@ function TenantRootRoute() {
     if (user) {
       return <Navigate to="/dashboard" replace />;
     }
-    return <Navigate to="/auth" replace />;
+    return (
+      <LandingPage 
+        onLogin={() => navigate('/auth')} 
+        onGetStarted={() => navigate('/auth?mode=signup')} 
+      />
+    );
   }
 
   // On a tenant subdomain with no logged-in user → public site
@@ -195,7 +202,12 @@ function TenantRootRoute() {
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-  return <Navigate to="/auth" replace />;
+  return (
+    <LandingPage 
+      onLogin={() => navigate('/auth')} 
+      onGetStarted={() => navigate('/auth?mode=signup')} 
+    />
+  );
 }
 
 
