@@ -162,10 +162,14 @@ export default function SuperAdminUsers() {
     try {
       setIsDeleting(true);
       if (userToDelete.user_id) {
-        const { error } = await (supabase as any).rpc('delete_user_cascade', {
-          target_user_id: userToDelete.user_id
+        // Calls the deployed `delete-user` edge function (service-role cascade
+        // delete). The old `delete_user_cascade` RPC never existed in the DB —
+        // only `delete_tenant_cascade` does — so this button always errored.
+        const { data, error } = await supabase.functions.invoke('delete-user', {
+          body: { userId: userToDelete.user_id }
         });
         if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
       }
 
       setUsers(prev => prev.filter(u => u.id !== userToDelete.id));

@@ -118,6 +118,20 @@ export function useUserRole() {
           }
         }
 
+        // Override with impersonated/selected tenant from localStorage if present
+        const impRaw = typeof window !== 'undefined' ? window.localStorage.getItem('active_tenant') : null;
+        if (impRaw) {
+          try {
+            const parsed = JSON.parse(impRaw);
+            if (parsed && parsed.id) {
+              tId = parsed.id;
+              tStatus = parsed.status || null;
+            }
+          } catch (e) {
+            console.warn('useUserRole: failed to parse active_tenant:', e);
+          }
+        }
+
         if (active) {
           setRole(currentRole);
           setTenantId(tId);

@@ -1,20 +1,29 @@
+import { lazy, Suspense } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import AdminTour from './AdminTour';
-import AdminAcademy from './AdminAcademy';
-import AdminHotel from './AdminHotel';
-import AdminRestaurant from './AdminRestaurant';
-import AdminGym from './AdminGym';
-import AdminManufacturing from './AdminManufacturing';
-import AdminClinic from './AdminClinic';
-import AdminParking from './AdminParking';
-import AdminAutoService from './AdminAutoService';
-import AdminWeddingHall from './AdminWeddingHall';
-import AdminKindergarten from './AdminKindergarten';
-import AdminLibrary from './AdminLibrary';
-import AdminCosmetics from './AdminCosmetics';
-import AdminStadium from './AdminStadium';
-import AdminCarShowroom from './AdminCarShowroom';
-import AdminConsulting from './AdminConsulting';
+import { Loader2 } from 'lucide-react';
+
+const AdminTour = lazy(() => import('./AdminTour'));
+const AdminAcademy = lazy(() => import('./AdminAcademy'));
+const AdminHotel = lazy(() => import('./AdminHotel'));
+const AdminRestaurant = lazy(() => import('./AdminRestaurant'));
+const AdminGym = lazy(() => import('./AdminGym'));
+const AdminManufacturing = lazy(() => import('./AdminManufacturing'));
+const AdminClinic = lazy(() => import('./AdminClinic'));
+const AdminParking = lazy(() => import('./AdminParking'));
+const AdminAutoService = lazy(() => import('./AdminAutoService'));
+const AdminWeddingHall = lazy(() => import('./AdminWeddingHall'));
+const AdminKindergarten = lazy(() => import('./AdminKindergarten'));
+const AdminLibrary = lazy(() => import('./AdminLibrary'));
+const AdminCosmetics = lazy(() => import('./AdminCosmetics'));
+const AdminStadium = lazy(() => import('./AdminStadium'));
+const AdminCarShowroom = lazy(() => import('./AdminCarShowroom'));
+const AdminConsulting = lazy(() => import('./AdminConsulting'));
+
+const DashboardLoader = () => (
+  <div className="min-h-[400px] flex items-center justify-center">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 export default function AdminDashboardPage() {
   const { activeTenant } = useApp();
@@ -60,23 +69,31 @@ export default function AdminDashboardPage() {
   if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
 
   // ── ROUTE TO VERTICAL DASHBOARDS ────────────────────────────────────────────
-  if (vertical === 'tour')          return <AdminTour />;
-  if (vertical === 'academy')       return <AdminAcademy />;
-  if (vertical === 'hotel')         return <AdminHotel />;
-  if (vertical === 'restaurant')    return <AdminRestaurant />;
-  if (vertical === 'gym')           return <AdminGym />;
-  if (vertical === 'manufacturing') return <AdminManufacturing />;
-  if (vertical === 'clinic')        return <AdminClinic />;
-  if (vertical === 'parking')       return <AdminParking />;
-  if (vertical === 'auto_service')  return <AdminAutoService />;
-  if (vertical === 'wedding_hall')  return <AdminWeddingHall />;
-  if (vertical === 'kindergarten')  return <AdminKindergarten />;
-  if (vertical === 'library')       return <AdminLibrary />;
-  if (vertical === 'cosmetics')     return <AdminCosmetics />;
-  if (vertical === 'stadium')       return <AdminStadium />;
-  if (vertical === 'car_showroom')  return <AdminCarShowroom />;
+  const renderDashboard = () => {
+    if (vertical === 'tour')          return <AdminTour />;
+    if (vertical === 'academy')       return <AdminAcademy />;
+    if (vertical === 'hotel')         return <AdminHotel />;
+    if (vertical === 'restaurant')    return <AdminRestaurant />;
+    if (vertical === 'gym')           return <AdminGym />;
+    if (vertical === 'manufacturing') return <AdminManufacturing />;
+    if (vertical === 'clinic')        return <AdminClinic />;
+    if (vertical === 'parking')       return <AdminParking />;
+    if (vertical === 'auto_service')  return <AdminAutoService />;
+    if (vertical === 'wedding_hall')  return <AdminWeddingHall />;
+    if (vertical === 'kindergarten')  return <AdminKindergarten />;
+    if (vertical === 'library')       return <AdminLibrary />;
+    if (vertical === 'cosmetics')     return <AdminCosmetics />;
+    if (vertical === 'stadium')       return <AdminStadium />;
+    if (vertical === 'car_showroom')  return <AdminCarShowroom />;
 
-  // Default consulting dashboard fallback
-  return <AdminConsulting />;
+    return <AdminConsulting />;
+  };
+
+  return (
+    <Suspense fallback={<DashboardLoader />}>
+      {renderDashboard()}
+    </Suspense>
+  );
 }
+
 
