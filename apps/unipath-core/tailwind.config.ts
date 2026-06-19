@@ -14,9 +14,16 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['"Outfit"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        heading: ['"Sora"', 'system-ui', 'sans-serif'],
       },
       colors: {
+        lime: {
+          DEFAULT: "oklch(0.82 0.21 130)",
+          bright: "oklch(0.88 0.22 128)",
+        },
+        forest: "oklch(0.27 0.06 160)",
+        "slate-ink": "oklch(0.28 0.03 250)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

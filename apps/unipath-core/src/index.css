@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Sora:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -262,4 +262,84 @@
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Desktop Landing Page animations & helpers */
+@keyframes up-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes up-float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes up-spin-y {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+@keyframes up-pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  70% { transform: scale(1.4); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes up-rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes up-dash {
+  to { stroke-dashoffset: -32; }
+}
+@keyframes up-bar-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes up-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.anim-float {
+  animation: up-float 6s ease-in-out infinite;
+}
+.anim-float-soft {
+  animation: up-float-soft 5s ease-in-out infinite;
+}
+.anim-spin-y {
+  animation: up-spin-y 14s linear infinite;
+}
+.anim-dash {
+  stroke-dasharray: 6 6;
+  animation: up-dash 1.2s linear infinite;
+}
+
+.reveal {
+  opacity: 0;
+}
+.reveal.in-view {
+  animation: up-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-float, .anim-float-soft, .anim-spin-y, .anim-dash {
+    animation: none !important;
+  }
+  .reveal {
+    opacity: 1;
+  }
+}
+
+.iso-scene {
+  perspective: 1400px;
+}
+.iso-stage {
+  transform-style: preserve-3d;
+  transform: rotateX(56deg) rotateZ(-45deg);
+}
+.iso-cube {
+  transform-style: preserve-3d;
+  position: relative;
+}
+.iso-face {
+  position: absolute;
+  inset: 0;
 }
