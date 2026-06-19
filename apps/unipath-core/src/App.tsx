@@ -38,6 +38,7 @@ import About from "./pages/About";
 import UniversitySearch from "./pages/UniversitySearch";
 import NotFound from "./pages/NotFound";
 import DashboardRedirect from "./pages/DashboardRedirect";
+import SuperAdminOverview from "./pages/superadmin/SuperAdminOverview";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import SuperAdminAuth from "./pages/superadmin/SuperAdminAuth";
 import SuperAdminUsers from "./pages/superadmin/SuperAdminUsers";
@@ -292,7 +293,7 @@ const App = () => (
               <Route path="/super-admin" element={
                 <ProtectedRoute requireSuperAdmin>
                   <SuperAdminLayout>
-                    <SuperAdminDashboard />
+                    <SuperAdminOverview />
                   </SuperAdminLayout>
                 </ProtectedRoute>
               } />

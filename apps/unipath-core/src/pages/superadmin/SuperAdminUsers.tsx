@@ -28,6 +28,13 @@ import {
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  ACTIVE_STATUS,
+  isLiveStatus,
+  isBlockedStatus,
+  tenantStatusLabel,
+  tenantStatusBadgeClass,
+} from "@/lib/tenantStatus";
 
 export default function SuperAdminUsers() {
   const [users, setUsers] = useState<any[]>([]);
@@ -47,6 +54,8 @@ export default function SuperAdminUsers() {
   const fetchAdmins = async () => {
     try {
       setLoading(true);
+      // Company owners are created with role 'owner' (some legacy rows use
+      // 'admin'); fetch both so the list is never silently empty.
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -54,6 +63,7 @@ export default function SuperAdminUsers() {
           user_id,
           full_name,
           email,
+          role,
           created_at,
           tenant_id,
           tenants (
@@ -62,7 +72,7 @@ export default function SuperAdminUsers() {
             plan
           )
         `)
-        .eq('role', 'admin');
+        .in('role', ['owner', 'admin']);
 
       if (error) throw error;
 
@@ -71,7 +81,7 @@ export default function SuperAdminUsers() {
         user_id: p.user_id,
         name: p.full_name || 'N/A',
         email: p.email || 'N/A',
-        role: 'admin',
+        role: p.role || 'owner',
         tenant: p.tenants?.name || 'N/A',
         tenant_id: p.tenant_id,
         status: p.tenants?.status || 'pending',
@@ -182,7 +192,9 @@ export default function SuperAdminUsers() {
                           user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           user.tenant.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPlan = planFilter === "all" || user.plan.toLowerCase() === planFilter.toLowerCase();
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" ? isLiveStatus(user.status) : user.status === statusFilter);
     return matchesSearch && matchesPlan && matchesStatus;
   });
 
@@ -244,7 +256,7 @@ export default function SuperAdminUsers() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-emerald-500">
-              {users.filter(u => u.status === 'active').length}
+              {users.filter(u => isLiveStatus(u.status)).length}
             </div>
           </CardContent>
         </Card>
@@ -270,7 +282,7 @@ export default function SuperAdminUsers() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-rose-500">
-              {users.filter(u => u.status === 'suspended' || u.status === 'rejected').length}
+              {users.filter(u => isBlockedStatus(u.status)).length}
             </div>
           </CardContent>
         </Card>
@@ -366,12 +378,8 @@ export default function SuperAdminUsers() {
                       </Badge>
                     </td>
                     <td className="p-4">
-                      <Badge className={
-                        user.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                        user.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                        'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                      }>
-                        {user.status === 'active' ? 'Faol' : user.status === 'pending' ? 'Kutilmoqda' : user.status === 'rejected' ? 'Rad etilgan' : 'Bloklangan'}
+                      <Badge className={tenantStatusBadgeClass(user.status)}>
+                        {tenantStatusLabel(user.status)}
                       </Badge>
                     </td>
                     <td className="p-4 text-xs text-slate-500">{user.joinedDate}</td>
@@ -398,11 +406,11 @@ export default function SuperAdminUsers() {
                           </>
                         )}
 
-                        {/* Active: Show Block */}
-                        {user.status === 'active' && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
+                        {/* Live (active/approved): Show Block */}
+                        {isLiveStatus(user.status) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 h-8 px-2"
                             onClick={() => handleStatusChange(user.id, user.tenant_id, 'suspended')}
                           >
@@ -411,12 +419,12 @@ export default function SuperAdminUsers() {
                         )}
 
                         {/* Suspended/Rejected: Show Restore */}
-                        {(user.status === 'suspended' || user.status === 'rejected') && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
+                        {isBlockedStatus(user.status) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 h-8 px-2"
-                            onClick={() => handleStatusChange(user.id, user.tenant_id, 'active')}
+                            onClick={() => handleStatusChange(user.id, user.tenant_id, ACTIVE_STATUS)}
                           >
                             <UserCheck className="w-4 h-4 mr-1" /> Faollashtirish
                           </Button>

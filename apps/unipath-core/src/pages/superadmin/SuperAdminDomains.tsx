@@ -109,8 +109,8 @@ export default function SuperAdminDomains() {
   const handleVerifyDns = async (domainItem: any) => {
     try {
       toast({
-        title: "Kutilmoqda...",
-        description: "DNS va SSL holati tekshirilmoqda...",
+        title: "Belgilanmoqda...",
+        description: "Domen qo'lda faol deb belgilanmoqda...",
       });
 
       // Fetch the latest config for this tenant
@@ -143,7 +143,7 @@ export default function SuperAdminDomains() {
 
       toast({
         title: "Muvaffaqiyatli",
-        description: `${domainItem.domain} domeni DNS va SSL tekshiruvi muvaffaqiyatli yakunlandi.`,
+        description: `${domainItem.domain} domeni faol deb belgilandi. DNS/SSL ni provayder tomonida sozlashni unutmang.`,
       });
 
       fetchDomains(); // Refresh domains list
@@ -450,7 +450,7 @@ export default function SuperAdminDomains() {
                           className="bg-amber-500 hover:bg-amber-600 text-black h-8"
                           onClick={() => handleVerifyDns(d)}
                         >
-                          <RefreshCw className="w-3.5 h-3.5 mr-1" /> DNS Tekshirish
+                          <RefreshCw className="w-3.5 h-3.5 mr-1" /> Faol deb belgilash
                         </Button>
                       )}
                       {d.type === 'custom' && (

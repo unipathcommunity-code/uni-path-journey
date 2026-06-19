@@ -1,249 +1,187 @@
-import { useState } from "react";
-import { 
-  Bell, 
-  Send, 
-  Trash2, 
-  AlertTriangle, 
-  Info, 
-  CheckCircle2, 
-  ShieldAlert,
+import { useState, useEffect } from "react";
+import {
+  Send,
+  Info,
   Users,
   Search,
   MessageSquare,
   Megaphone,
-  ArrowUpRight,
-  UserCheck
+  Hourglass,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useSuperAdminStats, verticalLabel } from "@/hooks/useSuperAdminStats";
 
-// Mock system notifications and broadcast history
-const INITIAL_ALERTS = [
-  {
-    id: "a-1",
-    type: "warning",
-    title: "SSL Sertifikati muddati tugamoqda",
-    message: "globaledu.unipath.me domenining SSL sertifikati 3 kundan keyin tugaydi. Avtomatik yangilanish kutilmoqda.",
-    time: "2 soat oldin",
-    read: false,
-  },
-  {
-    id: "a-2",
-    type: "danger",
-    title: "Stripe Webhook Xatoligi",
-    message: "Invoice payment failed webhook xabari tahlil qilinmadi (signature mismatch).",
-    time: "5 soat oldin",
-    read: false,
-  },
-  {
-    id: "a-3",
-    type: "info",
-    title: "Yangi B2B So'rov",
-    message: "EuroStudy Agency nomli yangi consulting firma platformadan ro'yxatdan o'tdi va tasdiqlashni kutmoqda.",
-    time: "1 kun oldin",
-    read: true,
-  },
-  {
-    id: "a-4",
-    type: "success",
-    title: "Ma'lumotlar bazasi zaxira nusxasi (Backup)",
-    message: "Haftalik to'liq ma'lumotlar bazasi zaxira nusxasi muvaffaqiyatli yaratildi va S3 bulutiga yuklandi.",
-    time: "2 kun oldin",
-    read: true,
-  }
-];
+interface SentBroadcast {
+  id: string;
+  title: string;
+  message: string;
+  target: string;
+  recipients: number;
+  date: string;
+}
 
-const INITIAL_BROADCASTS = [
-  {
-    id: "b-1",
-    title: "Platforma Yangilanishi: v2.4.0",
-    message: "Bugun tunda platforma v2.4.0 talqiniga o'tkaziladi. Tizimda 10-15 daqiqa davomida uzilishlar bo'lishi mumkin. Xavotirga o'rin yo'q.",
-    target: "Barcha foydalanuvchilar",
-    sender: "Super Admin",
-    date: "2026-05-18",
-    status: "Sent"
-  },
-  {
-    id: "b-2",
-    title: "Yangi Agent xususiyatlari qo'shildi",
-    message: "Hurmatli agent adminlar, endilikda siz studentlarga shaxsiy mentorlarni bevosita dashboard orqali biriktira olasiz. Sinab ko'ring!",
-    target: "Konsalting Adminlari",
-    sender: "Super Admin",
-    date: "2026-05-10",
-    status: "Sent"
-  }
-];
+const TARGET_ROLES: Record<string, string[] | null> = {
+  all: null, // everyone
+  admins: ["owner", "admin"],
+  students: ["student", "user"],
+};
+
+const TARGET_LABELS: Record<string, string> = {
+  all: "Barcha foydalanuvchilar",
+  admins: "Firma egalari (Adminlar)",
+  students: "Talabalar",
+};
 
 export default function SuperAdminNotifications() {
-  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
-  const [broadcasts, setBroadcasts] = useState(INITIAL_BROADCASTS);
+  const { toast } = useToast();
+  const { data: stats } = useSuperAdminStats();
+
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // Broadcast Form State
+  const [broadcasts, setBroadcasts] = useState<SentBroadcast[]>([]);
+  const [supportCount, setSupportCount] = useState<number | null>(null);
+
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [broadcastTarget, setBroadcastTarget] = useState("all");
   const [broadcastType, setBroadcastType] = useState("info");
   const [isSending, setIsSending] = useState(false);
 
-  const { toast } = useToast();
+  useEffect(() => {
+    (async () => {
+      const { count } = await supabase.from("support_tickets").select("*", { count: "exact", head: true });
+      setSupportCount(count ?? 0);
+    })();
+  }, []);
 
-  const handleMarkAsRead = (id: string) => {
-    setAlerts(prev => prev.map(alert => alert.id === id ? { ...alert, read: true } : alert));
-    toast({
-      title: "Muvaffaqiyatli",
-      description: "Xabar o'qilgan deb belgilandi.",
-    });
-  };
+  // Real "system alerts" derived from actual platform state.
+  const pendingTenants = (stats?.tenants || []).filter((t) => t.status === "pending");
 
-  const handleDeleteAlert = (id: string) => {
-    setAlerts(prev => prev.filter(alert => alert.id !== id));
-    toast({
-      title: "O'chirildi",
-      description: "Tizim xabari o'chirib tashlandi.",
-    });
-  };
-
-  const handleSendBroadcast = (e: React.FormEvent) => {
+  const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastTitle || !broadcastMessage) {
-      toast({
-        title: "Xatolik",
-        description: "Iltimos, barcha maydonlarni to'ldiring.",
-        variant: "destructive"
-      });
+      toast({ title: "Xatolik", description: "Iltimos, barcha maydonlarni to'ldiring.", variant: "destructive" });
       return;
     }
 
     setIsSending(true);
+    try {
+      // Resolve target recipients from real profiles
+      let query = supabase.from("profiles").select("user_id");
+      const roles = TARGET_ROLES[broadcastTarget];
+      if (roles) query = query.in("role", roles);
+      const { data: targets, error: targetErr } = await query;
+      if (targetErr) throw targetErr;
 
-    // Simulate network delay
-    setTimeout(() => {
-      const newBroadcast = {
-        id: `b-${Date.now()}`,
+      const userIds = (targets || []).map((t: any) => t.user_id).filter(Boolean);
+      if (userIds.length === 0) {
+        toast({ title: "Qabul qiluvchi yo'q", description: "Tanlangan guruhda foydalanuvchi topilmadi.", variant: "destructive" });
+        return;
+      }
+
+      const rows = userIds.map((uid) => ({
+        user_id: uid,
         title: broadcastTitle,
         message: broadcastMessage,
-        target: broadcastTarget === 'all' ? 'Barcha foydalanuvchilar' : 
-                broadcastTarget === 'admins' ? 'Konsalting Adminlari' : 'Faqat Talabalar',
-        sender: "Super Admin",
-        date: new Date().toISOString().split('T')[0],
-        status: "Sent"
-      };
+        type: broadcastType,
+        category: "broadcast",
+      }));
 
-      setBroadcasts([newBroadcast, ...broadcasts]);
-      setIsSending(false);
-      
-      // Reset form
+      const { error: insertErr } = await supabase.from("notifications").insert(rows);
+      if (insertErr) throw insertErr;
+
+      setBroadcasts((prev) => [
+        {
+          id: `b-${Date.now()}`,
+          title: broadcastTitle,
+          message: broadcastMessage,
+          target: TARGET_LABELS[broadcastTarget],
+          recipients: userIds.length,
+          date: new Date().toISOString().split("T")[0],
+        },
+        ...prev,
+      ]);
+
       setBroadcastTitle("");
       setBroadcastMessage("");
-      
       toast({
         title: "E'lon yuborildi!",
-        description: "Barcha tegishli foydalanuvchilarga xabarnoma jo'natildi.",
+        description: `${userIds.length} ta foydalanuvchiga bildirishnoma jo'natildi.`,
       });
-    }, 1200);
+    } catch (err: any) {
+      toast({ title: "Xatolik", description: err.message || "Yuborishda xatolik.", variant: "destructive" });
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const filteredBroadcasts = broadcasts.filter(b => 
-    b.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    b.message.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBroadcasts = broadcasts.filter(
+    (b) =>
+      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.message.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const statCards = [
+    { label: "Tasdiq kutayotgan firmalar", value: pendingTenants.length, sub: "Ko'rib chiqish kerak", icon: Hourglass, color: "text-amber-500" },
+    { label: "Bu sessiyada yuborilgan", value: broadcasts.length, sub: "E'lonlar (broadcast)", icon: Send, color: "text-emerald-500" },
+    { label: "Faol foydalanuvchilar", value: stats?.totals.users ?? 0, sub: "Jami auditoriya", icon: Users, color: "text-blue-400" },
+    { label: "Yordam so'rovlari", value: supportCount ?? "—", sub: "Support tickets", icon: MessageSquare, color: "text-purple-500" },
+  ];
 
   return (
     <div className="text-foreground font-sans space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Bildirishnomalar</h1>
         <p className="text-white/50 mt-1 text-sm">
-          Tizim ogohlantirishlarini kuzatish va platforma foydalanuvchilariga e'lonlar yuborish
+          Platforma holatini kuzatish va foydalanuvchilarga real bildirishnomalar yuborish
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-muted/10 border-white/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Bell className="w-4 h-4 text-amber-500" />
-              Faol Ogohlantirishlar
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-white">
-              {alerts.filter(a => !a.read).length}
-            </div>
-            <p className="text-xs text-white/40 mt-1">O'qilmagan tizim xabarlari</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-muted/10 border-white/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Send className="w-4 h-4 text-emerald-500" />
-              Yuborilgan E'lonlar
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-500">{broadcasts.length}</div>
-            <p className="text-xs text-white/40 mt-1">Platforma bo'ylab broadcasts</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-muted/10 border-white/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="w-4 h-4 text-amber-500" />
-              Target Auditoriya
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-amber-500">650+</div>
-            <p className="text-xs text-white/40 mt-1">Jami faol foydalanuvchilar</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-muted/10 border-white/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-purple-500" />
-              Yordam So'rovlari
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-500">3 ta</div>
-            <p className="text-xs text-purple-400 mt-1 flex items-center gap-1">
-              Ko'rib chiqish kutilmoqda
-            </p>
-          </CardContent>
-        </Card>
+        {statCards.map((s) => (
+          <Card key={s.label} className="bg-muted/10 border-white/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <s.icon className={`w-4 h-4 ${s.color}`} />
+                {s.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white">{s.value}</div>
+              <p className="text-xs text-white/40 mt-1">{s.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left column: Broadcast Form & History (8 cols) */}
+        {/* Broadcast form + history */}
         <div className="lg:col-span-7 space-y-6">
-          
-          {/* New Broadcast Form */}
           <Card className="bg-muted/5 border-white/5">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2 text-white">
                 <Megaphone className="w-5 h-5 text-amber-500" />
-                Yangi E'lon Yuborish (Broadcast)
+                Yangi e'lon yuborish (Broadcast)
               </CardTitle>
               <CardDescription className="text-xs text-white/50">
-                Ushbu bo'lim orqali platformadagi ma'lum bir guruh yoki barcha foydalanuvchilarga xabar yuborishingiz mumkin.
+                Tanlangan guruhdagi har bir foydalanuvchiga real bildirishnoma yoziladi.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSendBroadcast} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs text-white/70 font-semibold">Mavzu / Sarlavha</label>
-                  <Input 
-                    placeholder="Masalan: Tizim yangilanishi..." 
+                  <Input
+                    placeholder="Masalan: Tizim yangilanishi..."
                     className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus:border-amber-500"
                     value={broadcastTitle}
                     onChange={(e) => setBroadcastTitle(e.target.value)}
@@ -252,18 +190,18 @@ export default function SuperAdminNotifications() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs text-white/70 font-semibold">Kimlarga yuboriladi (Target)</label>
+                    <label className="text-xs text-white/70 font-semibold">Kimlarga (Target)</label>
                     <select
                       className="w-full bg-black/50 border border-white/10 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
                       value={broadcastTarget}
                       onChange={(e) => setBroadcastTarget(e.target.value)}
                     >
                       <option value="all">Barcha foydalanuvchilar</option>
-                      <option value="admins">Faqat Konsalting Adminlari</option>
-                      <option value="students">Faqat Talabalar</option>
+                      <option value="admins">Firma egalari (Adminlar)</option>
+                      <option value="students">Talabalar</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="text-xs text-white/70 font-semibold">Bildirishnoma turi</label>
                     <select
@@ -280,8 +218,8 @@ export default function SuperAdminNotifications() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-white/70 font-semibold">Xabar matni</label>
-                  <Textarea 
-                    placeholder="E'lon matnini bu yerga yozing..." 
+                  <Textarea
+                    placeholder="E'lon matnini bu yerga yozing..."
                     rows={4}
                     className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus:border-amber-500 resize-none"
                     value={broadcastMessage}
@@ -289,26 +227,25 @@ export default function SuperAdminNotifications() {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold gap-2 transition-all"
                   disabled={isSending}
                 >
-                  <Send className="w-4 h-4" />
-                  {isSending ? "Yuborilmoqda..." : "E'lonni Tarqatish"}
+                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSending ? "Yuborilmoqda..." : "E'lonni tarqatish"}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Broadcast History */}
           <Card className="bg-muted/5 border-white/5 overflow-hidden">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Yuborilgan E'lonlar Tarixi</CardTitle>
+              <CardTitle className="text-lg">Yuborilgan e'lonlar (joriy sessiya)</CardTitle>
               <div className="relative mt-2">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="E'lonlarni izlash..." 
+                <Input
+                  placeholder="E'lonlarni izlash..."
                   className="pl-8 bg-black/50 border-white/10 text-white placeholder:text-gray-600"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -320,9 +257,9 @@ export default function SuperAdminNotifications() {
                 <thead>
                   <tr className="border-b border-white/5 bg-white/[0.02] text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     <th className="p-4">E'lon</th>
-                    <th className="p-4">Target Auditoriya</th>
-                    <th className="p-4">Yuborilgan Sana</th>
-                    <th className="p-4 text-right">Holati</th>
+                    <th className="p-4">Target</th>
+                    <th className="p-4">Qabul qiluvchilar</th>
+                    <th className="p-4 text-right">Sana</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -335,18 +272,14 @@ export default function SuperAdminNotifications() {
                         </div>
                       </td>
                       <td className="p-4 text-xs font-medium text-amber-500">{b.target}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{b.date}</td>
-                      <td className="p-4 text-right">
-                        <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          {b.status === "Sent" ? "Yuborilgan" : b.status}
-                        </Badge>
-                      </td>
+                      <td className="p-4 text-xs text-white/70">{b.recipients} ta</td>
+                      <td className="p-4 text-right text-xs text-muted-foreground">{b.date}</td>
                     </tr>
                   ))}
                   {filteredBroadcasts.length === 0 && (
                     <tr>
                       <td colSpan={4} className="text-center p-8 text-muted-foreground text-sm">
-                        Hech qanday e'lon yuborilmagan.
+                        Bu sessiyada hali e'lon yuborilmagan.
                       </td>
                     </tr>
                   )}
@@ -356,83 +289,48 @@ export default function SuperAdminNotifications() {
           </Card>
         </div>
 
-        {/* Right column: System Alerts Feed (5 cols) */}
+        {/* Real alerts feed */}
         <div className="lg:col-span-5">
           <Card className="bg-muted/5 border-white/5 h-full">
             <CardHeader className="border-b border-white/5 pb-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-lg">Tizim Loglari & Alerts</CardTitle>
-                  <CardDescription className="text-xs">Platforma holati va real-time ogohlantirishlar</CardDescription>
-                </div>
-                <Badge className="bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-pulse">
-                  Live
-                </Badge>
-              </div>
+              <CardTitle className="text-lg">Diqqat talab qiladi</CardTitle>
+              <CardDescription className="text-xs">Platformaning real holatidan kelib chiqqan ogohlantirishlar</CardDescription>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              <AnimatePresence>
-                {alerts.map((alert) => (
+              {pendingTenants.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground text-sm space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+                  <p>Hozircha e'tibor talab qiladigan narsa yo'q.</p>
+                </div>
+              ) : (
+                pendingTenants.map((t) => (
                   <motion.div
-                    key={alert.id}
+                    key={t.id}
                     layout
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    className={`p-4 rounded-xl border transition-all duration-200 ${
-                      alert.read ? 'bg-black/20 border-white/5' : 'bg-white/[0.02] border-white/10'
-                    }`}
+                    className="p-4 rounded-xl border bg-white/[0.02] border-white/10"
                   >
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="flex items-start gap-2.5">
-                        <div className="mt-0.5">
-                          {alert.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
-                          {alert.type === 'danger' && <ShieldAlert className="w-5 h-5 text-rose-500" />}
-                          {alert.type === 'info' && <Info className="w-5 h-5 text-blue-400" />}
-                          {alert.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                        </div>
-                        <div>
-                          <p className={`font-semibold text-sm ${alert.read ? 'text-white/60' : 'text-white'}`}>
-                            {alert.title}
-                          </p>
-                          <p className="text-xs text-white/50 mt-1 leading-relaxed">
-                            {alert.message}
-                          </p>
-                          <span className="text-[10px] text-white/30 mt-2 block">{alert.time}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {!alert.read && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="w-7 h-7 hover:bg-white/5 text-amber-500 hover:text-amber-400"
-                            onClick={() => handleMarkAsRead(alert.id)}
-                            title="O'qilgan deb belgilash"
-                          >
-                            <UserCheck className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="w-7 h-7 hover:bg-rose-500/10 text-white/40 hover:text-rose-400"
-                          onClick={() => handleDeleteAlert(alert.id)}
-                          title="O'chirish"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                    <div className="flex items-start gap-2.5">
+                      <Hourglass className="w-5 h-5 text-amber-500 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm text-white">Yangi firma tasdiqlashni kutmoqda</p>
+                        <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                          <span className="text-white/80">{t.name}</span> ({verticalLabel(t.vertical)}) ro'yxatdan o'tdi.
+                        </p>
                       </div>
                     </div>
                   </motion.div>
-                ))}
-              </AnimatePresence>
+                ))
+              )}
 
-              {alerts.length === 0 && (
-                <div className="text-center py-16 text-muted-foreground text-sm space-y-2">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-                  <p>Barcha ogohlantirishlar ko'rib chiqildi.</p>
+              {supportCount !== null && supportCount > 0 && (
+                <div className="p-4 rounded-xl border bg-white/[0.02] border-white/10 flex items-start gap-2.5">
+                  <Info className="w-5 h-5 text-blue-400 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm text-white">{supportCount} ta yordam so'rovi</p>
+                    <p className="text-xs text-white/50 mt-1">Support tickets ko'rib chiqilmoqda.</p>
+                  </div>
                 </div>
               )}
             </CardContent>
