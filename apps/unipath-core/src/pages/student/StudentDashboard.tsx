@@ -187,15 +187,10 @@ export default function StudentDashboard() {
   if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
   if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
 
-  // If strictly an academy or tour tenant, force redirect to the hosted app path
-  if (vertical === 'academy') {
-    window.location.href = '/nova/';
-    return null;
-  }
-  if (vertical === 'tour') {
-    window.location.href = '/unitour/';
-    return null;
-  }
+  // NOTE: vertical routing is handled app-wide by EcosystemRouter (academy →
+  // NovaRoutes, tour → TourRoutes) inside the single unipath.me build. The old
+  // hard redirects to the separate /nova/ and /unitour/ hosted builds were
+  // removed during the ecosystem consolidation — those apps no longer exist.
 
   const { balance } = useCredits();
   const { isUniCoin } = useBusinessMode();

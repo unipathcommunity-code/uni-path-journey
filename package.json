@@ -2,14 +2,11 @@
   "name": "unipath-journey",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "pnpm --filter @unipath/core dev",
-    "dev:nova": "pnpm --filter @unipath/nova dev",
-    "dev:unitour": "pnpm --filter @unipath/unitour dev",
     "build": "pnpm -r build && node scripts/merge-dist.js",
     "build:core": "pnpm --filter @unipath/core build",
-    "build:nova": "pnpm --filter @unipath/nova build",
-    "build:unitour": "pnpm --filter @unipath/unitour build",
     "lint": "pnpm -r lint",
     "preview": "pnpm --filter @unipath/core preview"
   },

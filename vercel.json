@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/nova/:path*",
-      "destination": "/nova/index.html"
-    },
-    {
-      "source": "/unitour/:path*",
-      "destination": "/unitour/index.html"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

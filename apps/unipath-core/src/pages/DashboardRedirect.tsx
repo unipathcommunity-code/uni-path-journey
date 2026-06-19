@@ -23,7 +23,11 @@ export default function DashboardRedirect() {
   const isLoading = authLoading || roleLoading || isTenantLoading;
 
   const impersonatedTenantRaw = localStorage.getItem('active_tenant');
-  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
+  let impersonatedTenant: any = null;
+  if (impersonatedTenantRaw) {
+    try { impersonatedTenant = JSON.parse(impersonatedTenantRaw); }
+    catch { localStorage.removeItem('active_tenant'); }
+  }
   const effectiveTenant = impersonatedTenant || activeTenant;
   
   const activeModules = (effectiveTenant?.config?.modules ?? {}) as Record<string, boolean>;

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@unipath/tenant";
+import { SUPER_ADMIN_EMAILS } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { TenantRouter } from "@/core/TenantRouter";
@@ -241,7 +242,7 @@ const App = () => (
       <ThemeProvider>
         {/* TenantProvider must be outermost so AppProvider can call useTenant() */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <TenantProvider client={supabase as any}>
+        <TenantProvider client={supabase as any} superAdminEmails={SUPER_ADMIN_EMAILS}>
         <AuthProvider>
         <WishlistProvider>
         <OrganizationProvider>

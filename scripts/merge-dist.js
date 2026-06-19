@@ -14,18 +14,12 @@ if (fs.existsSync(rootDist)) {
 }
 fs.mkdirSync(rootDist, { recursive: true });
 
-// 1. Copy unipath-core dist to root dist (this is the main app)
+// Copy unipath-core dist to root dist — this is the single unified ecosystem
+// app (academy/tour/consulting are all served from it via EcosystemRouter).
+// The legacy apps/nova + apps/unitour separate builds were retired during the
+// ecosystem consolidation; root `dist/` now mirrors core only. Output contract
+// (root dist/) is unchanged so the Vercel build/output settings stay the same.
 console.log('Copying unipath-core dist...');
 fs.cpSync(path.join(rootDir, 'apps/unipath-core/dist'), rootDist, { recursive: true });
 
-// 2. Copy nova dist to root dist under /nova
-console.log('Copying nova dist...');
-const novaDist = path.join(rootDist, 'nova');
-fs.cpSync(path.join(rootDir, 'apps/nova/dist'), novaDist, { recursive: true });
-
-// 3. Copy unitour dist to root dist under /unitour
-console.log('Copying unitour dist...');
-const unitourDist = path.join(rootDist, 'unitour');
-fs.cpSync(path.join(rootDir, 'apps/unitour/dist'), unitourDist, { recursive: true });
-
-console.log('Successfully merged all dist folders for Vercel!');
+console.log('Successfully prepared root dist for Vercel (core only)!');

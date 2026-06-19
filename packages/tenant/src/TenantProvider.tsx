@@ -41,12 +41,20 @@ export interface TenantProviderProps {
    * slugs. Useful in tests or different deployment environments.
    */
   coreDomains?: string[];
+  /**
+   * Emails always treated as platform super_admin for impersonation, even if
+   * the DB `profiles.role` hasn't been set to 'super_admin' yet (e.g. the
+   * set-superadmin migration hasn't run). Mirrors the frontend allowlist so
+   * "enter business (impersonate)" works for the platform owner. Lowercased.
+   */
+  superAdminEmails?: string[];
 }
 
 export function TenantProvider({
   client,
   children,
   coreDomains = DEFAULT_CORE_DOMAINS,
+  superAdminEmails = [],
 }: TenantProviderProps) {
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -133,6 +141,18 @@ export function TenantProvider({
             .maybeSingle();
 
           isSuperAdmin = profile?.role === 'super_admin';
+        }
+        // Email-allowlist fallback: the platform owner is super_admin on the
+        // frontend (and reached the impersonate button) even if the DB role
+        // lookup said otherwise — honor the impersonation instead of clearing it.
+        if (!isSuperAdmin && userEmail && superAdminEmails.includes(userEmail.toLowerCase())) {
+          isSuperAdmin = true;
+        }
+        // Email-allowlist fallback: the platform owner is super_admin on the
+        // frontend (and reached the impersonate button) even if the DB role
+        // lookup said otherwise — honor the impersonation instead of clearing it.
+        if (!isSuperAdmin && userEmail && superAdminEmails.includes(userEmail.toLowerCase())) {
+          isSuperAdmin = true;
         }
 
         // 1a. SuperAdmin → trust the stored row (impersonation).
