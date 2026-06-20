@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from "react-router-dom";
 import { 
   GraduationCap, 
@@ -21,6 +22,19 @@ export default function DashboardRedirect() {
   const location = useLocation();
 
   const isLoading = authLoading || roleLoading || isTenantLoading;
+
+  useEffect(() => {
+    console.log("DashboardRedirect state diagnostics:", {
+      isLoading,
+      authLoading,
+      roleLoading,
+      isTenantLoading,
+      userId: user?.id,
+      userRole: role,
+      tenantStatus,
+      activeTenantId: activeTenant?.id,
+    });
+  }, [isLoading, authLoading, roleLoading, isTenantLoading, user, role, tenantStatus, activeTenant]);
 
   const impersonatedTenantRaw = localStorage.getItem('active_tenant');
   let impersonatedTenant: any = null;
