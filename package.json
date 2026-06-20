@@ -11,6 +11,7 @@
     "preview": "pnpm --filter @unipath/core preview"
   },
   "dependencies": {
-    "isomorphic-git": "^1.38.4"
+    "isomorphic-git": "^1.38.4",
+    "pg": "^8.22.0"
   }
 }
