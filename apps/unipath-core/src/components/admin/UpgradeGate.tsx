@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Lock, ArrowUpCircle, Check, Send, AlertTriangle } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { supabase } from '@/integrations/supabase/client';
+import { PRICING_PLANS, formatPrice } from '@/core/constants/pricing';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -12,7 +15,8 @@ interface UpgradeGateProps {
 }
 
 export function UpgradeGate({ requiredPlan, featureName }: UpgradeGateProps) {
-  const { language } = useApp();
+  const { language, activeTenant } = useApp();
+  const { user } = useAuth();
   const { plan } = usePlanLimits();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -24,41 +28,46 @@ export function UpgradeGate({ requiredPlan, featureName }: UpgradeGateProps) {
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success(
-      isUz ? "So'rov yuborildi! Tez orada bog'lanamiz." :
-      isRu ? 'Запрос отправлен! Мы скоро свяжемся с вами.' :
-             'Request sent! We will contact you shortly.'
-    );
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      // Persist a REAL upgrade request to contact_requests (admin sees it in
+      // AdminContactRequests). source='upgrade_request' distinguishes it.
+      const { error } = await (supabase as any).from('contact_requests').insert({
+        tenant_id: activeTenant?.id ?? null,
+        name: user?.email ?? 'Tenant owner',
+        phone: (user as any)?.user_metadata?.phone ?? '',
+        message: `[UPGRADE → ${requiredPlan}] "${featureName}"\n\n${message}`,
+        source: 'upgrade_request',
+        status: 'new',
+      });
+      if (error) throw error;
+      toast.success(
+        isUz ? "So'rov yuborildi! Tez orada bog'lanamiz." :
+        isRu ? 'Запрос отправлен! Мы скоро свяжемся с вами.' :
+               'Request sent! We will contact you shortly.'
+      );
+      setSubmitted(true);
+    } catch (err) {
+      toast.error(
+        isUz ? "So'rovni yuborib bo'lmadi. Telegram yoki telefon orqali bog'laning." :
+        isRu ? 'Не удалось отправить запрос. Свяжитесь через Telegram или телефон.' :
+               'Could not send the request. Please reach us via Telegram or phone.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getPlanPrice = (p: string) => {
-    if (p === 'Starter') return '$29';
-    if (p === 'Pro') return '$79';
-    return '$199';
+  // Prices + feature bullets come from the single pricing source (no duplicates).
+  const getPlanPrice = (planId: string) => {
+    const p = PRICING_PLANS.find((x) => x.id === planId);
+    return p ? formatPrice(p.priceMonthlyUzs, 'UZS') : '';
   };
 
-  const uzFeatures: Record<string, string[]> = {
-    Starter: ['3 ta xodim', 'CRM Pipeline', 'Hujjat saqlash (5 GB)'],
-    Pro: ['25 xodim, 5 filial', 'Buxgalteriya & Invoyslar', 'AI Kamera nazorati', 'Telegram Bot'],
-    Enterprise: ['Cheksiz filial & xodim', 'Custom domen ulanish', 'SLA kafolati & 24/7 VIP qo\'llab-quvvatlash', 'Ma\'lumotlar izolyatsiyasi'],
+  const featuresFor = (planId: string): string[] => {
+    const p = PRICING_PLANS.find((x) => x.id === planId);
+    if (!p) return [];
+    return isUz ? p.featuresUz : isRu ? p.featuresRu : p.featuresEn;
   };
-
-  const ruFeatures: Record<string, string[]> = {
-    Starter: ['До 3 сотрудников', 'CRM Pipeline', 'Хранилище файлов (5 GB)'],
-    Pro: ['25 сотрудников, 5 филиалов', 'Бухгалтерия и инвойсы', 'AI-камера наблюдения', 'Telegram Bot'],
-    Enterprise: ['Неограниченно всё', 'Подключение своего домена', 'SLA + 24/7 VIP поддержка', 'Изоляция данных'],
-  };
-
-  const enFeatures: Record<string, string[]> = {
-    Starter: ['Up to 3 staff', 'CRM Pipeline', 'File storage (5 GB)'],
-    Pro: ['25 staff, 5 branches', 'Accounting & Invoices', 'AI Camera control', 'Telegram Bot'],
-    Enterprise: ['Unlimited everything', 'Custom domain connection', 'SLA + 24/7 VIP support', 'Data isolation'],
-  };
-
-  const features = isUz ? uzFeatures : isRu ? ruFeatures : enFeatures;
 
   const headingText =
     isUz ? `Bu funksiya ${requiredPlan} tarifini talab qiladi` :
@@ -164,11 +173,11 @@ export function UpgradeGate({ requiredPlan, featureName }: UpgradeGateProps) {
                     <h3 className="text-lg font-bold text-foreground">{p}</h3>
                     <div className="flex items-baseline gap-1 mt-1">
                       <span className="text-2xl font-extrabold text-foreground">{getPlanPrice(p)}</span>
-                      <span className="text-muted-foreground text-sm">/mo</span>
+                      <span className="text-muted-foreground text-sm">{isUz ? '/oy' : isRu ? '/мес' : '/mo'}</span>
                     </div>
                   </div>
                   <ul className="space-y-2.5">
-                    {features[p].map((f, i) => (
+                    {featuresFor(p).map((f, i) => (
                       <li key={i} className="flex items-start text-sm text-muted-foreground gap-2">
                         <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isHigher ? 'text-primary' : 'text-muted-foreground/40'}`} />
                         <span>{f}</span>

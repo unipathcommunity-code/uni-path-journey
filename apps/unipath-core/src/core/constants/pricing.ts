@@ -1,8 +1,27 @@
+// ---------------------------------------------------------------------------
+// SINGLE SOURCE OF TRUTH for tariff DISPLAY (prices + marketing copy).
+// Entitlements/gating live in `@/hooks/usePlanLimits` (TIER_FEATURES).
+// `id`/`tier` here MUST stay in sync with planToTier() there.
+// ---------------------------------------------------------------------------
+
+/** Internal tier key — matches PlanTier in usePlanLimits. */
+export type PlanTier = 'starter' | 'growth' | 'enterprise';
+/** Display currencies (user-switchable toggle). */
+export type Currency = 'UZS' | 'USD';
+/** Billing cadence. */
+export type Billing = 'monthly' | 'annual';
+
 export interface PricingPlan {
   id: string;
+  /** Links this display plan to its entitlement tier in usePlanLimits. */
+  tier: PlanTier;
   name: string;
+  /** USD prices (kept for backward compat + intl audience). */
   priceMonthly: number;
   priceAnnual: number;
+  /** UZS prices (local market). priceAnnual* = per-month price billed annually. */
+  priceMonthlyUzs: number;
+  priceAnnualUzs: number;
   descUz: string;
   descEn: string;
   descRu: string;
@@ -15,12 +34,41 @@ export interface PricingPlan {
   popular?: boolean;
 }
 
+/** Monthly price for a plan in the chosen currency. */
+export function planMonthly(plan: PricingPlan, currency: Currency): number {
+  return currency === 'UZS' ? plan.priceMonthlyUzs : plan.priceMonthly;
+}
+
+/** Per-month price when billed annually, in the chosen currency. */
+export function planAnnual(plan: PricingPlan, currency: Currency): number {
+  return currency === 'UZS' ? plan.priceAnnualUzs : plan.priceAnnual;
+}
+
+/** Price for a plan + currency + billing cadence (per-month figure). */
+export function planPrice(plan: PricingPlan, currency: Currency, billing: Billing): number {
+  return billing === 'annual' ? planAnnual(plan, currency) : planMonthly(plan, currency);
+}
+
+/** Human-readable formatted price, e.g. "349 000 so'm" or "$29". */
+export function formatPrice(amount: number, currency: Currency): string {
+  if (currency === 'USD') return `$${amount}`;
+  return `${new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(amount)} so'm`;
+}
+
+/** Look up a plan by its id ('Starter' | 'Pro' | 'Enterprise'). */
+export function getPlan(id: string): PricingPlan | undefined {
+  return PRICING_PLANS.find((p) => p.id === id);
+}
+
 export const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'Starter',
+    tier: 'starter',
     name: 'Starter',
     priceMonthly: 29,
     priceAnnual: 24,
+    priceMonthlyUzs: 349000,
+    priceAnnualUzs: 290000,
     descUz: 'Yangi boshlayotgan kichik biznes va xizmat ko\'rsatish kompaniyalari uchun',
     descEn: 'For small businesses and service companies just getting started',
     descRu: 'Для малого бизнеса и сервисных компаний, которые только начинают',
@@ -51,9 +99,12 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: 'Pro',
+    tier: 'growth',
     name: 'Growth (Pro)',
     priceMonthly: 79,
     priceAnnual: 64,
+    priceMonthlyUzs: 990000,
+    priceAnnualUzs: 790000,
     popular: true,
     descUz: 'Tez o\'sayotgan bizneslar — fitnes, ta\'lim, restoran, klinika va boshqalar uchun',
     descEn: 'For fast-growing businesses — gym, education, restaurant, clinic, and more',
@@ -88,9 +139,12 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: 'Enterprise',
+    tier: 'enterprise',
     name: 'Enterprise',
     priceMonthly: 199,
     priceAnnual: 159,
+    priceMonthlyUzs: 2490000,
+    priceAnnualUzs: 1990000,
     descUz: 'Katta tarmoqli brendlar va korporatsiyalar uchun',
     descEn: 'For established networks and large brands',
     descRu: 'Для крупных сетей, брендов и корпораций',

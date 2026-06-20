@@ -43,7 +43,8 @@ export function Navbar({
           {t.nav.links.map((link) => (
             <a
               key={link.id}
-              href={`#${link.id}`}
+              href={link.id === 'pricing' ? '/pricing' : `#${link.id}`}
+              onClick={link.id === 'pricing' ? (e) => { e.preventDefault(); navigate('/pricing'); } : undefined}
               className="rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               {link.label}
@@ -130,8 +131,11 @@ export function Navbar({
             {t.nav.links.map((link) => (
               <a
                 key={link.id}
-                href={`#${link.id}`}
-                onClick={() => setMobileOpen(false)}
+                href={link.id === 'pricing' ? '/pricing' : `#${link.id}`}
+                onClick={(e) => {
+                  setMobileOpen(false);
+                  if (link.id === 'pricing') { e.preventDefault(); navigate('/pricing'); }
+                }}
                 className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 {link.label}

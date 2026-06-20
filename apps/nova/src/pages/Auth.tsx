@@ -16,6 +16,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -78,7 +79,13 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message);
+      if (error?.message?.toLowerCase().includes('email rate limit')) {
+        toast.error('Email rate limit exceeded. Please wait a few minutes before trying again.');
+        setRateLimited(true);
+        setTimeout(() => setRateLimited(false), 5 * 60 * 1000); // 5 minutes cooldown
+      } else {
+        toast.error(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -153,7 +160,7 @@ const Auth = () => {
             </button>
           )}
 
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading}
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading || rateLimited}
             className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm glow-primary transition-all flex items-center justify-center gap-2 disabled:opacity-50">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
               <>
