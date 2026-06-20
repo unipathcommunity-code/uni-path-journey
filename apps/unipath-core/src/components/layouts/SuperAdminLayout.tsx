@@ -46,7 +46,7 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
         }
       }
     } finally {
-      navigate('/auth');
+      navigate('/');
     }
   };
 

@@ -43,7 +43,7 @@ export function AgentLayout({ children }: AgentLayoutProps) {
         }
       }
     } finally {
-      navigate('/auth');
+      navigate('/');
     }
   };
 

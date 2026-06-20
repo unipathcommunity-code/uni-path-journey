@@ -273,7 +273,7 @@ const AdminLayout = () => {
                     }
                   }
                 } finally {
-                  navigate("/auth");
+                  navigate("/");
                 }
               }}
             >

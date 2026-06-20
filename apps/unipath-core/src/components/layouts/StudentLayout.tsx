@@ -189,7 +189,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         }
       }
     } finally {
-      navigate('/auth');
+      navigate('/');
     }
   };
 

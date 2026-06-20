@@ -202,7 +202,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         }
       }
     } finally {
-      navigate('/auth');
+      navigate('/');
     }
   };
 
