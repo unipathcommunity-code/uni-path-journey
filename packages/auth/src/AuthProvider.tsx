@@ -111,10 +111,25 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
   };
 
   const signOut = async () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('active_tenant');
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('active_tenant');
+      }
+      await Promise.race([
+        client.auth.signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+      ]);
+    } catch (e) {
+      console.warn("Sign out failed or timed out:", e);
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            window.localStorage.removeItem(key);
+          }
+        }
+      }
     }
-    await client.auth.signOut();
   };
 
   const resetPassword = async (email: string) => {

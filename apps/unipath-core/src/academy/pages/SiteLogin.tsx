@@ -161,12 +161,28 @@ const SiteLogin = () => {
         });
       } else if (userOrg !== brand.org_id) {
         // Belongs to a DIFFERENT center — block.
-        await supabase.auth.signOut();
+        try {
+          await Promise.race([
+            supabase.auth.signOut(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+          ]);
+        } catch (e) {
+          console.warn("Sign out timed out:", e);
+          if (typeof window !== 'undefined') {
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                localStorage.removeItem(key);
+              }
+            }
+          }
+        }
         toast.error(
           `Bu hisob ${brand.org_name} markaziga tegishli emas. Iltimos, o'z markazingiz sayti orqali kiring.`
         );
         return;
       }
+
 
       // Resolve roles, then redirect into the right cabinet.
       const { data: rolesData } = await supabase

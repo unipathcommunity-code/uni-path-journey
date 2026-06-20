@@ -155,10 +155,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Chiqishda xatolik: " + error.message);
-    } else {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('active_tenant');
+      }
+      const res = await Promise.race([
+        supabase.auth.signOut(),
+        new Promise<{ error: any }>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+      ]);
+      if (res && res.error) {
+        toast.error("Chiqishda xatolik: " + res.error.message);
+      }
+    } catch (e) {
+      console.warn("Tour sign out failed or timed out:", e);
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            window.localStorage.removeItem(key);
+          }
+        }
+      }
+    } finally {
       setUser(null);
       setSession(null);
       setUserRole(null);

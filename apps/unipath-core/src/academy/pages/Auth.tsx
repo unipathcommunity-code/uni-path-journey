@@ -55,7 +55,22 @@ const Auth = () => {
           // must come through their own /c/<slug>/login.
           const isPlatformStaff = roles.includes("superadmin");
           if (!isPlatformStaff) {
-            await supabase.auth.signOut();
+            try {
+              await Promise.race([
+                supabase.auth.signOut(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+              ]);
+            } catch (e) {
+              console.warn("Sign out timed out:", e);
+              if (typeof window !== 'undefined') {
+                for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                    localStorage.removeItem(key);
+                  }
+                }
+              }
+            }
             toast.error(
               "Bu hisob NOVA platformasiga tegishli emas. Iltimos, o'z o'quv markazingiz sayti orqali kiring."
             );

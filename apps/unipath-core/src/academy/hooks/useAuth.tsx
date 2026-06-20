@@ -77,7 +77,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Superadmin bypasses all role checks (god-mode)
   const hasRole = (role: AppRole) => roles.includes(role) || (role !== "superadmin" && roles.includes("superadmin"));
-  const signOut = async () => { await supabase.auth.signOut(); };
+  const signOut = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('active_tenant');
+      }
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+      ]);
+    } catch (e) {
+      console.warn("Academy sign out failed or timed out:", e);
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            window.localStorage.removeItem(key);
+          }
+        }
+      }
+    }
+  };
   const refresh = async () => {
     if (user) await fetchUserData(user.id);
   };
