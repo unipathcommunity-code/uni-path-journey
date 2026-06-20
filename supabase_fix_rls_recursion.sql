@@ -75,7 +75,7 @@ CREATE POLICY "Subdomains are publicly readable" ON public.tenants
 
 -- INSERT: Self-service business registration (both guests and signed-in owners)
 CREATE POLICY owner_insert_tenants ON public.tenants
-  FOR INSERT TO authenticated, anonymous
+  FOR INSERT TO authenticated, anon
   WITH CHECK (
     (auth.role() = 'authenticated' AND lower(owner_email) = public.current_user_email())
     OR
