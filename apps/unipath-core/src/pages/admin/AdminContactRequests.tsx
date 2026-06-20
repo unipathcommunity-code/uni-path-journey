@@ -7,12 +7,28 @@ import { Phone, MessageSquare, Loader2, CheckCircle2, Clock, RefreshCw } from 'l
 
 interface ContactRequest {
   id: string;
-  full_name: string;
+  name: string;
   phone: string;
   message: string | null;
-  source_page: string;
+  source: string;
   status: string;
   created_at: string;
+}
+
+// The table has gone through schema drift: some rows carry name/source (the
+// canonical set the app writes), older rows carry full_name/source_page.
+// Normalize at the boundary so the rest of the component uses ONE shape and
+// works regardless of which columns the live DB has.
+function normalize(row: any): ContactRequest {
+  return {
+    id: row.id,
+    name: row.name ?? row.full_name ?? '—',
+    phone: row.phone ?? '',
+    message: row.message ?? null,
+    source: row.source ?? row.source_page ?? 'landing',
+    status: row.status ?? 'new',
+    created_at: row.created_at,
+  };
 }
 
 const STATUS_OPTIONS = ['new', 'in_progress', 'done'] as const;
@@ -26,13 +42,13 @@ export default function AdminContactRequests() {
     setLoading(true);
     const { data, error } = await supabase
       .from('contact_requests')
-      .select('id, full_name, phone, message, source_page, status, created_at')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(200);
     if (error) {
       toast.error('Failed to load contact requests');
     } else {
-      setItems((data as ContactRequest[]) || []);
+      setItems((data || []).map(normalize));
     }
     setLoading(false);
   };
@@ -102,9 +118,9 @@ export default function AdminContactRequests() {
               <div key={item.id} className="p-4 md:p-5 flex flex-col md:flex-row md:items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-foreground">{item.full_name}</p>
+                    <p className="font-semibold text-foreground">{item.name}</p>
                     {statusBadge(item.status)}
-                    <Badge variant="outline" className="text-[10px] uppercase">{item.source_page}</Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">{item.source}</Badge>
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
                     <a href={`tel:${item.phone}`} className="flex items-center gap-1 hover:text-primary">
