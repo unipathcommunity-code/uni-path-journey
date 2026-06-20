@@ -24,3 +24,12 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Build artifacts (keep out of `git add -A`)
+*.tsbuildinfo
+
+# Loose scratch / diagnostic scripts that must never be committed
+test_supa_esm.js
+git_push_new_fixes.js
+search_signout.js
+view_commit_file.cjs
