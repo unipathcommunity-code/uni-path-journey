@@ -257,8 +257,24 @@ const AdminLayout = () => {
               size="sm"
               className="w-full justify-start text-muted-foreground hover:text-foreground gap-2"
               onClick={async () => {
-                await signOut();
-                navigate("/auth");
+                try {
+                  await Promise.race([
+                    signOut(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+                  ]);
+                } catch (e) {
+                  console.warn("Sign out failed or timed out:", e);
+                  if (typeof window !== 'undefined') {
+                    for (let i = 0; i < localStorage.length; i++) {
+                      const key = localStorage.key(i);
+                      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                        localStorage.removeItem(key);
+                      }
+                    }
+                  }
+                } finally {
+                  navigate("/auth");
+                }
               }}
             >
               <LogOut className="h-4 w-4" />

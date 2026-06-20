@@ -173,8 +173,24 @@ export function StudentLayout({ children }: StudentLayoutProps) {
     language === 'uz' ? 'Admin panel' : language === 'ru' ? 'Админ панель' : 'Admin Panel';
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await Promise.race([
+        signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+      ]);
+    } catch (e) {
+      console.warn("Sign out failed or timed out:", e);
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    } finally {
+      navigate('/auth');
+    }
   };
 
   const grantsLabel = language === 'uz' ? 'Grantlar' : language === 'ru' ? 'Гранты' : 'Grants';

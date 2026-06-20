@@ -29,9 +29,25 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
-    localStorage.removeItem('active_tenant');
-    await signOut();
-    navigate('/');
+    try {
+      localStorage.removeItem('active_tenant');
+      await Promise.race([
+        signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
+      ]);
+    } catch (e) {
+      console.warn("Sign out failed or timed out:", e);
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    } finally {
+      navigate('/auth');
+    }
   };
 
   const navItems = [
