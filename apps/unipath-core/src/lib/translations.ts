@@ -28,11 +28,50 @@ export const translations = {
       description:
         "A unified system of intelligent components that analyze, organize, and automate your workflow, CRM, finance, and branches.",
       cta: "Experience the Platform",
+      painLine: "Tired of stitching together Excel sheets and scattered apps? Bring CRM, finance, attendance and branches into one system.",
       metrics: [
         { title: "Smart CRM", desc: "Track leads and clients automatically." },
         { title: "Effortless Accounting", desc: "Real-time P&L and multi-branch finance." },
         { title: "AI Integrations", desc: "Telegram bot and AI camera attendance." },
       ],
+    },
+    stats: {
+      items: [
+        { value: "5 min", label: "to launch your business online" },
+        { value: "15+", label: "ready-made vertical solutions" },
+        { value: "3", label: "languages — Uzbek, Russian, English" },
+        { value: "90%", label: "less manual attendance work with AI cameras" },
+      ],
+    },
+    aiVision: {
+      badge: "AI Camera & Computer Vision",
+      title: "Automatic attendance with face recognition",
+      subtitle:
+        "Built in, not bolted on. Our AI cameras and QR check-in mark attendance the moment a student or employee walks in — no paper, no manual roll calls.",
+      points: [
+        "Face-recognition check-in straight from any camera or phone",
+        "Instant QR self check-in with offline queue support",
+        "Live timeline so admins and parents see arrivals in real time",
+        "Works for academies, gyms, clinics and multi-branch businesses",
+      ],
+      note: "Already included in your plan — no extra hardware required.",
+    },
+    demo: {
+      trigger: "Book a Demo",
+      title: "Request a free demo",
+      subtitle: "Leave your details and our team will show you UniPath for your business within 24 hours.",
+      name: "Your name",
+      namePh: "e.g. Aziz Karimov",
+      phone: "Phone",
+      phonePh: "+998 90 123 45 67",
+      business: "Business type",
+      businessPh: "e.g. academy, travel agency, clinic…",
+      message: "Message (optional)",
+      messagePh: "Tell us a bit about what you need…",
+      submit: "Send request",
+      submitting: "Sending…",
+      success: "Request sent! We will contact you shortly.",
+      error: "Could not send the request. Please try again or reach us by phone.",
     },
     modules: {
       badge: "Vertical Modules",
@@ -210,11 +249,50 @@ export const translations = {
       description:
         "Единая система интеллектуальных компонентов, которые анализируют, организуют и автоматизируют ваши процессы, CRM, финансы и филиалы.",
       cta: "Попробовать платформу",
+      painLine: "Устали склеивать Excel-таблицы и разрозненные приложения? Объедините CRM, финансы, посещаемость и филиалы в одной системе.",
       metrics: [
         { title: "Умная CRM", desc: "Автоматически отслеживайте лиды и клиентов." },
         { title: "Простой учёт", desc: "P&L в реальном времени и финансы по филиалам." },
         { title: "AI-интеграции", desc: "Telegram-бот и AI-камера для посещаемости." },
       ],
+    },
+    stats: {
+      items: [
+        { value: "5 мин", label: "чтобы запустить бизнес онлайн" },
+        { value: "15+", label: "готовых вертикальных решений" },
+        { value: "3", label: "языка — узбекский, русский, английский" },
+        { value: "90%", label: "меньше ручной работы с посещаемостью благодаря AI-камерам" },
+      ],
+    },
+    aiVision: {
+      badge: "AI-камера и компьютерное зрение",
+      title: "Автоматическая посещаемость с распознаванием лиц",
+      subtitle:
+        "Встроено, а не добавлено сбоку. AI-камеры и QR-отметка фиксируют посещаемость, как только ученик или сотрудник входит — без бумаги и ручных перекличек.",
+      points: [
+        "Отметка по распознаванию лица с любой камеры или телефона",
+        "Мгновенная QR-самоотметка с поддержкой офлайн-очереди",
+        "Живая лента — админы и родители видят приходы в реальном времени",
+        "Подходит для академий, фитнес-клубов, клиник и мультифилиальных компаний",
+      ],
+      note: "Уже включено в ваш тариф — без дополнительного оборудования.",
+    },
+    demo: {
+      trigger: "Заказать демо",
+      title: "Запросить бесплатное демо",
+      subtitle: "Оставьте контакты — наша команда покажет UniPath для вашего бизнеса в течение 24 часов.",
+      name: "Ваше имя",
+      namePh: "напр. Азиз Каримов",
+      phone: "Телефон",
+      phonePh: "+998 90 123 45 67",
+      business: "Тип бизнеса",
+      businessPh: "напр. академия, турагентство, клиника…",
+      message: "Сообщение (необязательно)",
+      messagePh: "Коротко опишите, что вам нужно…",
+      submit: "Отправить запрос",
+      submitting: "Отправка…",
+      success: "Запрос отправлен! Мы скоро свяжемся с вами.",
+      error: "Не удалось отправить запрос. Попробуйте ещё раз или позвоните нам.",
     },
     modules: {
       badge: "Вертикальные модули",
@@ -392,11 +470,50 @@ export const translations = {
       description:
         "Mijozlar bilan ishlash (CRM), moliya, xodimlar davomati va filiallar nazoratini bitta tizimda birlashtiring. UniPath yordamida biznesingizni yangi bosqichga olib chiqing.",
       cta: "Tizimni Bepul Sinab Ko'ring",
+      painLine: "Excel jadvallar va tarqoq ilovalarni bir-biriga ulashdan charchadingizmi? CRM, moliya, davomat va filiallarni bitta tizimga jamlang.",
       metrics: [
         { title: "Aqlli CRM", desc: "Lidlar va mijozlarni avtomatik kuzating." },
         { title: "Oson buxgalteriya", desc: "Real vaqtda P&L va filiallar moliyasi." },
         { title: "AI integratsiyalar", desc: "Telegram bot va AI kamera davomati." },
       ],
+    },
+    stats: {
+      items: [
+        { value: "5 daqiqa", label: "biznesingiz onlayn ishga tushadi" },
+        { value: "15+", label: "tayyor vertikal yo'nalish" },
+        { value: "3", label: "til — o'zbek, rus, ingliz" },
+        { value: "90%", label: "AI kamera bilan qo'lda davomat ishi kamayadi" },
+      ],
+    },
+    aiVision: {
+      badge: "AI Kamera & Computer Vision",
+      title: "Yuzni aniqlash bilan avtomatik davomat",
+      subtitle:
+        "Yondan ulangan emas, ichiga qurilgan. AI kameralar va QR belgilash o'quvchi yoki xodim kirishi bilanoq davomatni qayd etadi — qog'ozsiz, qo'lda yo'qlamasiz.",
+      points: [
+        "Istalgan kamera yoki telefondan yuzni aniqlash orqali belgilash",
+        "Oflayn navbat bilan bir zumda QR o'z-o'zini belgilash",
+        "Jonli lenta — adminlar va ota-onalar kelishlarni real vaqtda ko'radi",
+        "Akademiya, fitnes, klinika va ko'p filialli bizneslar uchun mos",
+      ],
+      note: "Tarifingizga allaqachon kiritilgan — qo'shimcha qurilma talab qilinmaydi.",
+    },
+    demo: {
+      trigger: "Demo buyurtma qilish",
+      title: "Bepul demo so'rang",
+      subtitle: "Ma'lumotlaringizni qoldiring — jamoamiz 24 soat ichida UniPath'ni biznesingiz uchun ko'rsatadi.",
+      name: "Ismingiz",
+      namePh: "masalan, Aziz Karimov",
+      phone: "Telefon",
+      phonePh: "+998 90 123 45 67",
+      business: "Biznes turi",
+      businessPh: "masalan, akademiya, turagentlik, klinika…",
+      message: "Xabar (ixtiyoriy)",
+      messagePh: "Sizga nima kerakligini qisqacha yozing…",
+      submit: "So'rovni yuborish",
+      submitting: "Yuborilmoqda…",
+      success: "So'rov yuborildi! Tez orada bog'lanamiz.",
+      error: "So'rovni yuborib bo'lmadi. Qayta urinib ko'ring yoki telefon orqali bog'laning.",
     },
     modules: {
       badge: "Vertikal modullar",

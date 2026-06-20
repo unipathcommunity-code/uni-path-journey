@@ -1,14 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { useApp } from "@/contexts/AppContext"
 import { translations, type Lang, type Translation } from "@/lib/translations"
 import { Navbar } from "./navbar"
 import { Hero } from "./hero"
+import { StatsSection } from "./stats-section"
 import { ModulesSection } from "./modules-section"
+import { AiVisionSection } from "./ai-vision-section"
 import { TeamsSection } from "./teams-section"
 import { FeaturesSection } from "./features-section"
 import { CtaSection } from "./cta-section"
 import { TestimonialsSection } from "./testimonials-section"
+import { DemoRequestDialog } from "./demo-request-dialog"
 import { Footer } from "./footer"
 
 export interface LandingPageProps {
@@ -21,6 +25,8 @@ export function LandingPage({ onLogin, onGetStarted }: LandingPageProps) {
   const lang = (language === "uz" || language === "ru" || language === "en" ? language : "en") as Lang
   const setLang = (l: Lang) => setLanguage(l)
   const t = translations[lang] as Translation
+  const [demoOpen, setDemoOpen] = useState(false)
+  const openDemo = () => setDemoOpen(true)
 
   // Existing translation flags, kept for compatibility across the app.
   const isUz = lang === "uz"
@@ -42,19 +48,23 @@ export function LandingPage({ onLogin, onGetStarted }: LandingPageProps) {
       </div>
 
       <div className="px-4 sm:px-6">
-        <Navbar t={t} lang={lang} setLang={setLang} onLogin={onLogin} onGetStarted={onGetStarted} />
+        <Navbar t={t} lang={lang} setLang={setLang} onLogin={onLogin} onGetStarted={onGetStarted} onBookDemo={openDemo} />
       </div>
 
       <main>
         <Hero t={t} onGetStarted={onGetStarted} />
+        <StatsSection t={t} />
         <ModulesSection t={t} onGetStarted={onGetStarted} />
+        <AiVisionSection t={t} />
         <TeamsSection t={t} />
         <FeaturesSection t={t} />
-        <CtaSection t={t} onGetStarted={onGetStarted} />
+        <CtaSection t={t} onGetStarted={onGetStarted} onBookDemo={openDemo} />
         <TestimonialsSection t={t} />
       </main>
 
       <Footer t={t} onGetStarted={onGetStarted} />
+
+      <DemoRequestDialog t={t} open={demoOpen} onOpenChange={setDemoOpen} />
     </div>
   )
 }

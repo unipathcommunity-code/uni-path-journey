@@ -3,7 +3,7 @@ import type { Translation } from "@/lib/translations"
 import { NetworkIllustration } from "./illustrations"
 import { Reveal } from "./reveal"
 
-export function CtaSection({ t, onGetStarted }: { t: Translation; onGetStarted?: () => void }) {
+export function CtaSection({ t, onGetStarted, onBookDemo }: { t: Translation; onGetStarted?: () => void; onBookDemo?: () => void }) {
   return (
     <section id="pricing" className="relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
@@ -27,8 +27,8 @@ export function CtaSection({ t, onGetStarted }: { t: Translation; onGetStarted?:
               {t.cta.primary}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </button>
-            <button 
-              onClick={onGetStarted}
+            <button
+              onClick={onBookDemo ?? onGetStarted}
               className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
             >
               {t.cta.secondary}

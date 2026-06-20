@@ -33,6 +33,11 @@ export function Hero({ t, onGetStarted }: { t: Translation; onGetStarted?: () =>
               {t.hero.description}
             </p>
           </Reveal>
+          <Reveal delay={200}>
+            <p className="mt-4 max-w-xl border-l-2 border-lime pl-4 text-sm font-medium leading-relaxed text-foreground">
+              {t.hero.painLine}
+            </p>
+          </Reveal>
           <Reveal delay={240}>
             <button 
               onClick={onGetStarted}

@@ -12,12 +12,14 @@ export function Navbar({
   setLang,
   onLogin,
   onGetStarted,
+  onBookDemo,
 }: {
   t: Translation
   lang: Lang
   setLang: (l: Lang) => void
   onLogin?: () => void
   onGetStarted?: () => void
+  onBookDemo?: () => void
 }) {
   const [langOpen, setLangOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -89,8 +91,17 @@ export function Navbar({
             )}
           </div>
 
+          {onBookDemo && (
+            <button
+              onClick={onBookDemo}
+              className="hidden rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary lg:block"
+            >
+              {t.demo.trigger}
+            </button>
+          )}
+
           {user ? (
-            <button 
+            <button
               onClick={() => navigate('/dashboard')}
               className="hidden rounded-full bg-lime px-4 py-2 text-sm font-semibold text-forest shadow-sm transition-all hover:bg-lime-bright hover:shadow-md md:block"
             >
@@ -141,6 +152,14 @@ export function Navbar({
                 {link.label}
               </a>
             ))}
+            {onBookDemo && (
+              <button
+                onClick={() => { setMobileOpen(false); onBookDemo(); }}
+                className="mt-1 rounded-xl border border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                {t.demo.trigger}
+              </button>
+            )}
             <div className="mt-2 flex gap-2">
               {user ? (
                 <button 
