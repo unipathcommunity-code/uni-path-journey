@@ -77,5 +77,8 @@ Antigravity must not edit it — this was the historical conflict point.
 - Active app: `apps/unipath-core` (`@unipath/core`). Root build: `pnpm build`.
 - Pending migrations authored by Claude, run by Antigravity in Supabase:
   `supabase_owner_multi_business.sql`, `supabase_set_superadmin.sql`,
-  `supabase_crm_stages.sql`.
+  `supabase_crm_stages.sql`,
+  `supabase_contact_requests_align.sql` (NEW 2026-06-21 — aligns contact_requests
+  columns so landing demo-request + public contact forms actually persist;
+  idempotent/additive/non-destructive).
 - See `CLAUDE.md` for architecture.
