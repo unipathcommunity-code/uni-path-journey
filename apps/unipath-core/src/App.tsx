@@ -184,7 +184,7 @@ function TenantRootRoute() {
     return (
       <LandingPage 
         onLogin={() => navigate('/auth')} 
-        onGetStarted={() => navigate('/auth?mode=signup')} 
+        onGetStarted={() => navigate('/tizimlashtirish')} 
       />
     );
   }
@@ -208,7 +208,7 @@ function TenantRootRoute() {
   return (
     <LandingPage 
       onLogin={() => navigate('/auth')} 
-      onGetStarted={() => navigate('/auth?mode=signup')} 
+      onGetStarted={() => navigate('/tizimlashtirish')} 
     />
   );
 }
