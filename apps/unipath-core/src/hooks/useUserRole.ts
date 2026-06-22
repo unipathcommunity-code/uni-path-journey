@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,20 +24,23 @@ export function useUserRole() {
   const [tenantStatus, setTenantStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  const queryFinishedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
+    queryFinishedRef.current = false;
 
     // Safety timeout of 3.5 seconds to prevent infinite hangs. For a known
     // super-admin email, default to 'super_admin' (not 'user') so the platform
     // owner is never locked out by a slow role lookup.
     const timeoutId = setTimeout(() => {
-      if (active && isLoading) {
+      if (active && !queryFinishedRef.current) {
         const isSa = !!user?.email && SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase());
         console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role.');
         setRole(isSa ? 'super_admin' : 'user');
         setLoadedUserId(user ? user.id : null);
         setIsLoading(false);
+        queryFinishedRef.current = true;
       }
     }, 3500);
 
@@ -147,6 +150,7 @@ export function useUserRole() {
       } finally {
         if (active) {
           setIsLoading(false);
+          queryFinishedRef.current = true;
           clearTimeout(timeoutId);
         }
       }
