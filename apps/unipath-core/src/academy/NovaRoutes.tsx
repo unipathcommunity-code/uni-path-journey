@@ -44,6 +44,7 @@ export default function NovaRoutes() {
       <Route path="/site/:slug/login" element={<SiteLogin />} />
       <Route path="/site/:slug/p/:pageSlug" element={<PublicPage />} />
       <Route path="/verify/:token" element={<CertificateVerify />} />
+      <Route path="/dashboard" element={<Navigate to="/app" replace />} />
 
       {/* Authenticated */}
       <Route path="/app" element={<ProtectedRoute><RoleHome><StudentDashboard /></RoleHome></ProtectedRoute>} />
