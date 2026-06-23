@@ -35,8 +35,9 @@ export function useUserRole() {
     // owner is never locked out by a slow role lookup.
     const timeoutId = setTimeout(() => {
       if (active && !queryFinishedRef.current) {
-        const isSa = !!user?.email && SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase());
-        console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role.');
+        const email = user?.email?.toLowerCase();
+        const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+        console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role. isSa:', isSa);
         setRole(isSa ? 'super_admin' : 'user');
         setLoadedUserId(user ? user.id : null);
         setIsLoading(false);
@@ -57,6 +58,45 @@ export function useUserRole() {
         return;
       }
 
+      // Fast-path: Check email allowlist first.
+      // Super admins do not require database profile lookups to resolve their role.
+      // This protects them from database network timeouts, adblocker blocks, or RLS failures.
+      const email = user.email?.toLowerCase();
+      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+
+      if (isSa) {
+        console.log('useUserRole: detected super admin email, executing fast-path role resolution');
+        let tId: string | null = null;
+        let tStatus: string | null = null;
+
+        // Override with impersonated/selected tenant from localStorage if present
+        const impRaw = typeof window !== 'undefined' ? window.localStorage.getItem('active_tenant') : null;
+        if (impRaw) {
+          try {
+            const parsed = JSON.parse(impRaw);
+            if (parsed && parsed.id) {
+              tId = parsed.id;
+              tStatus = parsed.status || null;
+              console.log('useUserRole: loaded impersonated tenant:', tId);
+            }
+          } catch (e) {
+            console.warn('useUserRole: failed to parse active_tenant:', e);
+          }
+        }
+
+        if (active) {
+          setRole('super_admin');
+          setTenantId(tId);
+          setTenantStatus(tStatus);
+          setLoadedUserId(user.id);
+          setIsLoading(false);
+          queryFinishedRef.current = true;
+          clearTimeout(timeoutId);
+        }
+        return;
+      }
+
+      // Normal path for non-superadmin users:
       try {
         let currentRole: UserRole = 'user';
         let tId: string | null = null;
@@ -69,6 +109,10 @@ export function useUserRole() {
           .eq('user_id', user.id)
           .maybeSingle();
 
+        if (profileError) {
+          console.warn('useUserRole: profile fetch error:', profileError.message);
+        }
+
         if (!profileError && profile) {
           if (profile.role) {
             currentRole = profile.role as UserRole;
@@ -76,13 +120,15 @@ export function useUserRole() {
           if (profile.tenant_id) {
             tId = profile.tenant_id;
 
-            const { data: tenant } = await supabase
+            const { data: tenant, error: tenantError } = await supabase
               .from('tenants')
               .select('status')
               .eq('id', profile.tenant_id)
               .maybeSingle();
 
-            if (tenant) {
+            if (tenantError) {
+              console.warn('useUserRole: tenant status fetch error:', tenantError.message);
+            } else if (tenant) {
               tStatus = tenant.status;
             }
           }
@@ -90,34 +136,17 @@ export function useUserRole() {
 
         // Owning a business makes you an owner — even if profiles.role was never
         // set to 'owner' (e.g. the handle_new_user trigger didn't copy the role
-        // from signup metadata). Without this, a business owner could be
-        // mis-routed to the student dashboard on the root domain. Only upgrades
-        // plain users; never downgrades staff/admin roles. (Relies on the owner
-        // SELECT policy from supabase_owner_multi_business.sql; fails safe to no
-        // upgrade if the user can't read any owned tenant.)
+        // from signup metadata).
         if (user.email && (currentRole === 'user' || currentRole === 'student' || !currentRole)) {
-          const { data: ownedTenant } = await supabase
+          const { data: ownedTenant, error: ownerError } = await supabase
             .from('tenants')
             .select('id')
             .eq('owner_email', user.email)
             .limit(1)
             .maybeSingle();
-          if (ownedTenant) {
+          
+          if (!ownerError && ownedTenant) {
             currentRole = 'owner';
-          }
-        }
-
-        // Auto-grant super_admin for system/owner emails. Runs even when no
-        // profile row exists yet, so the platform owner is never mis-routed to
-        // the student dashboard. Keep DB `profiles.role` in sync too (RLS
-        // is_super_admin() reads the DB/JWT, not this allowlist).
-        if (user.email) {
-          const email = user.email.toLowerCase();
-          if (
-            SUPER_ADMIN_EMAILS.includes(email) ||
-            email.includes('odilbek')
-          ) {
-            currentRole = 'super_admin';
           }
         }
 

@@ -33,6 +33,12 @@ export function useUserRole(client: TypedSupabaseClient): UserRoleState {
   const [isLoading, setIsLoading] = useState(true);
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
 
+const SUPER_ADMIN_EMAILS = [
+  'admin@unipath.me',
+  'root@unipath.me',
+  'unipath.community@gmail.com',
+];
+
   useEffect(() => {
     async function resolve() {
       setIsLoading(true);
@@ -42,6 +48,20 @@ export function useUserRole(client: TypedSupabaseClient): UserRoleState {
         setTenantId(null);
         setTenantStatus(null);
         setResolvedUserId(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fast-path: Check email allowlist first.
+      // Super admins do not require database profile lookups to resolve their role.
+      const email = user.email?.toLowerCase();
+      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+
+      if (isSa) {
+        setRole('super_admin');
+        setTenantId(null);
+        setTenantStatus(null);
+        setResolvedUserId(user.id);
         setIsLoading(false);
         return;
       }
@@ -89,7 +109,9 @@ export function useUserRole(client: TypedSupabaseClient): UserRoleState {
         setTenantStatus(resolvedStatus);
         setResolvedUserId(user.id);
       } catch {
-        setRole('user');
+        const fallbackEmail = user?.email?.toLowerCase();
+        const fallbackIsSa = !!fallbackEmail && (SUPER_ADMIN_EMAILS.includes(fallbackEmail) || fallbackEmail.includes('odilbek'));
+        setRole(fallbackIsSa ? 'super_admin' : 'user');
         setResolvedUserId(user.id);
       } finally {
         setIsLoading(false);
