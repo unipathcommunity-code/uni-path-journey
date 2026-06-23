@@ -32,7 +32,7 @@ const RoleHome = ({ children }: { children: React.ReactNode }) => {
   if (!user) return <Navigate to="/auth" replace />;
 
   // Priority order: highest authority first
-  if (roles.includes("superadmin")) return <Navigate to="/superadmin" replace />;
+  if (roles.includes("superadmin") || roles.includes("super_admin")) return <Navigate to="/superadmin" replace />;
   if (roles.includes("owner")) return <Navigate to="/owner" replace />;
   if (roles.includes("admin")) return <Navigate to="/admin" replace />;
   if (roles.includes("accountant")) return <Navigate to="/accountant" replace />;
