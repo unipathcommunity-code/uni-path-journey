@@ -58,6 +58,24 @@ export function TenantProvider({
 }: TenantProviderProps) {
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(() => {
     if (typeof window === 'undefined') return null;
+
+    // If we are on the root domain, do NOT load active_tenant from localStorage on mount!
+    // Except if there is a tenant override in query parameters.
+    const hostname = window.location.hostname;
+    const isRoot =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.endsWith('.vercel.app') ||
+      hostname === 'vercel.app' ||
+      coreDomains.some((d) => hostname === d || hostname === 'www.' + d);
+
+    const params = new URLSearchParams(window.location.search);
+    const hasTenantOverride = !!(params.get('tenant') ?? params.get('company') ?? window.sessionStorage.getItem('unipath_session_tenant'));
+
+    if (isRoot && !hasTenantOverride) {
+      return null;
+    }
+
     const raw = window.localStorage.getItem('active_tenant');
     if (!raw) return null;
     try { return mapTenant(JSON.parse(raw)); } catch { return null; }
@@ -110,14 +128,8 @@ export function TenantProvider({
 
   async function resolveTenant() {
     setIsTenantLoading(true);
-    
-    // Safety timeout to prevent any query hang from blocking the UI spinner indefinitely
-    const localTimeout = setTimeout(() => {
-      console.warn("TenantProvider: resolveTenant query timed out. Forcing loading to false.");
-      setIsTenantLoading(false);
-    }, 2500);
 
-    try {
+    const resolvePromise = (async () => {
       // 1. Active tenant from localStorage — either SuperAdmin impersonation
       //    or an owner switching between businesses they own.
       const impRaw = typeof window !== 'undefined'
@@ -148,19 +160,12 @@ export function TenantProvider({
         if (!isSuperAdmin && userEmail && superAdminEmails.includes(userEmail.toLowerCase())) {
           isSuperAdmin = true;
         }
-        // Email-allowlist fallback: the platform owner is super_admin on the
-        // frontend (and reached the impersonate button) even if the DB role
-        // lookup said otherwise — honor the impersonation instead of clearing it.
-        if (!isSuperAdmin && userEmail && superAdminEmails.includes(userEmail.toLowerCase())) {
-          isSuperAdmin = true;
-        }
 
         // 1a. SuperAdmin → trust the stored row (impersonation).
         if (parsed && isSuperAdmin) {
           setActiveTenant(mapTenant(parsed));
           setIsImpersonating(true);
           setIsOwnerSwitch(false);
-          setIsTenantLoading(false);
           return;
         }
 
@@ -183,7 +188,6 @@ export function TenantProvider({
             setActiveTenant(mapTenant(ownedRow as any));
             setIsOwnerSwitch(true);
             setIsImpersonating(false);
-            setIsTenantLoading(false);
             return;
           }
         }
@@ -198,7 +202,6 @@ export function TenantProvider({
       }
 
       if (typeof window === 'undefined') {
-        setIsTenantLoading(false);
         return;
       }
 
@@ -266,7 +269,6 @@ export function TenantProvider({
         if (data) {
           setActiveTenant(mapTenant(data as any));
           setIsImpersonating(false);
-          setIsTenantLoading(false);
           return;
         }
       }
@@ -282,7 +284,6 @@ export function TenantProvider({
         if (data) {
           setActiveTenant(mapTenant(data as any));
           setIsImpersonating(false);
-          setIsTenantLoading(false);
           return;
         }
       }
@@ -310,7 +311,6 @@ export function TenantProvider({
           if (tenantData) {
             setActiveTenant(mapTenant(tenantData as any));
             setIsImpersonating(false);
-            setIsTenantLoading(false);
             return;
           }
         }
@@ -319,8 +319,20 @@ export function TenantProvider({
       // No tenant found — root domain or unauthenticated landing page
       setActiveTenant(null);
       setIsImpersonating(false);
+    })();
+
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      setTimeout(() => reject(new Error("Timeout")), 2500);
+    });
+
+    try {
+      await Promise.race([resolvePromise, timeoutPromise]);
+    } catch (err) {
+      console.warn("TenantProvider: resolveTenant query timed out or failed. Falling back to null tenant.", err);
+      // Fallback: clear tenant to let landing page mount
+      setActiveTenant(null);
+      setIsImpersonating(false);
     } finally {
-      clearTimeout(localTimeout);
       setIsTenantLoading(false);
     }
   }
