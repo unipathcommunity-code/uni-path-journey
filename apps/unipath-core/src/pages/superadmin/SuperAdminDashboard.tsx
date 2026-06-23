@@ -1428,7 +1428,7 @@ export default function SuperAdminDashboard() {
                                   },
                                 };
                                 localStorage.setItem('active_tenant', JSON.stringify(impersonatePayload));
-                                window.location.href = '/admin/dashboard';
+                                window.location.href = '/admin';
                               }}
                             >
                               Tizimga Kirish (Impersonate)

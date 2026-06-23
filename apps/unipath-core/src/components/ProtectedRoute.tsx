@@ -25,7 +25,7 @@ function getRoleRedirect(role: string | null): string {
     case "company_owner":
     case "owner":
     case "company_staff":
-      return "/admin/dashboard";
+      return "/admin";
     case "moderator":
       return "/operator";
     default:

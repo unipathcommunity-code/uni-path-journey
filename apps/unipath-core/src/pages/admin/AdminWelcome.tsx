@@ -111,7 +111,7 @@ export default function AdminWelcome() {
 
   const handleAction = () => {
     if (isLast) {
-      navigate('/admin/dashboard');
+      navigate('/admin');
     } else {
       setStep(step + 1);
     }
@@ -202,7 +202,7 @@ export default function AdminWelcome() {
             {/* Skip for non-last steps */}
             {!isLast && step > 0 && (
               <button
-                onClick={() => navigate('/admin/dashboard')}
+                onClick={() => navigate('/admin')}
                 className="mt-4 text-xs text-white/30 hover:text-white/60 transition-colors"
               >
                 {lang === 'uz' ? 'O\'tkazib yuborish' : lang === 'ru' ? 'Пропустить' : 'Skip for now'}

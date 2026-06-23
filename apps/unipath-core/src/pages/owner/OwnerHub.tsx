@@ -50,7 +50,7 @@ export default function OwnerHub() {
     // Hard navigation so TenantProvider re-resolves from scratch and honors the
     // owner's active_tenant (a plain SPA navigate would not re-run resolveTenant,
     // leaving the admin shell on the previous/empty tenant).
-    window.location.href = '/admin/dashboard';
+    window.location.href = '/admin';
   };
 
   const handleSignOut = async () => {

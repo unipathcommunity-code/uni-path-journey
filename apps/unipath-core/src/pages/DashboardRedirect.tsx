@@ -106,7 +106,7 @@ export default function DashboardRedirect() {
   }
 
   const getAdminPath = (v: string) => {
-    return '/admin/dashboard';
+    return '/admin';
   };
 
   const isRootDomain = 

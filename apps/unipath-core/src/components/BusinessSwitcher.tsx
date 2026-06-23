@@ -60,7 +60,7 @@ export function BusinessSwitcher() {
     if (activeTenant?.id === tenantId) return;
     switchTenant(tenantId);
     // Land on the dashboard so the vertical route tree re-resolves cleanly.
-    navigate('/admin/dashboard');
+    navigate('/admin');
   };
 
   return (
