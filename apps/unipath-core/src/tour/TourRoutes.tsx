@@ -1,7 +1,7 @@
 // TourRoutes — the UniTour route tree, mounted inside the single core router by
 // vertical (providers come from core App.tsx). Tour tenants get this whole tree
 // at unipath.me — no separate /unitour build.
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 
@@ -154,7 +154,8 @@ export default function TourRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboard />} />
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="agents" element={<AdminAgents />} />
