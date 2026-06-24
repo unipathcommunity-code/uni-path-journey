@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { useApp } from "@/contexts/AppContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Users, Search, Shield, ShieldCheck, ShieldOff, MoreHorizontal, Loader2, Phone, UserPlus,
 } from "lucide-react";
@@ -30,6 +32,9 @@ interface UserWithProfile {
 const AdminUsers = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { activeTenant } = useApp();
+  const { tenantId } = useUserRole();
+  const tid = activeTenant?.id ?? tenantId;
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
@@ -41,14 +46,29 @@ const AdminUsers = () => {
   const [assignNotes, setAssignNotes] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["admin-users"],
+    queryKey: ["admin-users", tid],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase.from("profiles").select("user_id, full_name, phone, avatar_url");
+      // Scope profiles to current tenant
+      let profilesQuery = supabase.from("profiles").select("user_id, full_name, phone, avatar_url");
+      if (tid) profilesQuery = profilesQuery.eq('tenant_id', tid);
+      const { data: profiles, error: profilesError } = await profilesQuery;
       if (profilesError) throw profilesError;
-      const { data: roles, error: rolesError } = await supabase.from("user_roles").select("user_id, role");
-      if (rolesError) throw rolesError;
-      const { data: bookingsCounts, error: bookingsError } = await supabase.from("bookings").select("user_id");
-      if (bookingsError) throw bookingsError;
+
+      // Get roles for the fetched profile user_ids only
+      const profileUserIds = profiles?.map(p => p.user_id) || [];
+      let roles: any[] = [];
+      if (profileUserIds.length > 0) {
+        const { data: rolesData, error: rolesError } = await supabase.from("user_roles").select("user_id, role").in('user_id', profileUserIds);
+        if (rolesError) throw rolesError;
+        roles = rolesData || [];
+      }
+
+      // Get bookings counts for the same user_ids
+      let bookingsCounts: any[] = [];
+      if (profileUserIds.length > 0) {
+        const { data: bookingsData, error: bookingsError } = await supabase.from("bookings").select("user_id").in('user_id', profileUserIds);
+        if (!bookingsError) bookingsCounts = bookingsData || [];
+      }
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]));
       const roleMap = new Map(roles?.map(r => [r.user_id, r]));

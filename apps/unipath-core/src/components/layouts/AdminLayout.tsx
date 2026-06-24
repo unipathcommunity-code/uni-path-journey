@@ -73,6 +73,7 @@ const VERTICAL_NAV: Record<string, VerticalNavItem[]> = {
     { icon: FolderOpen,    label: 'Hujjatlar',     href: '/admin/documents' },
     { icon: GraduationCap, label: 'Talabalar',     href: '/admin/students' },
     { icon: Plane,         label: 'Viza & Yo\'l',  href: '/admin/arrival' },
+    { icon: Award,         label: 'Grantlar',      href: '/admin/grants' },
   ],
   academy:       [
     { icon: GraduationCap, label: 'Guruhlar & Davomat',    href: '/admin/academy' },
@@ -202,7 +203,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         }
       }
     } finally {
-      navigate('/');
+      // Hard-reload — subdomain tenant qayta resolve bo'ladi
+      // va TenantPublicPage (biznes bosh sahifasi) ko'rsatiladi
+      window.location.href = '/';
     }
   };
 
@@ -258,9 +261,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     ? []
     : [{ icon: Bell, label: language === 'ru' ? 'Объявления' : language === 'uz' ? 'E\'lonlar' : 'Announcements', href: '/admin/announcements' }];
 
-  // 4. Finance / HR — plan-gated; academy/tour already include it inline
+  // 4. Finance / HR — consulting always shows finance; others plan-gated
   const financeItems: { icon: typeof Receipt; label: string; href: string; locked: boolean }[] = [];
-  if (hasInvoices && !isAcademy && !isTour) {
+  const isConsulting = !isAcademy && !isTour;
+  if (isConsulting) {
+    // Consulting vertikali uchun Buxgalteriya va To'lovlar har doim ko'rinadi
     financeItems.push({
       icon: Receipt,
       label: language === 'ru' ? 'Бухгалтерия' : language === 'uz' ? 'Buxgalteriya' : 'Accounting',

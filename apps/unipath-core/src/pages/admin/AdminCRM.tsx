@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
 import { useTranslation } from '@/lib/i18n';
@@ -14,7 +15,7 @@ import { toast } from 'sonner';
 import {
   Users, Phone, Search, Plus, ChevronRight, Globe, MessageCircle,
   UserCheck, FileText, Plane, GraduationCap, Star, MoreHorizontal,
-  RefreshCw, Loader2, ArrowRight, Clock, XCircle,
+  RefreshCw, Loader2, ArrowRight, Clock, XCircle, Receipt,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ export default function AdminCRM() {
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const tid = activeTenant?.id ?? tenantId;
 
@@ -282,6 +284,10 @@ export default function AdminCRM() {
           </div>
           <Button size="sm" onClick={fetchClients} variant="outline" className="gap-1">
             <RefreshCw className="w-3.5 h-3.5" />
+          </Button>
+          <Button size="sm" onClick={() => navigate('/admin/accounting')} variant="outline" className="gap-1.5">
+            <Receipt className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{language === 'uz' ? 'Buxgalteriya' : language === 'ru' ? 'Бухгалтерия' : 'Accounting'}</span>
           </Button>
         </div>
       </div>
