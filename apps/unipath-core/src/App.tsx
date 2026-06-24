@@ -231,6 +231,32 @@ function resolveVertical(t: any): string {
  */
 function EcosystemRouter({ consultingRoutes }: { consultingRoutes: ReactNode }) {
   const { activeTenant } = useApp();
+
+  // If the path is a platform-wide global route, we must bypass the vertical-specific
+  // routers and return consultingRoutes (which contains the main app pages like /super-admin, /hub, /auth, etc.).
+  const path = window.location.pathname;
+  const platformPrefixes = [
+    '/super-admin',
+    '/superadmin',
+    '/hub',
+    '/auth',
+    '/tizimlashtirish',
+    '/onboarding',
+    '/pending-approval',
+    '/select-country',
+    '/login',
+    '/register',
+    '/about',
+    '/pricing',
+    '/plans',
+    '/search',
+  ];
+  const isPlatformRoute = path === '/' || platformPrefixes.some(p => path.startsWith(p));
+
+  if (isPlatformRoute) {
+    return <>{consultingRoutes}</>;
+  }
+
   const vertical = resolveVertical(activeTenant);
   if (vertical === 'tour') return <TourRoutes />;
   if (vertical === 'academy') return <NovaRoutes />;

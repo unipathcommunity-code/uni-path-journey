@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@unipath/tenant";
 import { Loader2 } from "lucide-react";
 import UniTourLoader from "@/components/common/UniTourLoader";
 
@@ -45,6 +46,7 @@ const ProtectedRoute = ({
   const { user, loading, userRole, hasRole } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
+  const { isImpersonating, endImpersonation } = useTenant();
 
   // Check if user is an agent (has entry in agents table)
   const { data: agentStatus, isLoading: agentLoading } = useQuery({
@@ -112,6 +114,9 @@ const ProtectedRoute = ({
     // Clear active tenant if navigating back to main entry portals
     if (isSuperAdmin && location.pathname.startsWith('/super-admin')) {
       localStorage.removeItem('active_tenant');
+      if (isImpersonating) {
+        endImpersonation();
+      }
     } else if (!isSuperAdmin && location.pathname === '/hub') {
       localStorage.removeItem('active_tenant');
     }

@@ -77,7 +77,7 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Logo size="sm" />
+            <Logo size="sm" forcePlatform />
             <span className="ml-2 px-3 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/30">
               Super Admin
             </span>

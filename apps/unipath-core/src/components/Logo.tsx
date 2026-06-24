@@ -4,9 +4,10 @@ import { useApp } from '@/contexts/AppContext';
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
+  forcePlatform?: boolean;
 }
 
-export function Logo({ size = 'md', showText = true }: LogoProps) {
+export function Logo({ size = 'md', showText = true, forcePlatform = false }: LogoProps) {
   const { activeTenant } = useApp();
 
   const sizes = {
@@ -21,7 +22,7 @@ export function Logo({ size = 'md', showText = true }: LogoProps) {
     lg: 'w-16 h-16 text-2xl',
   };
 
-  if (activeTenant) {
+  if (activeTenant && !forcePlatform) {
     const tenantName = activeTenant.config?.branding?.name || activeTenant.name;
     const logoUrl = activeTenant.config?.branding?.logo_url;
 
