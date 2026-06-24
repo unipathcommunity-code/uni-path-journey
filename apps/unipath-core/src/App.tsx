@@ -169,6 +169,7 @@ function TenantRootRoute() {
   const isCoreRoot = hostname === 'unipath.me' || hostname === 'www.unipath.me' ||
                      hostname === 'unipath.uz' || hostname === 'www.unipath.uz' ||
                      hostname === 'localhost' || hostname === '127.0.0.1' ||
+                     hostname.endsWith('.vercel.app') || hostname === 'vercel.app' ||
                      hostname === 'unipath-journey.vercel.app' || hostname === 'www.unipath-journey.vercel.app';
 
   // If strictly on the core root domain and no tenant parameter is present in URL,

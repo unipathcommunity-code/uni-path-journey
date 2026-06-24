@@ -82,6 +82,7 @@ const Auth = () => {
       }
 
       // LOGIN
+      localStorage.removeItem('active_tenant');
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 

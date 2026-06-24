@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { isLiveStatus, isPendingStatus, isBlockedStatus } from "@/lib/tenantStatus";
 
 // ============================================================
@@ -60,8 +61,9 @@ const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pad
 const MONTH_LABELS = ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"];
 
 export const useSuperAdminStats = () => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["superadmin-stats"],
+    queryKey: ["superadmin-stats", user?.id],
     queryFn: async () => {
       const [tenantsRes, profilesRes, plansRes] = await Promise.all([
         supabase.from("tenants" as any).select("*").order("created_at", { ascending: false }),

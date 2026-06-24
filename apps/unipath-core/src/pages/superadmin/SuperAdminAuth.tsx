@@ -71,6 +71,7 @@ export default function SuperAdminAuth() {
     }
 
     setIsSubmitting(true);
+    localStorage.removeItem('active_tenant');
     const { error } = await signIn(email, password);
     setIsSubmitting(false);
 
