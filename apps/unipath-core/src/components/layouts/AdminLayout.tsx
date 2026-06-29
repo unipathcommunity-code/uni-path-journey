@@ -279,7 +279,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       locked: false,
     });
   }
-  if (hasMentors && !isAcademy && !isTour) {
+  if (hasMentors && vertical === 'consulting') {
     financeItems.push({
       icon: UserCheck,
       label: language === 'ru' ? 'Менторы' : language === 'uz' ? 'Mentorlar' : 'Mentors',

@@ -97,6 +97,17 @@ export default function AdminWeddingHall() {
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDesc, setNewEventDesc] = useState('');
 
+  // Hamkorlar (Vendors) va Xarajatlar statelari
+  const [vendors, setVendors] = useState<Array<{ id: string; name: string; category: string; price: number; paid: number }>>([
+    { id: '1', name: 'Ziyo Catering', category: 'Katering (Taomlar)', price: 12000000, paid: 5000000 },
+    { id: '2', name: 'Elegant Decor', category: 'Zallarni bezatish', price: 6000000, paid: 3000000 },
+    { id: '3', name: 'DJ & Light Show', category: 'Musiqa va Chiroq', price: 2500000, paid: 2500000 },
+  ]);
+  const [newVendorName, setNewVendorName] = useState('');
+  const [newVendorCategory, setNewVendorCategory] = useState('Katering');
+  const [newVendorPrice, setNewVendorPrice] = useState('');
+  const [newVendorPaid, setNewVendorPaid] = useState('');
+
   const loadData = async () => {
     if (!tid) { setLoading(false); return; }
     try {
@@ -431,7 +442,7 @@ export default function AdminWeddingHall() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-fit rounded-xl bg-muted p-1">
+        <TabsList className="grid w-full grid-cols-4 lg:w-fit rounded-xl bg-muted p-1">
           <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs font-semibold">
             <Calendar className="w-4 h-4" /> Buyurtmalar ro'yxati
           </TabsTrigger>
@@ -440,6 +451,9 @@ export default function AdminWeddingHall() {
           </TabsTrigger>
           <TabsTrigger value="timeline" className="rounded-lg gap-2 text-xs font-semibold" disabled={!selectedBooking}>
             <Clock className="w-4 h-4" /> Dastur rejasi (Timeline)
+          </TabsTrigger>
+          <TabsTrigger value="vendors" className="rounded-lg gap-2 text-xs font-semibold" disabled={!selectedBooking}>
+            <DollarSign className="w-4 h-4" /> Hamkorlar & Xarajatlar
           </TabsTrigger>
         </TabsList>
 
@@ -757,6 +771,223 @@ export default function AdminWeddingHall() {
               </div>
             </div>
           )}
+        </TabsContent>
+
+        {/* Tab 4: Vendors & Event Budget Manager */}
+        <TabsContent value="vendors">
+          {selectedBooking && (() => {
+            const totalVendorCost = vendors.reduce((sum, v) => sum + v.price, 0);
+            const totalVendorPaid = vendors.reduce((sum, v) => sum + v.paid, 0);
+            const totalVendorRemaining = totalVendorCost - totalVendorPaid;
+            const netProfit = selectedBooking.total_price - totalVendorCost;
+            const netProfitPercent = selectedBooking.total_price > 0 ? (netProfit / selectedBooking.total_price) * 100 : 0;
+
+            const handleAddVendorLocal = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!newVendorName || !newVendorPrice) return;
+              setVendors(prev => [
+                ...prev,
+                {
+                  id: Math.random().toString(),
+                  name: newVendorName,
+                  category: newVendorCategory,
+                  price: Number(newVendorPrice),
+                  paid: Number(newVendorPaid) || 0
+                }
+              ]);
+              setNewVendorName('');
+              setNewVendorPrice('');
+              setNewVendorPaid('');
+            };
+
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-pink-500" /> Jamoa, Hamkorlar va Tadbir Byudjeti boshqaruvi
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Tashqi hamkorlar (katering, dekor, musiqa) bilan hisob-kitoblar va marosim rentabelligi.</p>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="grid md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">Tadbir jami byudjeti</span>
+                      <p className="text-xl font-bold text-foreground">{selectedBooking.total_price.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Buyurtmachi to'laydigan summa</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">Jami hamkorlar harajati</span>
+                      <p className="text-xl font-bold text-rose-500">{totalVendorCost.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Tashqi xizmatlar umumiy summasi</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">To'langan harajatlar</span>
+                      <p className="text-xl font-bold text-emerald-500">{totalVendorPaid.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Avans va to'liq yopilgan cheklar</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">To'yxona sof foydasi</span>
+                      <p className="text-xl font-bold text-emerald-500">{netProfit.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Rentabellik: {netProfitPercent.toFixed(1)}%</span>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-6">
+                  {/* Left Column: Partners list & form */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <Card className="border-border">
+                      <CardHeader>
+                        <CardTitle className="text-base">Hamkorlar (Vendors) va pudratchilar ro'yxati</CardTitle>
+                        <CardDescription>Ushbu marosimga biriktirilgan barcha mustaqil hamkorlar to'lov holati.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left">
+                            <thead>
+                              <tr className="border-b border-border/60 text-muted-foreground text-xs font-semibold uppercase">
+                                <th className="py-2">Hamkor nomi</th>
+                                <th className="py-2">Soha (Kategoriya)</th>
+                                <th className="py-2 text-right">Shartnoma summasi</th>
+                                <th className="py-2 text-right">To'landi</th>
+                                <th className="py-2 text-right">Qoldiq</th>
+                                <th className="py-2 text-right w-12">O'chirish</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/40">
+                              {vendors.map(v => (
+                                <tr key={v.id} className="hover:bg-muted/10">
+                                  <td className="py-2.5 font-medium">{v.name}</td>
+                                  <td className="py-2.5 text-xs text-muted-foreground">{v.category}</td>
+                                  <td className="py-2.5 text-right">{v.price.toLocaleString()} UZS</td>
+                                  <td className="py-2.5 text-right text-emerald-500">{v.paid.toLocaleString()} UZS</td>
+                                  <td className="py-2.5 text-right font-semibold text-rose-400">
+                                    {(v.price - v.paid).toLocaleString()} UZS
+                                  </td>
+                                  <td className="py-2.5 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={() => setVendors(prev => prev.filter(item => item.id !== v.id))}
+                                      className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition-all"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Add Partner Form */}
+                        <form onSubmit={handleAddVendorLocal} className="pt-3 border-t border-border/40 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pudratchi nomi</Label>
+                            <Input
+                              placeholder="masalan: Ziyo Catering"
+                              value={newVendorName}
+                              onChange={e => setNewVendorName(e.target.value)}
+                              className="h-8 rounded-lg text-xs"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Kategoriya</Label>
+                            <select
+                              value={newVendorCategory}
+                              onChange={e => setNewVendorCategory(e.target.value)}
+                              className="w-full h-8 rounded-lg text-xs bg-background border border-input px-2"
+                            >
+                              <option value="Katering (Taomlar)">Katering (Taomlar)</option>
+                              <option value="Zallarni bezatish">Zallarni bezatish</option>
+                              <option value="Musiqa va Chiroq">Musiqa va Chiroq</option>
+                              <option value="Foto & Video">Foto & Video</option>
+                              <option value="Boshqa xizmatlar">Boshqa xizmatlar</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Shartnoma / To'lov</Label>
+                            <div className="flex gap-1.5">
+                              <Input
+                                type="number"
+                                placeholder="Jami narxi"
+                                value={newVendorPrice}
+                                onChange={e => setNewVendorPrice(e.target.value)}
+                                className="h-8 rounded-lg text-xs w-1/2"
+                                required
+                              />
+                              <Input
+                                type="number"
+                                placeholder="To'langan qism"
+                                value={newVendorPaid}
+                                onChange={e => setNewVendorPaid(e.target.value)}
+                                className="h-8 rounded-lg text-xs w-1/2"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-end">
+                            <Button type="submit" size="sm" className="w-full h-8 rounded-lg text-xs font-semibold bg-pink-600 hover:bg-pink-700 text-white">
+                              Qo'shish
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Right Column: Active alerts & Checklist */}
+                  <div className="space-y-4">
+                    <Card className="border-border">
+                      <CardHeader>
+                        <CardTitle className="text-base">Tadbir kuni to'lovlar jadvali</CardTitle>
+                        <CardDescription>Tadbir yakunida zudlik bilan to'lanishi lozim bo'lgan qoldiq pullar ro'yxati.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="p-3 border rounded-xl bg-muted/20 space-y-1">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Jami to'lanishi lozim bo'lgan qoldiq</span>
+                          <p className="text-lg font-bold text-rose-500">{totalVendorRemaining.toLocaleString()} UZS</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-primary">To'lov eslatmalari</h4>
+                          {vendors.filter(v => v.price > v.paid).length === 0 ? (
+                            <p className="text-xs text-muted-foreground">Barcha hamkorlar bilan to'liq hisob-kitob qilingan.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {vendors
+                                .filter(v => v.price > v.paid)
+                                .map(v => (
+                                  <div key={v.id} className="p-2.5 border rounded-lg bg-rose-500/5 border-rose-500/10 flex justify-between items-center text-xs">
+                                    <div>
+                                      <p className="font-semibold text-foreground">{v.name}</p>
+                                      <p className="text-[10px] text-muted-foreground">{v.category}</p>
+                                    </div>
+                                    <span className="font-bold text-rose-400">
+                                      {(v.price - v.paid).toLocaleString()} UZS
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </TabsContent>
       </Tabs>
 

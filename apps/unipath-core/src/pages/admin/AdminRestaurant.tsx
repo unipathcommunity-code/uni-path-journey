@@ -32,7 +32,9 @@ import {
   Check, 
   X,
   CreditCard,
-  Plus
+  Plus,
+  DollarSign,
+  Trash2
 } from 'lucide-react';
 
 export default function AdminRestaurant() {
@@ -44,6 +46,48 @@ export default function AdminRestaurant() {
   const [payMethod, setPayMethod] = useState<PaymentMethod>('cash');
   const [discountVal, setDiscountVal] = useState('');
   const [serviceFeeVal, setServiceFeeVal] = useState('');
+
+  // Tannarx kalkulyatori uchun statelar
+  const [calcSelectedItemId, setCalcSelectedItemId] = useState<string>('');
+  const [calcIngredients, setCalcIngredients] = useState<{ id: string; name: string; qty: number; unit: string; price: number }[]>([
+    { id: '1', name: "Go'sht (Mol go'shti)", qty: 0.2, unit: 'kg', price: 90000 },
+    { id: '2', name: 'Guruch', qty: 0.15, unit: 'kg', price: 20000 },
+    { id: '3', name: "O'simlik yog'i", qty: 0.05, unit: 'litr', price: 18000 },
+    { id: '4', name: 'Sabzi', qty: 0.2, unit: 'kg', price: 5000 },
+  ]);
+  const [newIngName, setNewIngName] = useState('');
+  const [newIngQty, setNewIngQty] = useState('');
+  const [newIngUnit, setNewIngUnit] = useState('kg');
+  const [newIngPrice, setNewIngPrice] = useState('');
+
+  const selectedItemForCalc = r.items.find(it => it.id === calcSelectedItemId);
+  const totalIngredientCost = calcIngredients.reduce((sum, ing) => sum + (ing.qty * ing.price), 0);
+  const salePrice = selectedItemForCalc ? selectedItemForCalc.price : 45000;
+  const foodCostPercent = salePrice > 0 ? (totalIngredientCost / salePrice) * 100 : 0;
+  const netMargin = salePrice - totalIngredientCost;
+  const netMarginPercent = salePrice > 0 ? (netMargin / salePrice) * 100 : 0;
+
+  const handleAddIngredient = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newIngName || !newIngQty || !newIngPrice) return;
+    setCalcIngredients(prev => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        name: newIngName,
+        qty: Number(newIngQty),
+        unit: newIngUnit,
+        price: Number(newIngPrice)
+      }
+    ]);
+    setNewIngName('');
+    setNewIngQty('');
+    setNewIngPrice('');
+  };
+
+  const handleDeleteIngredient = (id: string) => {
+    setCalcIngredients(prev => prev.filter(ing => ing.id !== id));
+  };
 
   const onTakeOrder = (table: RestaurantTable) => {
     setPosTable(table);
@@ -90,7 +134,7 @@ export default function AdminRestaurant() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:w-fit rounded-xl bg-muted p-1">
+        <TabsList className="grid w-full grid-cols-5 lg:w-fit rounded-xl bg-muted p-1">
           <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs font-semibold">
             <LayoutGrid className="w-4 h-4" /> Stollar & POS
           </TabsTrigger>
@@ -107,6 +151,9 @@ export default function AdminRestaurant() {
           </TabsTrigger>
           <TabsTrigger value="menu" className="rounded-lg gap-2 text-xs font-semibold">
             <BookOpen className="w-4 h-4" /> Menyu
+          </TabsTrigger>
+          <TabsTrigger value="cost-calculator" className="rounded-lg gap-2 text-xs font-semibold">
+            <DollarSign className="w-4 h-4" /> Tannarx Kalkulyatori
           </TabsTrigger>
         </TabsList>
 
@@ -298,6 +345,226 @@ export default function AdminRestaurant() {
         {/* Tab 4: Menu manager */}
         <TabsContent value="menu">
           <MenuManager r={r} />
+        </TabsContent>
+
+        {/* Tab 5: Tannarx Kalkulyatori */}
+        <TabsContent value="cost-calculator">
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" /> Taomlar Tannarxi & Foyda Kalkulyatori
+              </h3>
+              <p className="text-sm text-muted-foreground">Taomlarning ingrediyentlar bo'yicha tannarxini hisoblash va foyda marjasini tahlil qilish paneli.</p>
+            </div>
+
+            {/* Financial Overview Cards */}
+            <div className="grid md:grid-cols-4 gap-4">
+              <Card className="bg-card border-border">
+                <CardContent className="pt-5 space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium">Sotish narxi</span>
+                  <p className="text-xl font-bold text-foreground">{fmtUZS(salePrice)}</p>
+                  <span className="text-[10px] text-muted-foreground block">
+                    {selectedItemForCalc ? selectedItemForCalc.name : "Standart namuna narxi"}
+                  </span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="pt-5 space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium">Ingrediyentlar tannarxi</span>
+                  <p className="text-xl font-bold text-foreground text-rose-500">{fmtUZS(totalIngredientCost)}</p>
+                  <span className="text-[10px] text-muted-foreground block">Jami mahsulotlar yig'indisi</span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="pt-5 space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium">Food Cost ulushi</span>
+                  <p className={`text-xl font-bold ${foodCostPercent > 40 ? 'text-rose-500' : foodCostPercent > 30 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    {foodCostPercent.toFixed(1)}%
+                  </p>
+                  <span className={`text-[10px] font-bold block ${foodCostPercent > 35 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {foodCostPercent > 35 ? "⚠️ Yuqori (Meyor: 25-35%)" : "✓ Optimal me'yorda"}
+                  </span>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="pt-5 space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium">Sof foyda marjasi</span>
+                  <p className="text-xl font-bold text-emerald-500">{fmtUZS(netMargin)}</p>
+                  <span className="text-[10px] text-muted-foreground block">Yalpi foyda: {netMarginPercent.toFixed(1)}%</span>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left side: Ingredients List & Form */}
+              <div className="lg:col-span-2 space-y-4">
+                <Card className="border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Resept tarkibi & Ingrediyentlar</CardTitle>
+                    <CardDescription>Ushbu taomni tayyorlash uchun ketadigan ingrediyentlar sarfi va ularning sotib olish narxi.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead>
+                          <tr className="border-b border-border/60 text-muted-foreground text-xs font-semibold uppercase">
+                            <th className="py-2">Masalliq</th>
+                            <th className="py-2 text-right">Miqdor</th>
+                            <th className="py-2 text-right">Birlik narxi</th>
+                            <th className="py-2 text-right">Jami tannarx</th>
+                            <th className="py-2 text-right w-12">O'chirish</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                          {calcIngredients.map(ing => (
+                            <tr key={ing.id} className="hover:bg-muted/10">
+                              <td className="py-2.5 font-medium">{ing.name}</td>
+                              <td className="py-2.5 text-right">{ing.qty} {ing.unit}</td>
+                              <td className="py-2.5 text-right">{fmtUZS(ing.price)}</td>
+                              <td className="py-2.5 text-right font-semibold text-foreground">{fmtUZS(ing.qty * ing.price)}</td>
+                              <td className="py-2.5 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteIngredient(ing.id)}
+                                  className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition-all"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Inline Form to Add Ingredient */}
+                    <form onSubmit={handleAddIngredient} className="pt-3 border-t border-border/40 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Masalliq nomi</Label>
+                        <Input
+                          placeholder="Masalan: Go'sht"
+                          value={newIngName}
+                          onChange={e => setNewIngName(e.target.value)}
+                          className="h-8 rounded-lg text-xs"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Birlik</Label>
+                        <select
+                          value={newIngUnit}
+                          onChange={e => setNewIngUnit(e.target.value)}
+                          className="w-full h-8 rounded-lg text-xs bg-background border border-input px-2"
+                        >
+                          <option value="kg">kilogram (kg)</option>
+                          <option value="g">gram (g)</option>
+                          <option value="litr">litr (l)</option>
+                          <option value="dona">dona (pcs)</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Miqdor / Narx</Label>
+                        <div className="flex gap-1.5">
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="Miqdori"
+                            value={newIngQty}
+                            onChange={e => setNewIngQty(e.target.value)}
+                            className="h-8 rounded-lg text-xs w-1/2"
+                            required
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Birlik narxi (so'm)"
+                            value={newIngPrice}
+                            onChange={e => setNewIngPrice(e.target.value)}
+                            className="h-8 rounded-lg text-xs w-1/2"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <Button type="submit" size="sm" className="w-full h-8 rounded-lg text-xs font-semibold">
+                          Qo'shish
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right side: Dish Selector & Business Advice */}
+              <div className="space-y-4">
+                <Card className="border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Menyudan taomni tanlang</CardTitle>
+                    <CardDescription>Kalkulyatorni menyudagi real taom narxiga bog'lash.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Taomlar ro'yxati</Label>
+                      {r.items.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Menyuda taomlar mavjud emas.</p>
+                      ) : (
+                        <select
+                          value={calcSelectedItemId}
+                          onChange={e => setCalcSelectedItemId(e.target.value)}
+                          className="w-full h-9 rounded-xl text-xs bg-background border border-input px-3"
+                        >
+                          <option value="">-- Standart namuna narxi (45,000 so'm) --</option>
+                          {r.items.map(it => (
+                            <option key={it.id} value={it.id}>
+                              {it.name} ({fmtUZS(it.price)})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div className="p-4 border border-border/80 rounded-xl bg-muted/20 space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Tahlil & Tavsiyalar</h4>
+                      
+                      {foodCostPercent > 40 ? (
+                        <div className="space-y-1">
+                          <p className="text-xs text-rose-400 font-semibold flex items-center gap-1">
+                            ⚠️ Tannarx yuqori
+                          </p>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            Ushbu taomning food cost ko'rsatkichi 40% dan yuqori. Jami foyda marjasi juda past. 
+                            <strong> Tavsiya</strong>: Sotish narxini oshiring yoki ingrediyent miqdorini/narxini kamaytiring.
+                          </p>
+                        </div>
+                      ) : foodCostPercent > 35 ? (
+                        <div className="space-y-1">
+                          <p className="text-xs text-amber-400 font-semibold">
+                            💡 Narxni ko'rib chiqing
+                          </p>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            Food cost 35% atrofida. Restoraningiz rentabelligi uchun bu chegara hisoblanadi. 
+                            Mahsulot yetkazib beruvchilar bilan narxni arzonlashtirish bo'yicha muzokara olib borish foydali bo'lishi mumkin.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-xs text-emerald-400 font-semibold">
+                            ✓ Zo'r ko'rsatkich
+                          </p>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            Ushbu taom juda yuqori rentabellikka ega (Food Cost {foodCostPercent.toFixed(1)}%). 
+                            Bu taomni restoranda asosiy reklama taomi sifatida ko'proq targ'ib qilishingiz mumkin.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

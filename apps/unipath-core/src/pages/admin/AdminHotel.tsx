@@ -90,6 +90,11 @@ export default function AdminHotel() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth()); // 0-indexed
 
+  // RevPAR kalkulyatori uchun foydalanuvchi kiritmalari
+  const [customTotalRooms, setCustomTotalRooms] = useState('20');
+  const [customOccupancy, setCustomOccupancy] = useState('75');
+  const [customAdr, setCustomAdr] = useState('350000');
+
   const loadHotelData = async () => {
     if (!tid) { setLoading(false); return; }
     try {
@@ -315,7 +320,7 @@ export default function AdminHotel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-fit rounded-xl bg-muted p-1">
+        <TabsList className="grid w-full grid-cols-4 lg:w-fit rounded-xl bg-muted p-1">
           <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs font-semibold">
             <Grid className="w-4 h-4" /> Xonalar xaritasi
           </TabsTrigger>
@@ -324,6 +329,9 @@ export default function AdminHotel() {
           </TabsTrigger>
           <TabsTrigger value="bookings" className="rounded-lg gap-2 text-xs font-semibold">
             <Clock className="w-4 h-4" /> Rezervatsiyalar ro'yxati
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="rounded-lg gap-2 text-xs font-semibold">
+            <Receipt className="w-4 h-4" /> Tahlil & RevPAR
           </TabsTrigger>
         </TabsList>
 
@@ -553,6 +561,174 @@ export default function AdminHotel() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Tab 4: Analytics & RevPAR */}
+        <TabsContent value="analytics">
+          {(() => {
+            const totalRoomsCount = rooms.length;
+            const occupiedRoomsCount = rooms.filter(r => r.status === 'occupied').length;
+            const cleaningRoomsCount = rooms.filter(r => r.status === 'cleaning').length;
+            const maintenanceRoomsCount = rooms.filter(r => r.status === 'maintenance').length;
+            const occupancyRate = totalRoomsCount > 0 ? (occupiedRoomsCount / totalRoomsCount) * 100 : 0;
+
+            const confirmedBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'checked_out');
+            const totalRevenue = confirmedBookings.reduce((sum, b) => sum + b.total_amount, 0);
+
+            // ADR: Average Daily Rate = Room Revenue / Rooms Sold
+            const adr = occupiedRoomsCount > 0 ? (totalRevenue / occupiedRoomsCount) : 0;
+            // RevPAR: Revenue Per Available Room = Room Revenue / Total Available Rooms
+            const revPar = totalRoomsCount > 0 ? (totalRevenue / totalRoomsCount) : 0;
+
+            // Interactive RevPAR Calculator values
+            const parsedTotalRooms = Number(customTotalRooms) || 0;
+            const parsedOccupancy = Number(customOccupancy) || 0;
+            const parsedAdr = Number(customAdr) || 0;
+            const computedRevPar = parsedAdr * (parsedOccupancy / 100);
+            const computedMonthlyRevenue = computedRevPar * parsedTotalRooms * 30;
+
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Receipt className="w-5 h-5 text-primary" /> Bandlik Tahlili & RevPAR (Daromad ko'rsatkichi)
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Mehmonxona xonalarining samaradorligi va moliyaviy o'sish prognozlarini hisoblash.</p>
+                </div>
+
+                {/* KPI Cards */}
+                <div className="grid md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">Xonalar bandligi (Occupancy)</span>
+                      <p className="text-xl font-bold text-foreground">{occupancyRate.toFixed(1)}%</p>
+                      <span className="text-[10px] text-muted-foreground block">
+                        Jami: {totalRoomsCount} | Band: {occupiedRoomsCount} ta xona
+                      </span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">ADR (Average Daily Rate)</span>
+                      <p className="text-xl font-bold text-foreground text-primary">{adr.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Band qilingan xonalar o'rtacha narxi</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">RevPAR (Samaradorlik ko'rsatkichi)</span>
+                      <p className="text-xl font-bold text-foreground text-emerald-500">{revPar.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Har bir mavjud xonaga to'g'ri keladigan tushum</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-5 space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium">Joriy oylik jami tushum</span>
+                      <p className="text-xl font-bold text-foreground text-emerald-500">{totalRevenue.toLocaleString()} UZS</p>
+                      <span className="text-[10px] text-muted-foreground block">Faol va tasdiqlangan rezervatsiyalar</span>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Two Column Layout: Calculator & Recommendations */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* RevPAR Calculator */}
+                  <Card className="border-border">
+                    <CardHeader>
+                      <CardTitle className="text-base">RevPAR & Oylik Daromad Simulyatori</CardTitle>
+                      <CardDescription>O'z mehmonxonangiz parametrlari orqali kutilayotgan oylik aylanmani hisoblang.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Jami xonalar</Label>
+                          <Input
+                            type="number"
+                            value={customTotalRooms}
+                            onChange={e => setCustomTotalRooms(e.target.value)}
+                            className="rounded-xl h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Bandlik foizi (%)</Label>
+                          <Input
+                            type="number"
+                            max="100"
+                            value={customOccupancy}
+                            onChange={e => setCustomOccupancy(e.target.value)}
+                            className="rounded-xl h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">ADR (sutka narxi)</Label>
+                          <Input
+                            type="number"
+                            value={customAdr}
+                            onChange={e => setCustomAdr(e.target.value)}
+                            className="rounded-xl h-9 text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-border space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Kalkulyator bo'yicha RevPAR:</span>
+                          <span className="font-bold text-foreground">{computedRevPar.toLocaleString()} UZS</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Kutilayotgan oylik daromad (30 kun):</span>
+                          <span className="text-lg font-extrabold text-emerald-500">{computedMonthlyRevenue.toLocaleString()} UZS</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Room status distribution & Housekeeping checklist */}
+                  <Card className="border-border">
+                    <CardHeader>
+                      <CardTitle className="text-base">Tozalash & Xizmat ko'rsatish holati</CardTitle>
+                      <CardDescription>Xonalarning gigiyenik holati va tozalov ishlarining taqsimoti.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 border rounded-xl bg-muted/20 space-y-1 text-center">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Tozalanayotgan xonalar</span>
+                          <p className="text-lg font-bold text-sky-500">{cleaningRoomsCount} ta xona</p>
+                        </div>
+                        <div className="p-3 border rounded-xl bg-muted/20 space-y-1 text-center">
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Remontdagi xonalar</span>
+                          <p className="text-lg font-bold text-amber-500">{maintenanceRoomsCount} ta xona</p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border border-border/80 rounded-xl bg-muted/10 space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Tizim Tahlili va Maslahat</h4>
+                        {occupancyRate > 85 ? (
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            🔥 <strong>Bandlik darajasi juda yuqori ({occupancyRate.toFixed(1)}%)!</strong> 
+                            Xonalarga bo'lgan talab juda katta. Mavsumiy narxlarni (ADR) 10-15% ga oshirishni tavsiya qilamiz.
+                          </p>
+                        ) : occupancyRate < 40 ? (
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            📉 <strong>Bandlik darajasi past ({occupancyRate.toFixed(1)}%).</strong> 
+                            Mijozlarni jalb qilish uchun maxsus chegirmalar yoki sayyohlik paketlari integratsiyasidan foydalaning.
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            ✓ <strong>Bandlik darajasi barqaror me'yorda ({occupancyRate.toFixed(1)}%).</strong> 
+                            Tozalov va texnik xizmat ko'rsatish ishlarini o'z vaqtida bajarib, mijozlar reytingini yuqori ushlab turing.
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            );
+          })()}
         </TabsContent>
       </Tabs>
 
