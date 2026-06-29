@@ -12,18 +12,11 @@ export const translations = {
   en: {
     nav: {
       links: [
-        { id: "solutions", label: "Solutions" },
+        { id: "core", label: "Solutions" },
         { id: "features", label: "Features" },
         { id: "pricing", label: "Pricing" },
         { id: "testimonials", label: "Testimonials" },
       ],
-      dropdown: {
-        title: "Solutions",
-        core: { title: "UniPath Core", desc: "CRM & Finance for general business" },
-        nova: { title: "NOVA Edu", desc: "For Academies and Schools" },
-        unitour: { title: "UniTour Travel", desc: "For Tour and Travel agencies" },
-        integrations: { title: "Integrations", desc: "Telegram bots, AI cameras, SMS" }
-      },
       login: "Sign In",
       getStarted: "Get Started",
     },
@@ -91,15 +84,30 @@ export const translations = {
         },
         {
           tag: "Educate",
-          title: "NOVA Edu SaaS",
+          title: "NOVA Edu",
           desc: "Attendance, student tracking, lesson plans and a parent portal for academies and schools.",
           highlighted: true,
           cta: "Get Started",
         },
         {
           tag: "Travel",
-          title: "UniTour Travel SaaS",
+          title: "UniTour Travel",
           desc: "Visa pipeline, tour booking engine and an agent network for travel agencies.",
+        },
+        {
+          tag: "Dine",
+          title: "UniFood Restaurant",
+          desc: "POS ordering terminals, Menu managers, and real-time Kitchen Display Systems (KDS) for cafés and restaurants.",
+        },
+        {
+          tag: "Stay",
+          title: "UniHotel Lodging",
+          desc: "Room occupancy grid layouts, Gantt booking calendars, check-in flows, and PDF invoices for lodging.",
+        },
+        {
+          tag: "Celebrate",
+          title: "UniWedding Hall",
+          desc: "SVG drag-and-drop floor seating designers, coordinator timeline logs, and deposit payment trackers.",
         },
         {
           tag: "Connect",
@@ -115,47 +123,80 @@ export const translations = {
         "Whether you run a school, a travel agency or a multi-branch business, the platform adapts effortlessly.",
       tabs: [
         {
-          label: "For Schools & Academies (NOVA)",
+          label: "Academies (NOVA)",
           heading: "For Schools & Academies",
-          desc: "Run admissions, attendance, lessons and parent communication from one clean dashboard.",
+          desc: "Admissions, attendance, lesson plans, and parent portal communication from one clean dashboard.",
           points: [
-            "Reduce manual attendance checks by 90% with AI cameras",
-            "Track every student's progress and payments",
-            "Give parents a real-time portal for grades and news",
-            "Plan lessons and schedules across all groups",
+            "Reduce attendance check time by 90% with AI face cameras",
+            "Track student progress and monthly payments",
+            "Provide parent portals for real-time grades and announcements",
+            "Plan and schedule courses across multiple groups",
           ],
         },
         {
-          label: "For Travel Agencies (UniTour)",
-          heading: "For Travel Agencies",
-          desc: "Manage bookings, visa pipelines and your agent network with full visibility.",
+          label: "Travel (UniTour)",
+          heading: "For Tour Operators & Agencies",
+          desc: "Manage booking engines, visa pipelines, and sub-agent commission structures with full visibility.",
           points: [
-            "Track every visa application through a clear pipeline",
-            "Book tours and manage itineraries in one place",
-            "Coordinate your agent network and commissions",
-            "Sync payments in real time across branches",
+            "Track every visa application status through custom pipelines",
+            "Build itineraries and manage tours in one central hub",
+            "Calculate agent commissions and branch distributions",
+            "Sync multi-currency payments in real time",
           ],
         },
         {
-          label: "For General Businesses (Core)",
+          label: "Restaurants (UniFood)",
+          heading: "For Cafés & Restaurants",
+          desc: "Speed up kitchen prep times, manage menu modifiers, and run multi-terminal POS setups.",
+          points: [
+            "Sync kitchen display systems (KDS) with active dining bills",
+            "Design floor plans with custom dining tables and capacities",
+            "Track order statuses (Pending, Preparing, Ready, Paid)",
+            "Analyze daily revenue metrics by shift and operator",
+          ],
+        },
+        {
+          label: "Lodging (UniHotel)",
+          heading: "For Hotels & Motels",
+          desc: "Manage guest check-ins, coordinate room cleanings, and schedule guest reservations.",
+          points: [
+            "View real-time room occupancy states in a visual grid",
+            "Track bookings across a scrollable Gantt Timeline calendar",
+            "Issue PDF receipts and invoices on guest checkout",
+            "Manage cleaning, maintenance, and check-in workflows",
+          ],
+        },
+        {
+          label: "Wedding Halls (UniWedding)",
+          heading: "For Event & Wedding Halls",
+          desc: "Design coordinate floor plans, manage guest allocations, and track deposit budgets.",
+          points: [
+            "Design table layouts using interactive SVG drag-and-drop tools",
+            "Coordinate event program schedules with minute timelines",
+            "Track progressive deposit budgets and cash flow ledgers",
+            "Allocate guest seats and group lists per table",
+          ],
+        },
+        {
+          label: "General Businesses (Core)",
           heading: "For General Businesses",
-          desc: "Build repeatable processes for CRM, finance and operations across all your branches.",
+          desc: "Build repeatable workflows for CRM, accounting, and multi-branch operations.",
           points: [
-            "Automate repetitive, high-volume tasks",
-            "Maintain consistency across daily workflows",
-            "Reduce human error with intelligent checks",
-            "Enable faster coordination across departments",
+            "Automate repetitive, high-volume operational tasks",
+            "Maintain consistency across multi-branch daily routines",
+            "Reduce human input errors using intelligent validation checks",
+            "Co-ordinate files and tasks across back-office teams",
           ],
         },
         {
-          label: "For Managers & Admins",
-          heading: "For Managers & Admins",
-          desc: "Get a bird's-eye view of every tenant, branch and team from a single control panel.",
+          label: "Managers & Admins",
+          heading: "For Platform & Tenant Administrators",
+          desc: "Get a unified bird's-eye view of every tenant, branch, and team from a single panel.",
           points: [
-            "Monitor performance with live dashboards",
-            "Control roles and permissions granularly",
-            "Consolidate multi-currency reporting instantly",
-            "Set up new branches in minutes, not weeks",
+            "Monitor business health using live performance charts",
+            "Define granular roles and permission gates for users",
+            "Instantly aggregate multi-currency financial records",
+            "Set up and deploy new branches in minutes",
           ],
         },
       ],
@@ -222,7 +263,7 @@ export const translations = {
       columns: [
         {
           title: "Solutions",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Integrations"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniFood Restaurant", "UniHotel Lodging", "UniWedding Hall", "Integrations"],
         },
         {
           title: "Product",
@@ -238,18 +279,11 @@ export const translations = {
   ru: {
     nav: {
       links: [
-        { id: "solutions", label: "Решения" },
+        { id: "core", label: "Решения" },
         { id: "features", label: "Функции" },
         { id: "pricing", label: "Цены" },
         { id: "testimonials", label: "Отзывы" },
       ],
-      dropdown: {
-        title: "Решения",
-        core: { title: "UniPath Core", desc: "CRM и финансы для общего бизнеса" },
-        nova: { title: "NOVA Edu", desc: "Для академий и школ" },
-        unitour: { title: "UniTour Travel", desc: "Для туристических агентств" },
-        integrations: { title: "Интеграции", desc: "Telegram-боты, AI-камеры, SMS" }
-      },
       login: "Вход",
       getStarted: "Начать",
     },
@@ -317,15 +351,30 @@ export const translations = {
         },
         {
           tag: "Образование",
-          title: "NOVA Edu SaaS",
+          title: "NOVA Edu",
           desc: "Посещаемость, учёт учеников, планы уроков и портал для родителей в академиях и школах.",
           highlighted: true,
           cta: "Начать",
         },
         {
           tag: "Туризм",
-          title: "UniTour Travel SaaS",
+          title: "UniTour Travel",
           desc: "Визовый конвейер, движок бронирования туров и сеть агентов для турагентств.",
+        },
+        {
+          tag: "Рестораны",
+          title: "UniFood Restaurant",
+          desc: "Терминалы продаж (POS), менеджер меню и кухонные экраны (KDS) для ресторанов и кафе.",
+        },
+        {
+          tag: "Отели",
+          title: "UniHotel Lodging",
+          desc: "Интерактивная карта номеров, бронирование на Gantt Timeline, заселение гостей и PDF-чеки.",
+        },
+        {
+          tag: "Торжества",
+          title: "UniWedding Hall",
+          desc: "Интерактивный планер рассадки гостей (SVG), планировщик таймлайна событий и контроль оплат.",
         },
         {
           tag: "Интеграции",
@@ -341,7 +390,7 @@ export const translations = {
         "Школа, турагентство или мультифилиальный бизнес — платформа адаптируется без усилий.",
       tabs: [
         {
-          label: "Школы и академии (NOVA)",
+          label: "Академии (NOVA)",
           heading: "Для школ и академий",
           desc: "Приём, посещаемость, уроки и общение с родителями в одной панели.",
           points: [
@@ -360,6 +409,39 @@ export const translations = {
             "Бронируйте туры и управляйте маршрутами в одном месте",
             "Координируйте сеть агентов и комиссии",
             "Синхронизируйте платежи между филиалами в реальном времени",
+          ],
+        },
+        {
+          label: "Рестораны (UniFood)",
+          heading: "Для ресторанов и кафе",
+          desc: "Оптимизируйте работу кухни, управляйте меню и принимайте заказы через POS.",
+          points: [
+            "Синхронизируйте кухонные экраны (KDS) с активными счетами",
+            "Планируйте рассадку за столами с учетом их вместимости",
+            "Контролируйте статусы заказов (В очереди, Готовится, Готово, Оплачено)",
+            "Анализируйте выручку по сменам и кассирам",
+          ],
+        },
+        {
+          label: "Отели (UniHotel)",
+          heading: "Для отелей и мотелей",
+          desc: "Управляйте заселением, координируйте уборку и планируйте бронирование комнат.",
+          points: [
+            "Просматривайте занятость номеров на визуальной сетке",
+            "Следите за бронированием на интерактивной шкале Gantt Timeline",
+            "Печатайте и отправляйте PDF-счета при выезде гостей",
+            "Управляйте задачами по уборке и обслуживанию номеров",
+          ],
+        },
+        {
+          label: "Залы торжеств (UniWedding)",
+          heading: "Для залов торжеств и ресторанов",
+          desc: "Создавайте планы залов, распределяйте гостей по столам и ведите учет оплат.",
+          points: [
+            "Проектируйте рассадку на интерактивном SVG-холсте",
+            "Планируйте поминутный таймлайн и сценарий торжества",
+            "Отслеживайте авансы, остатки платежей и общий бюджет",
+            "Формируйте списки гостей для каждого отдельного стола",
           ],
         },
         {
@@ -448,7 +530,7 @@ export const translations = {
       columns: [
         {
           title: "Решения",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Интеграции"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniFood Restaurant", "UniHotel Lodging", "UniWedding Hall", "Интеграции"],
         },
         {
           title: "Продукт",
@@ -464,18 +546,11 @@ export const translations = {
   uz: {
     nav: {
       links: [
-        { id: "solutions", label: "Yechimlar" },
+        { id: "core", label: "Yechimlar" },
         { id: "features", label: "Imkoniyatlar" },
         { id: "pricing", label: "Narxlar" },
         { id: "testimonials", label: "Sharhlar" },
       ],
-      dropdown: {
-        title: "Yechimlar",
-        core: { title: "UniPath Core", desc: "Umumiy biznes uchun CRM va moliya" },
-        nova: { title: "NOVA Edu", desc: "O'quv markazlari va maktablar uchun" },
-        unitour: { title: "UniTour Travel", desc: "Sayohat va turizm agentliklari uchun" },
-        integrations: { title: "Integratsiyalar", desc: "Telegram bot, AI kameralar, SMS shlyuz" }
-      },
       login: "Kirish",
       getStarted: "Boshlash",
     },
@@ -543,15 +618,30 @@ export const translations = {
         },
         {
           tag: "Ta'lim",
-          title: "NOVA Edu SaaS",
+          title: "NOVA Edu",
           desc: "Davomat, o'quvchilarni kuzatish, dars rejalari va ota-onalar portali akademiyalar uchun.",
           highlighted: true,
           cta: "Boshlash",
         },
         {
           tag: "Sayohat",
-          title: "UniTour Travel SaaS",
+          title: "UniTour Travel",
           desc: "Viza jarayoni, tur bron qilish tizimi va agentlar tarmog'i turagentliklar uchun.",
+        },
+        {
+          tag: "Restoran",
+          title: "UniFood Restaurant",
+          desc: "Savdo POS terminallari, menyu menejeri va oshxona KDS ekranlari restoran va kafelar uchun.",
+        },
+        {
+          tag: "Mehmonxona",
+          title: "UniHotel Lodging",
+          desc: "Xonalar bandlik xaritasi, Gantt Timeline kalendari, check-in oqimi va PDF cheklar.",
+        },
+        {
+          tag: "Tantanalar",
+          title: "UniWedding Hall",
+          desc: "Interaktiv SVG stollar joylashuv planeri, marosimlar taymlayn rejasi va zakalat hisob-kitobi.",
         },
         {
           tag: "Integratsiya",
@@ -589,11 +679,44 @@ export const translations = {
           ],
         },
         {
+          label: "Restoranlar (UniFood)",
+          heading: "Restoran va kafelar uchun",
+          desc: "Oshxona faoliyatini tezlashtiring, menyularni boshqaring va buyurtmalarni POS orqali qabul qiling.",
+          points: [
+            "KDS oshxona ekranlarini faol stollar bilan sinxronlashtiring",
+            "Stollar joylashuvini ularning sig'imiga qarab rejalashtiring",
+            "Buyurtma holatini ko'rib turing (Kutilmoqda, Tayyorlanmoqda, Tayyor, To'langan)",
+            "Smenalar va kassirlar bo'yicha kunlik daromadlarni tahlil qiling",
+          ],
+        },
+        {
+          label: "Mehmonxonalar (UniHotel)",
+          heading: "Mehmonxona va motellar uchun",
+          desc: "Mehmonlarni joylashtirishni boshqaring, tozalash ishlarini muvofiqlashtiring va xonalarni bron qiling.",
+          points: [
+            "Xonalar bandligini vizual xaritada ko'ring",
+            "Bronlarni Gantt Timeline kalendarida kuzatib boring",
+            "Mehmon chiqib ketishida (Checkout) PDF cheklarini chop eting",
+            "Tozalash va xonalarga xizmat ko'rsatish vazifalarini boshqaring",
+          ],
+        },
+        {
+          label: "Tantanalar zallari (UniWedding)",
+          heading: "To'yxonalar va tantanalar zallari uchun",
+          desc: "Zallar rejasini chizing, mehmonlarni stollarga biriktiring va to'lovlarni nazorat qiling.",
+          points: [
+            "Interaktiv SVG paneli yordamida stollar joylashuvini loyihalashtiring",
+            "Tadbirning marosimlar taymlayn rejasini tuzing",
+            "Zakalat to'lovlari va umumiy tadbir byudjetini hisoblang",
+            "Har bir stol uchun mehmonlar ro'yxatini shakllantiring",
+          ],
+        },
+        {
           label: "Umumiy biznes (Core)",
           heading: "Umumiy biznes uchun",
           desc: "Barcha filiallar uchun CRM, moliya va operatsiyalarda takrorlanadigan jarayonlar quring.",
           points: [
-            "Takrorlanuvchi ko'p hajmli vazifalarni avtomatlashtiring",
+            "Takrorlanuvchi ko'p hajmli vazifatlarni avtomatlashtiring",
             "Kundalik jarayonlarda izchillikni saqlang",
             "Aqlli tekshiruvlar bilan xatolarni kamaytiring",
             "Bo'limlar o'rtasida tezroq muvofiqlashtiring",
@@ -674,7 +797,7 @@ export const translations = {
       columns: [
         {
           title: "Yechimlar",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Integratsiyalar"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniFood Restaurant", "UniHotel Lodging", "UniWedding Hall", "Integratsiyalar"],
         },
         {
           title: "Mahsulot",

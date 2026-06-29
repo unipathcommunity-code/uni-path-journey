@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Check, GraduationCap, Plane, Briefcase, ShieldCheck, Workflow } from "lucide-react"
+import { Check, GraduationCap, Plane, UtensilsCrossed, Bed, Gem, Briefcase, ShieldCheck, Workflow } from "lucide-react"
 import type { Translation } from "@/lib/translations"
 import { AssistantIllustration } from "./illustrations"
 
-const tabIcons = [GraduationCap, Plane, Briefcase, ShieldCheck]
+const tabIcons = [GraduationCap, Plane, UtensilsCrossed, Bed, Gem, Briefcase, ShieldCheck]
 
 export function TeamsSection({ t }: { t: Translation }) {
   const [active, setActive] = useState(0)
