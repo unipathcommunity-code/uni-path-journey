@@ -1,260 +1,81 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useApp } from '@/contexts/AppContext';
+import { useState } from 'react';
+import { useRestaurant } from './restaurant/useRestaurant';
+import TablesMap from './restaurant/TablesMap';
+import PosOrder from './restaurant/PosOrder';
+import MenuManager from './restaurant/MenuManager';
+import { 
+  fmtUZS, 
+  orderStatusClass, 
+  ORDER_STATUS_LABEL, 
+  ORDER_TYPE_LABEL, 
+  PAYMENT_LABEL,
+  RestaurantTable,
+  OrderStatus,
+  PaymentMethod
+} from './restaurant/types';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Modal } from './restaurant/TablesMap';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+
 import { 
   UtensilsCrossed, 
-  Plus, 
-  Map, 
-  Grid, 
-  Check, 
-  Clock, 
-  User, 
-  DollarSign, 
-  ChevronRight, 
+  LayoutGrid, 
+  ChefHat, 
+  BookOpen, 
+  History, 
   Printer, 
-  ShoppingBag,
-  ListOrdered
+  Check, 
+  X,
+  CreditCard,
+  Plus
 } from 'lucide-react';
 
-interface RestaurantTable {
-  id: string;
-  table_number: string;
-  capacity: number;
-  status: 'available' | 'occupied' | 'reserved';
-  qr_code_url: string | null;
-}
-
-interface RestaurantOrder {
-  id: string;
-  table_id: string | null;
-  table_number?: string;
-  status: 'pending' | 'kitchen' | 'served' | 'completed' | 'cancelled';
-  items: Array<{ dish_name: string; qty: number; price: number }>;
-  total_amount: number;
-  created_at: string;
-}
-
 export default function AdminRestaurant() {
-  const { activeTenant } = useApp();
+  const r = useRestaurant();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [tables, setTables] = useState<RestaurantTable[]>([]);
-  const [orders, setOrders] = useState<RestaurantOrder[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [posTable, setPosTable] = useState<RestaurantTable | null>(null);
+  const [payModalOrder, setPayModalOrder] = useState<any | null>(null);
+  const [payMethod, setPayMethod] = useState<PaymentMethod>('cash');
+  const [discountVal, setDiscountVal] = useState('');
+  const [serviceFeeVal, setServiceFeeVal] = useState('');
 
-  // Modals & Forms
-  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
-  const [newTableNum, setNewTableNum] = useState('');
-  const [newTableCapacity, setNewTableCapacity] = useState('4');
+  const onTakeOrder = (table: RestaurantTable) => {
+    setPosTable(table);
+    setActiveTab('pos');
+  };
 
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
-  const [dishName, setDishName] = useState('');
-  const [dishQty, setDishQty] = useState('1');
-  const [dishPrice, setDishPrice] = useState('45000');
-  const [orderItems, setOrderItems] = useState<Array<{ dish_name: string; qty: number; price: number }>>([]);
-
-  useEffect(() => {
-    async function fetchRestaurantData() {
-      if (!activeTenant) return;
-      try {
-        setLoading(true);
-        // 1. Fetch tables
-        const { data: tablesData, error: tablesError } = await supabase
-          .from('restaurant_tables')
-          .select('*')
-          .order('table_number', { ascending: true });
-
-        if (tablesError) throw tablesError;
-        setTables(tablesData || []);
-
-        // 2. Fetch orders
-        const { data: ordersData } = await supabase
-          .from('restaurant_orders')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        const mappedOrders = (ordersData || []).map(o => ({
-          ...o,
-          table_number: tablesData?.find(t => t.id === o.table_id)?.table_number || 'Olib ketish'
-        }));
-        setOrders(mappedOrders);
-
-      } catch (err: any) {
-        console.error('Error fetching restaurant data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchRestaurantData();
-  }, [activeTenant]);
-
-  const handleCreateTable = async (e: React.FormEvent) => {
+  const handlePayOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTableNum.trim() || !activeTenant) return;
-
-    try {
-      const cap = parseInt(newTableCapacity);
-      const qrCodeUrl = `https://unipath.me/r/table/${newTableNum}?tenant=${activeTenant.id}`;
-
-      const { data, error } = await supabase
-        .from('restaurant_tables')
-        .insert({
-          tenant_id: activeTenant.id,
-          table_number: newTableNum,
-          capacity: cap,
-          qr_code_url: qrCodeUrl,
-          status: 'available'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: 'Stol qo\'shildi!',
-        description: `№ ${newTableNum} stoli muvaffaqiyatli ro'yxatdan o'tdi.`
-      });
-
-      setTables([...tables, data]);
-      setIsTableModalOpen(false);
-      setNewTableNum('');
-    } catch (err: any) {
-      toast({
-        title: 'Xatolik',
-        description: err.message,
-        variant: 'destructive'
-      });
-    }
+    if (!payModalOrder) return;
+    
+    await r.payOrder(payModalOrder.id, payMethod, {
+      discount: Number(discountVal) || 0,
+      service_fee: Number(serviceFeeVal) || 0,
+      tableId: payModalOrder.table_id
+    });
+    
+    setPayModalOrder(null);
+    setDiscountVal('');
+    setServiceFeeVal('');
   };
 
-  const handleAddItemToOrder = () => {
-    if (!dishName.trim()) return;
-    setOrderItems([...orderItems, {
-      dish_name: dishName,
-      qty: parseInt(dishQty),
-      price: parseFloat(dishPrice)
-    }]);
-    setDishName('');
-    setDishQty('1');
-  };
-
-  const handleCreateOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTable || orderItems.length === 0 || !activeTenant) return;
-
-    try {
-      const totalAmount = orderItems.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
-
-      const { data: order, error: orderError } = await supabase
-        .from('restaurant_orders')
-        .insert({
-          tenant_id: activeTenant.id,
-          table_id: selectedTable.id,
-          items: orderItems,
-          total_amount: totalAmount,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Update table status to occupied
-      await supabase
-        .from('restaurant_tables')
-        .update({ status: 'occupied' })
-        .eq('id', selectedTable.id);
-
-      toast({
-        title: 'Buyurtma yuborildi!',
-        description: `№ ${selectedTable.table_number}-stol uchun buyurtma oshxonaga yuborildi.`
-      });
-
-      setTables(tables.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied' } : t));
-      setOrders([{ ...order, table_number: selectedTable.table_number }, ...orders]);
-      setIsOrderModalOpen(false);
-      setOrderItems([]);
-    } catch (err: any) {
-      toast({
-        title: 'Xatolik',
-        description: err.message,
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleUpdateOrderStatus = async (orderId: string, status: 'kitchen' | 'served' | 'completed' | 'cancelled', tableId: string | null) => {
-    try {
-      await supabase
-        .from('restaurant_orders')
-        .update({ status })
-        .eq('id', orderId);
-
-      // If completed or cancelled, set table status back to available
-      if ((status === 'completed' || status === 'cancelled') && tableId) {
-        await supabase
-          .from('restaurant_tables')
-          .update({ status: 'available' })
-          .eq('id', tableId);
-        
-        setTables(tables.map(t => t.id === tableId ? { ...t, status: 'available' } : t));
-      }
-
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
-      toast({
-        title: 'Holat yangilandi',
-        description: `Buyurtma statusi "${status}" ga o'tkazildi.`
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Xatolik',
-        description: err.message,
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const getTableBadge = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'occupied':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'reserved':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  const getOrderStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-      case 'kitchen':
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
-      case 'served':
-        return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
-      case 'completed':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-      default:
-        return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-    }
-  };
-
-  if (loading) {
+  if (r.loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-muted-foreground">Restoran boshqaruvi yuklanmoqda...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent mr-2" />
+        <span className="text-muted-foreground text-sm font-medium">Restoran yuklanmoqda...</span>
       </div>
     );
   }
+
+  // Active preparation tickets for KDS
+  const kdsOrders = r.orders.filter(o => o.status === 'new' || o.status === 'kitchen' || o.status === 'served');
 
   return (
     <div className="space-y-6">
@@ -262,301 +83,277 @@ export default function AdminRestaurant() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <UtensilsCrossed className="w-7 h-7 text-primary" /> Restoran va Kafe Boshqaruvi
+            <UtensilsCrossed className="w-7 h-7 text-primary" /> Restoran & Kafe Boshqaruvi
           </h1>
-          <p className="text-muted-foreground text-sm">Stollar bandligi, raqamli QR-menyular va oshxona buyurtmalar navbati.</p>
+          <p className="text-muted-foreground text-sm">Zal xaritasi, buyurtmalar POS paneli, oshxona KDS va to'lov kvitansiyalari.</p>
         </div>
-        <Button onClick={() => setIsTableModalOpen(true)} className="gap-2 rounded-xl">
-          <Plus className="w-5 h-5" /> Yangi Stol Qo'shish
-        </Button>
       </div>
 
-      {/* Table Layout Map Grid */}
-      <Card className="bg-card border border-border">
-        <CardHeader>
-          <CardTitle>Zal xaritasi (Restaurant Seating Layout)</CardTitle>
-          <CardDescription>Stollar sig'imi va joriy statuslari. Buyurtma olish uchun stol ustiga bosing.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-            {tables.map((table) => (
-              <div
-                key={table.id}
-                onClick={() => {
-                  if (table.status === 'available') {
-                    setSelectedTable(table);
-                    setIsOrderModalOpen(true);
-                  }
-                }}
-                className={`p-4 border rounded-2xl text-center relative transition-all duration-200 cursor-pointer ${
-                  table.status === 'available' ? 'hover:scale-[1.03] hover:shadow-lg' : ''
-                } ${getTableBadge(table.status)}`}
-              >
-                <div className="text-lg font-bold">Stol № {table.table_number}</div>
-                <div className="text-[10px] uppercase font-bold tracking-wider opacity-85 mt-1">{table.capacity} kishilik</div>
-                
-                {table.qr_code_url && (
-                  <div className="mt-3 flex justify-center">
-                    <span title="Chop etish QR kod">
-                      <Printer 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast({
-                            title: 'QR Code yuborildi',
-                            description: `№ ${table.table_number} stoli uchun QR menyu chop etishga yuborildi.`
-                          });
-                        }}
-                        className="w-4 h-4 text-muted-foreground hover:text-white transition-colors" 
-                      />
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4 lg:w-fit rounded-xl bg-muted p-1">
+          <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs font-semibold">
+            <LayoutGrid className="w-4 h-4" /> Stollar & POS
+          </TabsTrigger>
+          <TabsTrigger value="pos" className="rounded-lg gap-2 text-xs font-semibold">
+            <Plus className="w-4 h-4" /> Yangi Buyurtma
+          </TabsTrigger>
+          <TabsTrigger value="kds" className="rounded-lg gap-2 text-xs font-semibold relative">
+            <ChefHat className="w-4 h-4" /> Oshxona (KDS)
+            {kdsOrders.length > 0 && (
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] font-bold bg-rose-500 text-white rounded-full">
+                {kdsOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="menu" className="rounded-lg gap-2 text-xs font-semibold">
+            <BookOpen className="w-4 h-4" /> Menyu
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Live Kitchen Order Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Kitchen Queue */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card className="bg-card border border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-lg">Oshxona Buyurtmalar Navbati (Live Kitchen Queue)</CardTitle>
-                <CardDescription>Oshxonada tayyorlanayotgan va yangi olingan buyurtmalar nazorati</CardDescription>
-              </div>
-              <ListOrdered className="w-5 h-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              {orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground">Oshxonada faol buyurtmalar mavjud emas.</div>
-              ) : (
-                <div className="space-y-4 divide-y divide-border">
-                  {orders
-                    .filter(o => o.status !== 'completed' && o.status !== 'cancelled')
-                    .map((order, idx) => (
-                      <div key={order.id} className={`pt-4 flex flex-col md:flex-row md:items-start md:justify-between gap-4 ${idx === 0 ? 'pt-0' : ''}`}>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-foreground">Stol № {order.table_number}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase ${getOrderStatusColor(order.status)}`}>
-                              {order.status}
-                            </span>
+        {/* Tab 1: Overview (Tables Map) */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 gap-6">
+            <TablesMap r={r} onTakeOrder={onTakeOrder} />
+            
+            {/* Active tables billing widget */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">Faol stollar va cheklar</CardTitle>
+                <CardDescription>Joriy xizmat ko'rsatilayotgan stollar cheklarini to'lash yoki bekor qilish paneli.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {r.orders.filter(o => o.status !== 'paid' && o.status !== 'cancelled').length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Faol hisoblar yo'q.</p>
+                ) : (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {r.orders
+                      .filter(o => o.status !== 'paid' && o.status !== 'cancelled')
+                      .map(order => (
+                        <div key={order.id} className="p-4 border rounded-xl space-y-3 bg-muted/20">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-bold text-sm">
+                                {order.table_id ? `Stol № ${order.table_number}` : `Olib ketish (${order.customer_name || 'Mijoz'})`}
+                              </p>
+                              <span className={`inline-block text-[9px] px-2 py-0.5 mt-1 font-bold uppercase rounded border ${orderStatusClass(order.status)}`}>
+                                {ORDER_STATUS_LABEL[order.status]}
+                              </span>
+                            </div>
+                            <p className="font-bold text-sm text-primary">{fmtUZS(order.total)}</p>
                           </div>
                           
-                          <div className="space-y-1.5 pl-2 border-l-2 border-primary/20">
-                            {order.items.map((it, idx2) => (
-                              <p key={idx2} className="text-xs text-muted-foreground">
-                                • {it.dish_name} <b className="text-foreground">x {it.qty}</b> ({it.price.toLocaleString()} UZS)
-                              </p>
+                          <div className="text-[11px] text-muted-foreground space-y-1">
+                            {order.order_items.map((oi, i) => (
+                              <p key={oi.id}>• {oi.name} x{oi.qty}</p>
                             ))}
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="text-right">
-                            <p className="text-[10px] text-muted-foreground">Umumiy Summa</p>
-                            <p className="font-bold text-primary text-sm">{order.total_amount.toLocaleString()} UZS</p>
+                          <div className="flex gap-2 pt-2">
+                            <Button 
+                              onClick={() => {
+                                setPayModalOrder(order);
+                                setDiscountVal(String(order.discount || ''));
+                                setServiceFeeVal(String(order.service_fee || ''));
+                              }} 
+                              size="sm" 
+                              className="flex-1 text-xs gap-1 rounded-lg"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" /> To'lash
+                            </Button>
+                            <Button 
+                              onClick={() => {
+                                if (confirm("Buyurtma bekor qilinsinmi?")) {
+                                  r.setOrderStatus(order.id, 'cancelled', order.table_id);
+                                }
+                              }} 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-xs text-rose-500 hover:text-rose-500 rounded-lg"
+                            >
+                              Bekor qilish
+                            </Button>
                           </div>
-                          
-                          <div className="flex gap-1.5">
-                            {order.status === 'pending' && (
-                              <Button 
-                                size="sm" 
-                                className="text-xs rounded-lg"
-                                onClick={() => handleUpdateOrderStatus(order.id, 'kitchen', order.table_id)}
-                              >
-                                Oshxonaga berish
-                              </Button>
-                            )}
-                            {order.status === 'kitchen' && (
-                              <Button 
-                                size="sm" 
-                                className="text-xs rounded-lg"
-                                onClick={() => handleUpdateOrderStatus(order.id, 'served', order.table_id)}
-                              >
-                                Tortiq etildi (Served)
-                              </Button>
-                            )}
-                            {order.status === 'served' && (
-                              <Button 
-                                size="sm" 
-                                className="text-xs rounded-lg"
-                                onClick={() => handleUpdateOrderStatus(order.id, 'completed', order.table_id)}
-                              >
-                                To'landi (Complete)
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Finished / Archived orders */}
-        <div className="space-y-4">
-          <Card className="bg-card border border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Yakunlangan buyurtmalar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {orders.filter(o => o.status === 'completed' || o.status === 'cancelled').length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground text-xs">Arxivlangan buyurtmalar yo'q.</div>
-              ) : (
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                  {orders
-                    .filter(o => o.status === 'completed' || o.status === 'cancelled')
-                    .map((order) => (
-                      <div key={order.id} className="p-3 border border-border rounded-xl flex justify-between gap-3 text-xs">
-                        <div>
-                          <p className="font-bold text-foreground">Stol № {order.table_number}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{order.items.length} xil taom</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-primary">{order.total_amount.toLocaleString()} UZS</p>
-                          <span className="text-[9px] text-emerald-400 font-semibold uppercase">{order.status}</span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* New Table Modal */}
-      {isTableModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-sm bg-card border border-border shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Yangi Stol Qo'shish</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateTable} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="tNum" className="text-xs">Stol Raqami</Label>
-                  <Input 
-                    id="tNum" 
-                    placeholder="Masalan: 8" 
-                    value={newTableNum} 
-                    onChange={(e) => setNewTableNum(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="tCap" className="text-xs">O'rindiq soni (Sig'imi)</Label>
-                  <Input 
-                    id="tCap" 
-                    type="number"
-                    value={newTableCapacity} 
-                    onChange={(e) => setNewTableCapacity(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsTableModalOpen(false)} className="rounded-xl">
-                    Bekor qilish
-                  </Button>
-                  <Button type="submit" className="rounded-xl font-bold">
-                    Stol yaratish
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* New Order Modal */}
-      {isOrderModalOpen && selectedTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md bg-card border border-border shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Buyurtma Olish — Stol № {selectedTable.table_number}</CardTitle>
-              <CardDescription>Taomlarni ro'yxatga qo'shib, keyin buyurtmani oshxonaga yuboring.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateOrder} className="space-y-4">
-                
-                {/* Add dish sub-form */}
-                <div className="p-3 bg-muted/40 rounded-xl space-y-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Taom Nomi</Label>
-                    <Input 
-                      placeholder="Shashlik, Palov, Kola..." 
-                      value={dishName} 
-                      onChange={(e) => setDishName(e.target.value)}
-                      className="rounded-lg h-9 text-xs"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Soni</Label>
-                      <Input 
-                        type="number"
-                        value={dishQty} 
-                        onChange={(e) => setDishQty(e.target.value)}
-                        className="rounded-lg h-9 text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Narxi (UZS)</Label>
-                      <Input 
-                        type="number"
-                        value={dishPrice} 
-                        onChange={(e) => setDishPrice(e.target.value)}
-                        className="rounded-lg h-9 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <Button type="button" onClick={handleAddItemToOrder} className="w-full h-9 rounded-lg text-xs" variant="secondary">
-                    Taomni qo'shish
-                  </Button>
-                </div>
-
-                {/* Display added items */}
-                <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
-                  <Label className="text-xs">Buyurtma tarkibi</Label>
-                  {orderItems.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-4 border border-dashed rounded-lg border-border">Hali taomlar qo'shilmadi</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {orderItems.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-xs p-2 bg-muted/20 border border-border rounded-lg">
-                          <span>{item.dish_name} <b>x{item.qty}</b></span>
-                          <span className="font-semibold">{(item.price * item.qty).toLocaleString()} UZS</span>
                         </div>
                       ))}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                  <Button type="button" variant="outline" onClick={() => setIsOrderModalOpen(false)} className="rounded-xl">
-                    Bekor qilish
-                  </Button>
-                  <Button type="submit" disabled={orderItems.length === 0} className="rounded-xl font-bold">
-                    Buyurtmani Tasdiqlash
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Tab 2: POS Order pad */}
+        <TabsContent value="pos">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">Yangi Buyurtma Olish</h3>
+              {posTable && (
+                <span className="text-xs bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full font-bold">
+                  Stol № {posTable.table_number} tanlangan
+                </span>
+              )}
+            </div>
+            <PosOrder r={r} presetTable={posTable} onDone={() => {
+              setPosTable(null);
+              setActiveTab('overview');
+            }} />
+          </div>
+        </TabsContent>
+
+        {/* Tab 3: Kitchen display board */}
+        <TabsContent value="kds">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-bold text-lg">Kitchen Display System (KDS)</h3>
+              <p className="text-sm text-muted-foreground">Tayyorlanayotgan taomlar buyurtmalar navbati.</p>
+            </div>
+            {kdsOrders.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">Oshxonada faol buyurtmalar mavjud emas.</CardContent></Card>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {kdsOrders.map(order => (
+                  <Card key={order.id} className="border-border">
+                    <CardHeader className="pb-3 border-b border-border bg-muted/10">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-sm font-bold">
+                            {order.table_id ? `Stol № ${order.table_number}` : `Yetkazish (${order.customer_name || 'Mijoz'})`}
+                          </CardTitle>
+                          <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                            {new Date(order.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} ({ORDER_TYPE_LABEL[order.order_type]})
+                          </span>
+                        </div>
+                        <span className={`text-[9px] px-2 py-0.5 font-bold uppercase rounded border ${orderStatusClass(order.status)}`}>
+                          {ORDER_STATUS_LABEL[order.status]}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-3">
+                      <div className="space-y-2">
+                        {order.order_items.map(oi => (
+                          <div key={oi.id} className="flex justify-between items-center text-sm border-b border-border/40 pb-1.5">
+                            <div>
+                              <p className="font-medium text-foreground">{oi.name}</p>
+                              {oi.note && <p className="text-[10px] text-rose-400 italic">Izoh: {oi.note}</p>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-xs text-muted-foreground">x{oi.qty}</span>
+                              {oi.status !== 'ready' ? (
+                                <Button 
+                                  onClick={() => r.setItemStatus(oi.id, 'ready')}
+                                  size="sm" 
+                                  className="h-7 px-2 text-[10px] rounded bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Tayyor
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-emerald-400 font-bold flex items-center gap-0.5">
+                                  ✓ Tayyor
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2">
+                        {order.status === 'new' && (
+                          <Button 
+                            onClick={() => r.setOrderStatus(order.id, 'kitchen')}
+                            className="w-full text-xs rounded-xl"
+                          >
+                            Tayyorlashni boshlash
+                          </Button>
+                        )}
+                        {order.status === 'kitchen' && (
+                          <Button 
+                            onClick={() => r.setOrderStatus(order.id, 'served')}
+                            className="w-full text-xs rounded-xl"
+                            variant="secondary"
+                          >
+                            Mijozga tarqatildi (Served)
+                          </Button>
+                        )}
+                        {order.status === 'served' && (
+                          <Button 
+                            onClick={() => {
+                              setPayModalOrder(order);
+                              setDiscountVal(String(order.discount || ''));
+                              setServiceFeeVal(String(order.service_fee || ''));
+                            }} 
+                            className="w-full text-xs rounded-xl"
+                          >
+                            To'lovga o'tish
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Tab 4: Menu manager */}
+        <TabsContent value="menu">
+          <MenuManager r={r} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Payment and bill calculation dialog */}
+      {payModalOrder && (
+        <Modal onClose={() => setPayModalOrder(null)} title="To'lovni rasmiylashtirish">
+          <form onSubmit={handlePayOrder} className="space-y-4">
+            <div className="p-3 border rounded-xl bg-muted/20 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Stol/Buyurtma:</span>
+                <span className="font-bold">
+                  {payModalOrder.table_id ? `Stol № ${payModalOrder.table_number}` : 'Olib ketish'}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Summa (Taomlar):</span>
+                <span className="font-bold">{fmtUZS(payModalOrder.subtotal)}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Xizmat haqi (so'm)</Label>
+                <Input type="number" value={serviceFeeVal} onChange={e => setServiceFeeVal(e.target.value)} className="rounded-xl h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Chegirma (so'm)</Label>
+                <Input type="number" value={discountVal} onChange={e => setDiscountVal(e.target.value)} className="rounded-xl h-9" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">To'lov turi</Label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {(['cash', 'card', 'click', 'payme'] as PaymentMethod[]).map(m => (
+                  <button type="button" key={m} onClick={() => setPayMethod(m)}
+                    className={`text-xs py-2 rounded-lg border font-medium ${payMethod === m ? 'bg-primary text-primary-foreground border-primary' : 'border-border'}`}>
+                    {PAYMENT_LABEL[m]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center py-3 border-t border-border">
+              <span className="text-sm font-semibold">Yakuniy to'lov</span>
+              <span className="text-xl font-bold text-primary">
+                {fmtUZS(Math.max(0, payModalOrder.subtotal + (Number(serviceFeeVal) || 0) - (Number(discountVal) || 0)))}
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setPayModalOrder(null)} className="rounded-xl">Bekor qilish</Button>
+              <Button type="submit" className="rounded-xl font-bold">To'lovni tasdiqlash</Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

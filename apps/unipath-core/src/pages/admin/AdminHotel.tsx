@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import jsPDF from 'jspdf';
+import { Modal } from './restaurant/TablesMap';
+
 import { 
   Bed, 
   Plus, 
@@ -15,10 +19,14 @@ import {
   DollarSign, 
   ShieldAlert, 
   Grid, 
-  Star,
   Phone,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  X,
+  Brush,
+  Wrench,
+  Receipt,
+  User
 } from 'lucide-react';
 
 interface HotelRoom {
@@ -27,6 +35,7 @@ interface HotelRoom {
   type: 'single' | 'double' | 'suite' | 'deluxe';
   status: 'available' | 'occupied' | 'cleaning' | 'maintenance';
   price_per_night: number;
+  floor: number;
 }
 
 interface Booking {
@@ -34,25 +43,37 @@ interface Booking {
   room_id: string;
   guest_name: string;
   guest_phone: string;
+  guest_email?: string;
   check_in: string;
   check_out: string;
   status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
   total_amount: number;
-  room?: HotelRoom;
+  paid_amount: number;
+  payment_method?: string;
+  note?: string;
+  created_at?: string;
 }
+
+const db = supabase as any;
 
 export default function AdminHotel() {
   const { activeTenant } = useApp();
   const { toast } = useToast();
+  const tid = activeTenant?.id;
+
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState<HotelRoom[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  
+  // Tabs
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Modals / Forms
+  // Modals & Forms
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [newRoomNumber, setNewRoomNumber] = useState('');
   const [newRoomType, setNewRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
-  const [newRoomPrice, setNewRoomPrice] = useState('150000');
+  const [newRoomPrice, setNewRoomPrice] = useState('250000');
+  const [newRoomFloor, setNewRoomFloor] = useState('1');
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<HotelRoom | null>(null);
@@ -62,51 +83,62 @@ export default function AdminHotel() {
   const [checkOutDate, setCheckOutDate] = useState(
     new Date(Date.now() + 86400000).toISOString().split('T')[0] // Tomorrow
   );
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [bookingNote, setBookingNote] = useState('');
+
+  // Gantt Calendar Settings
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth()); // 0-indexed
+
+  const loadHotelData = async () => {
+    if (!tid) { setLoading(false); return; }
+    try {
+      setLoading(true);
+      // Fetch rooms
+      const { data: roomsData, error: roomsError } = await db
+        .from('hotel_rooms')
+        .select('*')
+        .eq('tenant_id', tid)
+        .order('room_number', { ascending: true });
+
+      if (roomsError) throw roomsError;
+      setRooms(roomsData || []);
+
+      // Fetch bookings
+      const { data: bookingsData } = await db
+        .from('hotel_bookings')
+        .select('*')
+        .eq('tenant_id', tid)
+        .order('created_at', { ascending: false });
+
+      setBookings(bookingsData || []);
+    } catch (err: any) {
+      console.error('Error fetching hotel data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchHotelData() {
-      if (!activeTenant) return;
-      try {
-        setLoading(true);
-        // Fetch rooms
-        const { data: roomsData, error: roomsError } = await supabase
-          .from('hotel_rooms')
-          .select('*')
-          .order('room_number', { ascending: true });
-
-        if (roomsError) throw roomsError;
-        setRooms(roomsData || []);
-
-        // Fetch bookings
-        const { data: bookingsData } = await supabase
-          .from('hotel_bookings')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        setBookings(bookingsData || []);
-      } catch (err: any) {
-        console.error('Error fetching hotel data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchHotelData();
-  }, [activeTenant]);
+    loadHotelData();
+  }, [tid]);
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRoomNumber.trim() || !activeTenant) return;
+    if (!newRoomNumber.trim() || !tid) return;
 
     try {
       const price = parseFloat(newRoomPrice);
-      const { data, error } = await supabase
+      const floorNum = parseInt(newRoomFloor) || 1;
+      
+      const { data, error } = await db
         .from('hotel_rooms')
         .insert({
-          tenant_id: activeTenant.id,
+          tenant_id: tid,
           room_number: newRoomNumber,
           type: newRoomType,
           price_per_night: price,
+          floor: floorNum,
           status: 'available'
         })
         .select()
@@ -133,7 +165,7 @@ export default function AdminHotel() {
 
   const handleBookRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRoom || !activeTenant) return;
+    if (!selectedRoom || !tid) return;
 
     try {
       const dayDiff = Math.max(
@@ -144,17 +176,20 @@ export default function AdminHotel() {
       );
       const totalAmount = dayDiff * selectedRoom.price_per_night;
 
-      const { data: booking, error: bookingError } = await supabase
+      const { data: booking, error: bookingError } = await db
         .from('hotel_bookings')
         .insert({
-          tenant_id: activeTenant.id,
+          tenant_id: tid,
           room_id: selectedRoom.id,
           guest_name: guestName,
           guest_phone: guestPhone,
           check_in: checkInDate,
           check_out: checkOutDate,
           status: 'checked_in',
-          total_amount: totalAmount
+          total_amount: totalAmount,
+          paid_amount: totalAmount, // Paid full in this simple form
+          payment_method: paymentMethod,
+          note: bookingNote
         })
         .select()
         .single();
@@ -162,7 +197,7 @@ export default function AdminHotel() {
       if (bookingError) throw bookingError;
 
       // Update room status to occupied
-      await supabase
+      await db
         .from('hotel_rooms')
         .update({ status: 'occupied' })
         .eq('id', selectedRoom.id);
@@ -172,11 +207,12 @@ export default function AdminHotel() {
         description: `Mehmon ${guestName} № ${selectedRoom.room_number} xonasiga muvaffaqiyatli joylashtirildi.`
       });
 
-      setRooms(rooms.map(r => r.id === selectedRoom.id ? { ...r, status: 'occupied' } : r));
-      setBookings([booking, ...bookings]);
+      // Reload
+      await loadHotelData();
       setIsBookingModalOpen(false);
       setGuestName('');
       setGuestPhone('');
+      setBookingNote('');
     } catch (err: any) {
       toast({
         title: 'Xatolik',
@@ -187,75 +223,78 @@ export default function AdminHotel() {
   };
 
   const handleCheckOut = async (bookingId: string, roomId: string) => {
+    if (!confirm("Mehmonga chiqish (Check-out) hisobini yopmoqchimisiz?")) return;
     try {
-      // 1. Update Booking Status
-      await supabase
-        .from('hotel_bookings')
-        .update({ status: 'checked_out' })
-        .eq('id', bookingId);
-
-      // 2. Set Room Status to Cleaning (Miyoz chiqqandan so'ng tozalash holati)
-      await supabase
-        .from('hotel_rooms')
-        .update({ status: 'cleaning' })
-        .eq('id', roomId);
-
+      await db.from('hotel_bookings').update({ status: 'checked_out' }).eq('id', bookingId);
+      await db.from('hotel_rooms').update({ status: 'cleaning' }).eq('id', roomId);
+      
       toast({
         title: 'Check-out yakunlandi!',
-        description: 'Xona tozalash (Cleaning) rejimiga o\'tkazildi.'
+        description: 'Xona tozalash (cleaning) holatiga o\'tkazildi.'
       });
-
-      setRooms(rooms.map(r => r.id === roomId ? { ...r, status: 'cleaning' } : r));
-      setBookings(bookings.map(b => b.id === bookingId ? { ...b, status: 'checked_out' } : b));
+      await loadHotelData();
     } catch (err: any) {
-      toast({
-        title: 'Xatolik',
-        description: err.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
     }
   };
 
-  const handleSetRoomStatus = async (roomId: string, status: 'available' | 'cleaning' | 'maintenance') => {
+  const handleSetRoomStatus = async (roomId: string, status: HotelRoom['status']) => {
     try {
-      await supabase
-        .from('hotel_rooms')
-        .update({ status })
-        .eq('id', roomId);
-
-      setRooms(rooms.map(r => r.id === roomId ? { ...r, status } : r));
-      toast({
-        title: 'Holat o\'zgardi',
-        description: `Xona holati "${status}" ga o'zgartirildi.`
-      });
+      await db.from('hotel_rooms').update({ status }).eq('id', roomId);
+      toast({ title: 'Xona statusi o\'zgardi', description: `Status: ${status}` });
+      await loadHotelData();
     } catch (err: any) {
-      toast({
-        title: 'Xatolik',
-        description: err.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'occupied':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'cleaning':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'maintenance':
-        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
+  const downloadReceipt = (b: Booking, roomNum: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.text('MEHMONXONA KVITANSIYASI', 105, 40, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(`Kvitansiya ID: ${b.id.slice(0,8).toUpperCase()}`, 20, 60);
+    doc.text(`Mehmon ismi: ${b.guest_name}`, 20, 70);
+    doc.text(`Telefon: ${b.guest_phone}`, 20, 80);
+    doc.text(`Xona raqami: № ${roomNum}`, 20, 90);
+    doc.text(`Kirish sana: ${b.check_in}`, 20, 100);
+    doc.text(`Chiqish sana: ${b.check_out}`, 20, 110);
+    doc.text(`To'lov turi: ${b.payment_method || 'Naqd'}`, 20, 120);
+    
+    doc.setFontSize(14);
+    doc.text(`Jami Summa: ${b.total_amount.toLocaleString()} so'm`, 20, 140);
+    
+    doc.save(`kvitansiya-${b.guest_name.replace(/\s+/g, '-')}.pdf`);
+  };
+
+  // Gantt Helper Calculations
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const daysCount = getDaysInMonth(currentYear, currentMonth);
+  const daysArray = Array.from({ length: daysCount }, (_, i) => i + 1);
+
+  const getMonthName = (m: number) => {
+    const names = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Ilyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+    return names[m];
+  };
+
+  const getBookingForDate = (roomId: string, day: number) => {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return bookings.find(b => {
+      if (b.room_id !== roomId) return false;
+      if (b.status === 'cancelled') return false;
+      const chIn = new Date(b.check_in).getTime();
+      const chOut = new Date(b.check_out).getTime();
+      const cur = new Date(dateStr).getTime();
+      return cur >= chIn && cur <= chOut;
+    });
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-muted-foreground">Mehmonxona boshqaruvi yuklanmoqda...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent mr-2" />
+        <span className="text-muted-foreground text-sm font-medium">Mehmonxona yuklanmoqda...</span>
       </div>
     );
   }
@@ -266,165 +305,246 @@ export default function AdminHotel() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Bed className="w-7 h-7 text-primary" /> Mehmonxona va Xonalar Boshqaruvi
+            <Bed className="w-7 h-7 text-primary" /> Mehmonxona & Motel Boshqaruvi
           </h1>
-          <p className="text-muted-foreground text-sm">Xonalar bandligi, real vaqt rejimidagi tozalash va bron qilish operatsiyalari.</p>
+          <p className="text-muted-foreground text-sm">Xonalar bandligi, check-in/check-out ro'yxatlari va interaktiv Gantt kalendari.</p>
         </div>
         <Button onClick={() => setIsRoomModalOpen(true)} className="gap-2 rounded-xl">
           <Plus className="w-5 h-5" /> Yangi Xona Qo'shish
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-card border border-border">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Barcha Xonalar</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{rooms.length} ta</p>
-            </div>
-            <Grid className="w-8 h-8 text-muted-foreground/30" />
-          </CardContent>
-        </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 lg:w-fit rounded-xl bg-muted p-1">
+          <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs font-semibold">
+            <Grid className="w-4 h-4" /> Xonalar xaritasi
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="rounded-lg gap-2 text-xs font-semibold">
+            <Calendar className="w-4 h-4" /> Gantt Kalendar
+          </TabsTrigger>
+          <TabsTrigger value="bookings" className="rounded-lg gap-2 text-xs font-semibold">
+            <Clock className="w-4 h-4" /> Rezervatsiyalar ro'yxati
+          </TabsTrigger>
+        </TabsList>
 
-        <Card className="bg-card border border-border">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Bo'sh xonalar</p>
-              <p className="text-2xl font-bold text-emerald-400 mt-1">{rooms.filter(r => r.status === 'available').length} ta</p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-emerald-500/20" />
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border border-border">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Band xonalar</p>
-              <p className="text-2xl font-bold text-rose-400 mt-1">{rooms.filter(r => r.status === 'occupied').length} ta</p>
-            </div>
-            <Bed className="w-8 h-8 text-rose-500/20" />
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border border-border">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Tozalanishda</p>
-              <p className="text-2xl font-bold text-amber-400 mt-1">{rooms.filter(r => r.status === 'cleaning').length} ta</p>
-            </div>
-            <Star className="w-7 h-7 text-amber-500/20" />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Grid Rooms Visual Matrix */}
-      <Card className="bg-card border border-border">
-        <CardHeader>
-          <CardTitle>Xonalar Matritsasi (Real-time Room Matrix)</CardTitle>
-          <CardDescription>
-            Mehmonxonadagi barcha xonalarning vizual holati. Xonani band qilish uchun ustiga bosing.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        {/* Tab 1: Room Seating Map */}
+        <TabsContent value="overview">
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                onClick={() => {
-                  if (room.status === 'available') {
-                    setSelectedRoom(room);
-                    setIsBookingModalOpen(true);
-                  }
-                }}
-                className={`p-4 rounded-2xl border text-center relative transition-all duration-200 cursor-pointer ${
-                  room.status === 'available' ? 'hover:scale-[1.03] hover:shadow-lg' : ''
-                } ${getStatusBadge(room.status)}`}
-              >
-                <div className="text-xl font-bold">№ {room.room_number}</div>
-                <div className="text-[10px] uppercase font-bold tracking-wider opacity-80 mt-1">{room.type}</div>
-                <div className="text-[11px] font-semibold mt-2">{room.price_per_night.toLocaleString()} UZS</div>
-                
-                {/* Overlay quick actions for status switching */}
-                {room.status === 'cleaning' && (
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSetRoomStatus(room.id, 'available');
-                    }}
-                    className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 flex items-center justify-center rounded-2xl text-[10px] font-bold text-white transition-opacity"
-                  >
-                    Tozalash Yakunlandi
-                  </button>
-                )}
+            {rooms.map(room => {
+              const activeBooking = bookings.find(b => b.room_id === room.id && b.status === 'checked_in');
+              
+              let statusColor = 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+              if (room.status === 'occupied') statusColor = 'bg-rose-500/10 text-rose-500 border-rose-500/20';
+              if (room.status === 'cleaning') statusColor = 'bg-sky-500/10 text-sky-500 border-sky-500/20';
+              if (room.status === 'maintenance') statusColor = 'bg-amber-500/10 text-amber-500 border-amber-500/20';
 
-                {room.status === 'maintenance' && (
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSetRoomStatus(room.id, 'available');
-                    }}
-                    className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 flex items-center justify-center rounded-2xl text-[10px] font-bold text-white transition-opacity"
-                  >
-                    Ta'mirlash Tugadi
-                  </button>
-                )}
-              </div>
-            ))}
+              return (
+                <div
+                  key={room.id}
+                  onClick={() => {
+                    if (room.status === 'available') {
+                      setSelectedRoom(room);
+                      setIsBookingModalOpen(true);
+                    }
+                  }}
+                  className={`p-4 border rounded-2xl text-center relative transition-all duration-200 cursor-pointer ${
+                    room.status === 'available' ? 'hover:scale-[1.03] hover:shadow-lg' : ''
+                  } ${statusColor}`}
+                >
+                  <div className="text-lg font-bold">№ {room.room_number}</div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider opacity-80 mt-0.5">{room.type}</div>
+                  <p className="text-xs font-semibold mt-2">{room.price_per_night.toLocaleString()} so'm</p>
+
+                  <div className="mt-3 flex justify-center gap-1.5">
+                    {room.status === 'occupied' && activeBooking && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCheckOut(activeBooking.id, room.id);
+                        }} 
+                        className="text-[10px] px-2 py-0.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700"
+                      >
+                        Chiqish
+                      </button>
+                    )}
+                    {room.status === 'cleaning' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetRoomStatus(room.id, 'available');
+                        }}
+                        className="text-[10px] px-2 py-0.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-0.5"
+                      >
+                        <Brush className="w-3 h-3" /> Tayyor
+                      </button>
+                    )}
+                    {room.status === 'available' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetRoomStatus(room.id, 'maintenance');
+                        }}
+                        className="text-[10px] px-2 py-0.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 flex items-center gap-0.5"
+                      >
+                        <Wrench className="w-3 h-3" /> Remont
+                      </button>
+                    )}
+                    {room.status === 'maintenance' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetRoomStatus(room.id, 'available');
+                        }}
+                        className="text-[10px] px-2 py-0.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                      >
+                        Tugatildi
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {/* Bookings & Active checkins list */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Active Bookings */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card className="bg-card border border-border">
+        {/* Tab 2: Gantt Calendar Timeline View */}
+        <TabsContent value="calendar">
+          <Card className="bg-card border-border">
+            <CardHeader className="flex flex-row justify-between items-center pb-4">
+              <div>
+                <CardTitle className="text-base">Gantt Vizual Bandlik Kalendari</CardTitle>
+                <CardDescription>Xonalarning kunlar bo'yicha bandlik rejasi.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    if (currentMonth === 0) {
+                      setCurrentMonth(11);
+                      setCurrentYear(currentYear - 1);
+                    } else {
+                      setCurrentMonth(currentMonth - 1);
+                    }
+                  }}
+                >
+                  ◄
+                </Button>
+                <span className="text-sm font-bold min-w-[100px] text-center">
+                  {getMonthName(currentMonth)} {currentYear}
+                </span>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    if (currentMonth === 11) {
+                      setCurrentMonth(0);
+                      setCurrentYear(currentYear + 1);
+                    } else {
+                      setCurrentMonth(currentMonth + 1);
+                    }
+                  }}
+                >
+                  ►
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr className="bg-muted/40">
+                    <th className="p-2 border border-border text-left font-bold w-20">Xona</th>
+                    {daysArray.map(day => (
+                      <th key={day} className="p-2 border border-border text-center w-8 font-semibold">
+                        {day}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rooms.map(room => (
+                    <tr key={room.id} className="hover:bg-muted/10">
+                      <td className="p-2 border border-border font-bold">№ {room.room_number}</td>
+                      {daysArray.map(day => {
+                        const b = getBookingForDate(room.id, day);
+                        const isCheckInDay = b && new Date(b.check_in).getDate() === day;
+                        
+                        return (
+                          <td 
+                            key={day} 
+                            className={`border border-border p-1 text-center relative h-10 ${
+                              b 
+                                ? b.status === 'checked_in' 
+                                  ? 'bg-rose-500/20 text-rose-500' 
+                                  : 'bg-emerald-500/20 text-emerald-500'
+                                : ''
+                            }`}
+                            title={b ? `${b.guest_name} (${b.guest_phone})` : 'Bo\'sh xona'}
+                          >
+                            {isCheckInDay && (
+                              <span className="absolute inset-x-0 top-1 text-[9px] font-bold truncate px-1">
+                                {b.guest_name.split(' ')[0]}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 3: Booking reservations history list */}
+        <TabsContent value="bookings">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg">Joriy Joylashtirishlar va Bronlar</CardTitle>
-              <CardDescription>Barcha ro'yxatdan o'tgan mehmonlar va check-in jurnali</CardDescription>
+              <CardTitle className="text-base">Mijozlar bandlik tarixi</CardTitle>
             </CardHeader>
             <CardContent>
               {bookings.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">Hozircha hech qanday mehmon ro'yxatda yo'q.</div>
+                <p className="text-sm text-muted-foreground text-center py-6">Rezervatsiyalar mavjud emas.</p>
               ) : (
-                <div className="divide-y divide-border">
-                  {bookings.map((booking) => {
-                    const room = rooms.find(r => r.id === booking.room_id);
+                <div className="space-y-4 divide-y divide-border">
+                  {bookings.map((b, idx) => {
+                    const roomNum = rooms.find(r => r.id === b.room_id)?.room_number || '—';
                     return (
-                      <div key={booking.id} className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="min-w-0 space-y-1">
+                      <div key={b.id} className={`pt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${idx === 0 ? 'pt-0' : ''}`}>
+                        <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-foreground">{booking.guest_name}</span>
-                            <span className="text-[10px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-semibold">
-                              Room № {room?.room_number || 'N/A'}
+                            <span className="font-bold text-foreground">Xona № {roomNum} — {b.guest_name}</span>
+                            <span className={`text-[9px] px-2 py-0.5 font-bold uppercase rounded border ${
+                              b.status === 'checked_in' 
+                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' 
+                                : b.status === 'checked_out'
+                                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {b.status}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Phone className="w-3.5 h-3.5" /> {booking.guest_phone}
+                          <p className="text-xs text-muted-foreground">
+                            Tel: {b.guest_phone} | Kirish: {b.check_in} — Chiqish: {b.check_out}
                           </p>
-                          <p className="text-[11px] text-muted-foreground flex items-center gap-3">
-                            <span>Check-in: <b className="text-foreground">{booking.check_in}</b></span>
-                            <span>Check-out: <b className="text-foreground">{booking.check_out}</b></span>
-                          </p>
+                          {b.note && <p className="text-[11px] text-amber-500 italic">Izoh: {b.note}</p>}
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-4">
-                          <div className="text-right sm:text-right shrink-0">
-                            <p className="text-xs text-muted-foreground">Umumiy Summa</p>
-                            <p className="font-bold text-primary text-sm">{booking.total_amount.toLocaleString()} UZS</p>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <p className="text-[10px] text-muted-foreground">Summa</p>
+                            <p className="font-bold text-primary text-sm">{b.total_amount.toLocaleString()} UZS</p>
                           </div>
-                          {booking.status === 'checked_in' && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleCheckOut(booking.id, booking.room_id)}
-                              className="rounded-lg text-xs"
-                            >
-                              Check-out
-                            </Button>
-                          )}
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadReceipt(b, roomNum)}
+                            className="rounded-lg text-xs gap-1"
+                          >
+                            <Receipt className="w-3.5 h-3.5" /> PDF
+                          </Button>
                         </div>
                       </div>
                     );
@@ -433,179 +553,152 @@ export default function AdminHotel() {
               )}
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
+      </Tabs>
 
-        {/* Room configuration and status overview */}
-        <div className="space-y-4">
-          <Card className="bg-card border border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Tezkor Operatsiyalar</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="p-4 bg-muted/30 border border-border rounded-xl space-y-2">
-                <h4 className="text-xs font-bold text-muted-foreground uppercase">Xonani Xizmatga O'tkazish</h4>
-                <div className="flex gap-2">
-                  <select 
-                    id="select-room-maint"
-                    className="flex-1 h-9 px-3 bg-background border border-border rounded-lg text-xs"
-                  >
-                    <option value="">Xonani tanlang</option>
-                    {rooms.filter(r => r.status === 'available').map(r => (
-                      <option key={r.id} value={r.id}>№ {r.room_number}</option>
-                    ))}
-                  </select>
-                  <Button 
-                    size="sm"
-                    className="text-xs rounded-lg"
-                    onClick={() => {
-                      const sel = document.getElementById('select-room-maint') as HTMLSelectElement;
-                      if (sel.value) {
-                        handleSetRoomStatus(sel.value, 'maintenance');
-                        sel.value = '';
-                      }
-                    }}
-                  >
-                    Ta'mirga yuborish
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* New Room Modal */}
+      {/* Add room modal */}
       {isRoomModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-sm bg-card border border-border shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Yangi Xona Qo'shish</CardTitle>
-              <CardDescription>Mehmonxona tizimiga yangi xonani kiriting.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateRoom} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="roomNum" className="text-xs">Xona raqami</Label>
-                  <Input 
-                    id="roomNum" 
-                    placeholder="Masalan: 305" 
-                    value={newRoomNumber} 
-                    onChange={(e) => setNewRoomNumber(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
+        <Modal onClose={() => setIsRoomModalOpen(false)} title="Yangi Xona Qo'shish">
+          <form onSubmit={handleCreateRoom} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Xona Raqami</Label>
+              <Input 
+                value={newRoomNumber} 
+                onChange={e => setNewRoomNumber(e.target.value)} 
+                placeholder="masalan: 101" 
+                required 
+                className="rounded-xl" 
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Xona Turi</Label>
+                <select 
+                  value={newRoomType} 
+                  onChange={e => setNewRoomType(e.target.value as any)}
+                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm"
+                >
+                  <option value="single">Single (1 kishilik)</option>
+                  <option value="double">Double (2 kishilik)</option>
+                  <option value="suite">Suite (Lyuks)</option>
+                  <option value="deluxe">Deluxe (Premium)</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Qavat</Label>
+                <Input 
+                  type="number" 
+                  value={newRoomFloor} 
+                  onChange={e => setNewRoomFloor(e.target.value)} 
+                  className="rounded-xl" 
+                />
+              </div>
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="roomType" className="text-xs">Xona Turi</Label>
-                  <select
-                    id="roomType"
-                    className="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm"
-                    value={newRoomType}
-                    onChange={(e) => setNewRoomType(e.target.value as any)}
-                  >
-                    <option value="single">Single (1 kishilik)</option>
-                    <option value="double">Double (2 kishilik)</option>
-                    <option value="suite">Suite (Premium)</option>
-                    <option value="deluxe">Deluxe (Lyuks)</option>
-                  </select>
-                </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Bir kechalik narxi (UZS)</Label>
+              <Input 
+                type="number" 
+                value={newRoomPrice} 
+                onChange={e => setNewRoomPrice(e.target.value)} 
+                required 
+                className="rounded-xl" 
+              />
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="roomPrice" className="text-xs">Bir kechalik narxi (UZS)</Label>
-                  <Input 
-                    id="roomPrice" 
-                    type="number"
-                    value={newRoomPrice} 
-                    onChange={(e) => setNewRoomPrice(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsRoomModalOpen(false)} className="rounded-xl">
-                    Bekor qilish
-                  </Button>
-                  <Button type="submit" className="rounded-xl font-bold">
-                    Xona yaratish
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => setIsRoomModalOpen(false)} className="rounded-xl">Bekor qilish</Button>
+              <Button type="submit" className="rounded-xl font-bold">Saqlash</Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
-      {/* Booking / Check-in Modal */}
+      {/* Booking check-in modal */}
       {isBookingModalOpen && selectedRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md bg-card border border-border shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg">Joylashtirish (Check-in) — Xona № {selectedRoom.room_number}</CardTitle>
-              <CardDescription>Xona turi: {selectedRoom.type.toUpperCase()} · Narxi: {selectedRoom.price_per_night.toLocaleString()} UZS</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleBookRoom} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="guestN" className="text-xs">Mehmonning to'liq ismi</Label>
-                  <Input 
-                    id="guestN" 
-                    placeholder="Masalan: Hasan Toshmatov" 
-                    value={guestName} 
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
+        <Modal onClose={() => setIsBookingModalOpen(false)} title={`Mehmon joylashtirish — Xona № ${selectedRoom.room_number}`}>
+          <form onSubmit={handleBookRoom} className="space-y-4">
+            <div className="p-3 border rounded-xl bg-muted/20 space-y-1 text-xs">
+              <div className="flex justify-between"><span>Turi:</span><span className="font-semibold uppercase">{selectedRoom.type}</span></div>
+              <div className="flex justify-between"><span>Kunlik narx:</span><span className="font-semibold">{selectedRoom.price_per_night.toLocaleString()} UZS</span></div>
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="guestP" className="text-xs">Telefon raqami</Label>
-                  <Input 
-                    id="guestP" 
-                    placeholder="+998 (90) 123-45-67" 
-                    value={guestPhone} 
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="rounded-xl border border-border"
-                    required
-                  />
-                </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Mehmon ismi va familiyasi</Label>
+              <Input 
+                value={guestName} 
+                onChange={e => setGuestName(e.target.value)} 
+                placeholder="masalan: Alisher Navoiy" 
+                required 
+                className="rounded-xl" 
+              />
+            </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Check-in sana</Label>
-                    <Input 
-                      type="date"
-                      value={checkInDate} 
-                      onChange={(e) => setCheckInDate(e.target.value)}
-                      className="rounded-xl border border-border"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Check-out sana</Label>
-                    <Input 
-                      type="date"
-                      value={checkOutDate} 
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="rounded-xl border border-border"
-                      required
-                    />
-                  </div>
-                </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Telefon raqami</Label>
+              <Input 
+                value={guestPhone} 
+                onChange={e => setGuestPhone(e.target.value)} 
+                placeholder="masalan: +998 90 123 45 67" 
+                required 
+                className="rounded-xl" 
+              />
+            </div>
 
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)} className="rounded-xl">
-                    Bekor qilish
-                  </Button>
-                  <Button type="submit" className="rounded-xl font-bold">
-                    Joylashtirish (Check-in)
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Kirish sanasi</Label>
+                <Input 
+                  type="date" 
+                  value={checkInDate} 
+                  onChange={e => setCheckInDate(e.target.value)} 
+                  required 
+                  className="rounded-xl" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Chiqish sanasi</Label>
+                <Input 
+                  type="date" 
+                  value={checkOutDate} 
+                  onChange={e => setCheckOutDate(e.target.value)} 
+                  required 
+                  className="rounded-xl" 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">To'lov turi</Label>
+              <select 
+                value={paymentMethod} 
+                onChange={e => setPaymentMethod(e.target.value)}
+                className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm"
+              >
+                <option value="cash">Naqd (Cash)</option>
+                <option value="card">Plastik karta (Card)</option>
+                <option value="click">Click</option>
+                <option value="payme">Payme</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Izoh (ixtiyoriy)</Label>
+              <Input 
+                value={bookingNote} 
+                onChange={e => setBookingNote(e.target.value)} 
+                placeholder="masalan: Qora choy so'radi" 
+                className="rounded-xl" 
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)} className="rounded-xl">Bekor qilish</Button>
+              <Button type="submit" className="rounded-xl font-bold">Ro'yxatdan o'tkazish (Check-in)</Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
