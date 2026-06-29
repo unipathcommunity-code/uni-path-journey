@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Check, GraduationCap, Plane, Briefcase, ShieldCheck, Workflow } from "lucide-react"
+import { Check, GraduationCap, Plane, Briefcase, ShieldCheck, Workflow, BedDouble, Utensils, Gem } from "lucide-react"
 import type { Translation } from "@/lib/translations"
 import { AssistantIllustration } from "./illustrations"
 
-const tabIcons = [GraduationCap, Plane, Briefcase, ShieldCheck]
+const tabIcons = [GraduationCap, Plane, BedDouble, Utensils, Gem, Briefcase, ShieldCheck]
 
 export function TeamsSection({ t }: { t: Translation }) {
   const [active, setActive] = useState(0)
@@ -29,7 +29,7 @@ export function TeamsSection({ t }: { t: Translation }) {
           {/* Tabs */}
           <div className="mt-8 flex flex-col gap-2">
             {t.teams.tabs.map((tabItem, i) => {
-              const Icon = tabIcons[i]
+              const Icon = tabIcons[i] || Briefcase
               const isActive = i === active
               return (
                 <button
