@@ -9,9 +9,6 @@ import {
   X,
   GraduationCap,
   Plane,
-  BedDouble,
-  Utensils,
-  Gem,
   Plug
 } from "lucide-react"
 import { languages, type Lang, type Translation } from "@/lib/translations"
@@ -43,13 +40,10 @@ export function Navbar({
   const navigate = useNavigate()
 
   const dropdownItems = [
-    { key: "core", icon: Boxes, color: "text-forest bg-forest/10" },
-    { key: "nova", icon: GraduationCap, color: "text-blue-500 bg-blue-500/10" },
-    { key: "unitour", icon: Plane, color: "text-cyan-500 bg-cyan-500/10" },
-    { key: "unihotel", icon: BedDouble, color: "text-orange-500 bg-orange-500/10" },
-    { key: "unirest", icon: Utensils, color: "text-amber-500 bg-amber-500/10" },
-    { key: "unihall", icon: Gem, color: "text-pink-500 bg-pink-500/10" },
-    { key: "integrations", icon: Plug, color: "text-purple-500 bg-purple-500/10" }
+    { key: "core", icon: Boxes },
+    { key: "nova", icon: GraduationCap },
+    { key: "unitour", icon: Plane },
+    { key: "integrations", icon: Plug }
   ]
 
   return (
@@ -96,7 +90,7 @@ export function Navbar({
                             onClick={() => setSolutionsOpen(false)}
                             className="flex items-start gap-3 rounded-2xl p-2.5 transition-colors hover:bg-secondary"
                           >
-                            <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl text-forest bg-forest/10">
                               <Icon className="size-4.5" />
                             </span>
                             <div>
@@ -236,7 +230,7 @@ export function Navbar({
                               }}
                               className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-secondary"
                             >
-                              <span className={`flex size-8 items-center justify-center rounded-lg ${item.color}`}>
+                              <span className="flex size-8 items-center justify-center rounded-lg text-forest bg-forest/10">
                                 <Icon className="size-4" />
                               </span>
                               <span className="text-xs font-semibold text-foreground">{tr?.title}</span>

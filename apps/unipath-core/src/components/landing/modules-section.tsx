@@ -1,8 +1,8 @@
-import { ArrowRight, Briefcase, GraduationCap, Layers, Plane, Plug, BedDouble, Utensils, Gem } from "lucide-react"
+import { ArrowRight, Briefcase, GraduationCap, Layers, Plane, Plug } from "lucide-react"
 import type { Translation } from "@/lib/translations"
 import { Reveal } from "./reveal"
 
-const cardIcons = [Briefcase, GraduationCap, Plane, BedDouble, Utensils, Gem, Plug]
+const cardIcons = [Briefcase, GraduationCap, Plane, Plug]
 
 export function ModulesSection({ t, onGetStarted }: { t: Translation; onGetStarted?: () => void }) {
   return (
@@ -20,9 +20,9 @@ export function ModulesSection({ t, onGetStarted }: { t: Translation; onGetStart
         </p>
       </div>
 
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {t.modules.cards.map((card, i) => {
-          const Icon = cardIcons[i] || Plug
+          const Icon = cardIcons[i]
           const highlighted = "highlighted" in card && card.highlighted
 
           if (highlighted) {

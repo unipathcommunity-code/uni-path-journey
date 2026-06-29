@@ -22,9 +22,6 @@ export const translations = {
         core: { title: "UniPath Core", desc: "CRM & Finance for general business" },
         nova: { title: "NOVA Edu", desc: "For Academies and Schools" },
         unitour: { title: "UniTour Travel", desc: "For Tour and Travel agencies" },
-        unihotel: { title: "UniHotel Lodging", desc: "For Hotels and Motels" },
-        unirest: { title: "UniRest Restaurant", desc: "For Cafes and Restaurants" },
-        unihall: { title: "UniHall Events", desc: "For Banquet and Wedding Halls" },
         integrations: { title: "Integrations", desc: "Telegram bots, AI cameras, SMS" }
       },
       login: "Sign In",
@@ -105,21 +102,6 @@ export const translations = {
           desc: "Visa pipeline, tour booking engine and an agent network for travel agencies.",
         },
         {
-          tag: "Lodging",
-          title: "UniHotel Lodging SaaS",
-          desc: "Gantt timeline, room occupancy grids, check-in flow, and automated invoices for lodging.",
-        },
-        {
-          tag: "POS",
-          title: "UniRest Restaurant POS",
-          desc: "Kitchen display system (KDS), digital menu builders, and visual POS ordering terminals.",
-        },
-        {
-          tag: "Events",
-          title: "UniHall Seating & Events",
-          desc: "Interactive SVG seating floor planners, event timeline programs, and budget deposit ledger.",
-        },
-        {
           tag: "Connect",
           title: "Dedicated Integrations",
           desc: "Telegram bot, AI face-recognition cameras and SMS gateways out of the box.",
@@ -133,7 +115,7 @@ export const translations = {
         "Whether you run a school, a travel agency or a multi-branch business, the platform adapts effortlessly.",
       tabs: [
         {
-          label: "Schools & Academies (NOVA)",
+          label: "For Schools & Academies (NOVA)",
           heading: "For Schools & Academies",
           desc: "Run admissions, attendance, lessons and parent communication from one clean dashboard.",
           points: [
@@ -144,7 +126,7 @@ export const translations = {
           ],
         },
         {
-          label: "Travel Agencies (UniTour)",
+          label: "For Travel Agencies (UniTour)",
           heading: "For Travel Agencies",
           desc: "Manage bookings, visa pipelines and your agent network with full visibility.",
           points: [
@@ -152,39 +134,6 @@ export const translations = {
             "Book tours and manage itineraries in one place",
             "Coordinate your agent network and commissions",
             "Sync payments in real time across branches",
-          ],
-        },
-        {
-          label: "Hotels & Lodging (UniHotel)",
-          heading: "For Hotels & Hostels",
-          desc: "Manage check-ins, cleanings, and room bookings on a live Gantt calendar visualizer.",
-          points: [
-            "Live room status grid (Occupied, Cleaning, Available)",
-            "Scrollable monthly Gantt calendar for reservations",
-            "Quick guest check-in & check-out logs",
-            "Automatic invoice printing and revenue analytics",
-          ],
-        },
-        {
-          label: "Restaurants & Cafes (UniRest)",
-          heading: "For Restaurants & Cafes",
-          desc: "Connect frontend POS order pads directly with real-time Kitchen Display screens.",
-          points: [
-            "Intuitive POS checkout with dynamic product options",
-            "Chefs view orders instantly on the KDS display screen",
-            "Table layout grid mapping tables with status alerts",
-            "Category management and automated billing checks",
-          ],
-        },
-        {
-          label: "Wedding & Event Halls (UniHall)",
-          heading: "For Banquet & Event Halls",
-          desc: "Organize grand ceremonies, table charts, programs and payment progress.",
-          points: [
-            "Drag-and-drop SVG seating arrangements builder",
-            "Assign guests by name to specific tables and seats",
-            "Interactive event program timeline scheduler",
-            "Progressive payment indicators for deposit accounting",
           ],
         },
         {
@@ -267,13 +216,13 @@ export const translations = {
       ],
     },
     footer: {
-      tagline: "A unified SaaS ecosystem for business, education, travel, lodging, restaurant and events.",
+      tagline: "A unified SaaS ecosystem for business, education and travel.",
       emailPlaceholder: "Enter Your Email",
       getStarted: "Get Started",
       columns: [
         {
           title: "Solutions",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniHotel Lodging", "UniRest Restaurant", "UniHall Events", "Integrations"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Integrations"],
         },
         {
           title: "Product",
@@ -299,9 +248,6 @@ export const translations = {
         core: { title: "UniPath Core", desc: "CRM и финансы для общего бизнеса" },
         nova: { title: "NOVA Edu", desc: "Для академий и школ" },
         unitour: { title: "UniTour Travel", desc: "Для туристических агентств" },
-        unihotel: { title: "UniHotel Lodging", desc: "Для отелей и мотелей" },
-        unirest: { title: "UniRest Restaurant", desc: "Для ресторанов и кафе" },
-        unihall: { title: "UniHall Events", desc: "Для банкетных и свадебных залов" },
         integrations: { title: "Интеграции", desc: "Telegram-боты, AI-камеры, SMS" }
       },
       login: "Вход",
@@ -382,21 +328,6 @@ export const translations = {
           desc: "Визовый конвейер, движок бронирования туров и сеть агентов для турагентств.",
         },
         {
-          tag: "Отели",
-          title: "UniHotel Lodging SaaS",
-          desc: "Gantt график бронирований, сетка номеров, check-in гостей и автоматические счета.",
-        },
-        {
-          tag: "Рестораны",
-          title: "UniRest Restaurant POS",
-          desc: "Дисплей для кухни (KDS), менеджер меню и быстрые терминалы POS-заказов.",
-        },
-        {
-          tag: "События",
-          title: "UniHall Seating & Events",
-          desc: "Интерактивная карта столов SVG, таймлайн программы и учет предоплат торжеств.",
-        },
-        {
           tag: "Интеграции",
           title: "Готовые интеграции",
           desc: "Telegram-бот, AI-камеры распознавания лиц и SMS-шлюзы из коробки.",
@@ -432,39 +363,6 @@ export const translations = {
           ],
         },
         {
-          label: "Отели и хостелы (UniHotel)",
-          heading: "Для отелей и хостелов",
-          desc: "Управляйте заселением, уборкой и бронированием на живом Gantt-календаре.",
-          points: [
-            "Сетка статусов номеров (Занят, Уборка, Свободен)",
-            "Удобный месячный календарь Gantt для резерваций",
-            "Быстрая регистрация (check-in) и выезд (check-out) гостей",
-            "Печать чеков и автоматический подсчет стоимости ночей",
-          ],
-        },
-        {
-          label: "Рестораны и кафе (UniRest)",
-          heading: "Для ресторанов и кафе",
-          desc: "Подключайте платежные POS-терминалы напрямую к кухонному экрану KDS.",
-          points: [
-            "Быстрое добавление блюд в корзину и оплата заказа POS",
-            "Интерактивный KDS экран очереди заказов для поваров",
-            "Карта столов зала с подсветкой занятых мест",
-            "Менеджер меню и модификаторы позиций",
-          ],
-        },
-        {
-          label: "Банкетные залы (UniHall)",
-          heading: "Для свадебных и банкетных залов",
-          desc: "Организуйте торжества, рассадку гостей, программу и учет оплат.",
-          points: [
-            "SVG конструктор рассадки гостей перетаскиванием",
-            "Привязка списка гостей к конкретным столам по именам",
-            "Таймлайн планировщика свадебной шоу-программы",
-            "Счетчик оплат и прогресс сбора бюджета",
-          ],
-        },
-        {
           label: "Общий бизнес (Core)",
           heading: "Для общего бизнеса",
           desc: "Постройте повторяемые процессы CRM, финансов и операций по всем филиалам.",
@@ -472,7 +370,7 @@ export const translations = {
             "Автоматизируйте рутинные задачи большого объёма",
             "Поддерживайте единообразие в ежедневных процессах",
             "Снижайте число ошибок умными проверками",
-            "Ускорите координацию между отделами",
+            "Ускорьте координацию между отделами",
           ],
         },
         {
@@ -544,13 +442,13 @@ export const translations = {
       ],
     },
     footer: {
-      tagline: "Единая SaaS-экосистема для бизнеса, образования, туризма, гостиниц, ресторанов и банкетных залов.",
+      tagline: "Единая SaaS-экосистема для бизнеса, образования и туризма.",
       emailPlaceholder: "Введите ваш Email",
       getStarted: "Начать",
       columns: [
         {
           title: "Решения",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniHotel Lodging", "UniRest Restaurant", "UniHall Events", "Интеграции"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Интеграции"],
         },
         {
           title: "Продукт",
@@ -576,9 +474,6 @@ export const translations = {
         core: { title: "UniPath Core", desc: "Umumiy biznes uchun CRM va moliya" },
         nova: { title: "NOVA Edu", desc: "O'quv markazlari va maktablar uchun" },
         unitour: { title: "UniTour Travel", desc: "Sayohat va turizm agentliklari uchun" },
-        unihotel: { title: "UniHotel Lodging", desc: "Mehmonxona va motellar uchun" },
-        unirest: { title: "UniRest Restaurant", desc: "Kafe va restoranlar uchun" },
-        unihall: { title: "UniHall Events", desc: "To'yxonalar va tantanalar zallari uchun" },
         integrations: { title: "Integratsiyalar", desc: "Telegram bot, AI kameralar, SMS shlyuz" }
       },
       login: "Kirish",
@@ -659,21 +554,6 @@ export const translations = {
           desc: "Viza jarayoni, tur bron qilish tizimi va agentlar tarmog'i turagentliklar uchun.",
         },
         {
-          tag: "Mehmonxona",
-          title: "UniHotel Lodging SaaS",
-          desc: "Gantt bandlik grafigi, xonalar xaritasi, mehmonlar check-in va PDF kvitansiyalar.",
-        },
-        {
-          tag: "Restoran",
-          title: "UniRest Restaurant POS",
-          desc: "Oshxona displeyi (KDS), raqamli menyu menejeri va tezkor POS buyurtma berish terminallari.",
-        },
-        {
-          tag: "Tantanalar",
-          title: "UniHall Seating & Events",
-          desc: "Interaktiv SVG stollar xaritasi, tadbir dasturi timeline va zakalat moliya balansi.",
-        },
-        {
           tag: "Integratsiya",
           title: "Maxsus integratsiyalar",
           desc: "Telegram bot, AI yuzni aniqlash kameralari va SMS shlyuzlar tayyor holatda.",
@@ -706,39 +586,6 @@ export const translations = {
             "Turlarni bron qiling va marshrutlarni bir joyda boshqaring",
             "Agentlar tarmog'i va komissiyalarni muvofiqlashtiring",
             "To'lovlarni filiallar bo'ylab real vaqtda sinxronlang",
-          ],
-        },
-        {
-          label: "Mehmonxona va motellar (UniHotel)",
-          heading: "Mehmonxona va pansionatlar uchun",
-          desc: "Gantt kalendari orqali xonalar bandligi, check-in jarayoni va xona tozaligini boshqaring.",
-          points: [
-            "Xonalarning joriy holati (Band, Tozalanmoqda, Bo'sh)",
-            "Rezervatsiyalar uchun qulay oylik Gantt jadvali",
-            "Tezkor kirish (check-in) va chiqish (check-out) qaydlari",
-            "Kvitansiyalarni avtomatik hisoblash va yuklab olish",
-          ],
-        },
-        {
-          label: "Restoran va kafelar (UniRest)",
-          heading: "Restoran va kafelar uchun",
-          desc: "Tezkor POS to'lov terminallarini bevosita oshxona displeyiga (KDS) bog'lang.",
-          points: [
-            "Qulay POS to'lov va buyurtma savatchasi tizimi",
-            "Oshxona uchun buyurtmalar navbati (KDS displeyi)",
-            "Stollar bandligi va holatini ko'rsatuvchi zal xaritasi",
-            "Taomlar toifalari, narxlash va hisob-faktura chop etish",
-          ],
-        },
-        {
-          label: "To'yxonalar va zallar (UniHall)",
-          heading: "Tadbir va to'yxonalar uchun",
-          desc: "Tantanalar, stollar tartibi, tadbir rejasi va to'lovlar tarixini boshqaring.",
-          points: [
-            "SVG elementlarini sudrab joylashtiruvchi seating planner",
-            "Har bir stolga mehmonlarni ismi bilan biriktirish",
-            "Marosim vaqtlarini rejalashtiruvchi timeline dasturi",
-            "To'lovlar to'lanish foizini ko'rsatuvchi progress barlar",
           ],
         },
         {
@@ -821,13 +668,13 @@ export const translations = {
       ],
     },
     footer: {
-      tagline: "Biznes, ta'lim, sayohat, mehmonxona, restoran va tadbirlar uchun yagona SaaS ekotizimi.",
+      tagline: "Biznes, ta'lim va sayohat uchun yagona SaaS ekotizimi.",
       emailPlaceholder: "Email manzilingiz",
       getStarted: "Boshlash",
       columns: [
         {
           title: "Yechimlar",
-          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "UniHotel Lodging", "UniRest Restaurant", "UniHall Events", "Integratsiyalar"],
+          links: ["UniPath Core", "NOVA Edu", "UniTour Travel", "Integratsiyalar"],
         },
         {
           title: "Mahsulot",
