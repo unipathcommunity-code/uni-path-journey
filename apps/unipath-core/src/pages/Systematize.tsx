@@ -44,7 +44,8 @@ import {
   Baby,
   BookOpen,
   Trophy,
-  Plane
+  Plane,
+  Image as ImageIcon
 } from 'lucide-react';
 import { THEME_PRESETS, injectTheme } from '@/lib/themes';
 
@@ -691,8 +692,41 @@ export default function Systematize() {
     branchAddress: 'Tashkent, Uzbekistan',
     timezone: 'Asia/Tashkent',
     currency: 'UZS',
-    themeColor: 'emerald'
+    themeColor: 'emerald',
+    logoUrl: ''
   });
+
+  const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 3 * 1024 * 1024) return;
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new window.Image();
+          img.onload = () => {
+            const scale = Math.min(1, 512 / Math.max(img.width, img.height));
+            const w = Math.max(1, Math.round(img.width * scale));
+            const h = Math.max(1, Math.round(img.height * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return reject(new Error('canvas'));
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => reject(new Error('img'));
+          img.src = reader.result as string;
+        };
+        reader.onerror = () => reject(new Error('file'));
+        reader.readAsDataURL(file);
+      });
+      setFormData(prev => ({ ...prev, logoUrl: dataUrl }));
+    } catch { /* ignore */ }
+    e.target.value = '';
+  };
 
   const [dbPlans, setDbPlans] = useState<any[]>([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
@@ -806,6 +840,7 @@ export default function Systematize() {
             business_type: formData.businessType,
             branding: {
               theme_color: formData.themeColor,
+              logo_url: formData.logoUrl || '',
               currency: formData.currency,
               timezone: formData.timezone
             },
@@ -1216,12 +1251,33 @@ export default function Systematize() {
                             }`}
                             title={p.nameUz}
                           >
-                            <span 
-                              className="w-4 h-4 rounded-full" 
+                            <span
+                              className="w-4 h-4 rounded-full"
                               style={{ backgroundColor: p.colorHex }}
                             />
                           </button>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Logo upload (optional) */}
+                    <div className="space-y-2">
+                      <Label className="text-white/80 font-medium text-xs">Logotip (ixtiyoriy)</Label>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-xl border border-white/10 bg-[#171717] flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.logoUrl
+                            ? <img src={formData.logoUrl} alt="logo" className="w-full h-full object-contain" />
+                            : <span className="text-lg font-black text-white/40">{(formData.companyName || 'U').charAt(0).toUpperCase()}</span>}
+                        </div>
+                        <label>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleLogoPick} />
+                          <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer border border-white/10 bg-[#171717] text-white/80 hover:bg-white/5 transition">
+                            <ImageIcon className="w-4 h-4" /> {formData.logoUrl ? 'Almashtirish' : 'Logo yuklash'}
+                          </span>
+                        </label>
+                        {formData.logoUrl && (
+                          <button type="button" onClick={() => setFormData({ ...formData, logoUrl: '' })} className="text-rose-400 text-xs hover:underline">O'chirish</button>
+                        )}
                       </div>
                     </div>
                   </div>

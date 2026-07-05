@@ -31,6 +31,7 @@ import {
   X,
   Receipt
 } from 'lucide-react';
+import { IconBadge } from '@/components/ui/icon-badge';
 import { jsPDF } from 'jspdf';
 
 interface TourPackage {
@@ -718,8 +719,8 @@ export default function AdminTour() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <Plane className="w-8 h-8 text-primary animate-pulse" /> 
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+            <IconBadge icon={<Plane />} tone="sky" size="md" />
             {activeTenant?.name ? `${activeTenant.name} Travel CRM` : 'Turistik Kompaniya Dashboard'}
           </h1>
           <p className="text-white/60 text-sm mt-1">Turlar boshqaruvi, kunlik visual taklifnomalar va buyurtmalar quvuri.</p>

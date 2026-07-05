@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { CommandPalette } from '@/components/superadmin/CommandPalette';
 import {
   Building2,
   Users,
@@ -84,6 +85,7 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <CommandPalette />
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/40">
             <Users className="w-4 h-4 text-primary" />
           </div>

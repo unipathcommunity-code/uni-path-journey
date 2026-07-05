@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { TenantContext } from '@unipath/tenant';
 
 export type UserRole = string | null;
 
@@ -19,7 +20,12 @@ export const SUPER_ADMIN_EMAILS: string[] = [
 
 export function useUserRole() {
   const { user } = useAuth();
+  // Read the resolved tenant directly from context (not useTenant()) so this
+  // hook stays safe even when mounted outside a TenantProvider.
+  const tenantCtx = useContext(TenantContext as any) as any;
+  const activeTenantId: string | null = tenantCtx?.activeTenant?.id ?? null;
   const [role, setRole] = useState<UserRole>(null);
+  const [roleSource, setRoleSource] = useState<'membership' | 'profile' | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [tenantStatus, setTenantStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,6 +140,25 @@ export function useUserRole() {
           }
         }
 
+        // 2. Membership role for the ACTIVE tenant (one account, many businesses).
+        //    If the user has a tenant_memberships row for the current subdomain's
+        //    tenant, that per-business role wins over the global profiles.role.
+        let fromMembership = false;
+        if (activeTenantId) {
+          try {
+            const { data: mRole, error: mErr } = await (supabase as any)
+              .rpc('get_membership_role', { p_tenant_id: activeTenantId });
+            if (!mErr && mRole) {
+              currentRole = mRole as UserRole;
+              tId = activeTenantId;
+              fromMembership = true;
+            }
+          } catch (e) {
+            // RPC may not exist until the migration is applied — fall back silently.
+            console.warn('useUserRole: get_membership_role unavailable:', e);
+          }
+        }
+
         // Owning a business makes you an owner — even if profiles.role was never
         // set to 'owner' (e.g. the handle_new_user trigger didn't copy the role
         // from signup metadata).
@@ -166,6 +191,7 @@ export function useUserRole() {
 
         if (active) {
           setRole(currentRole);
+          setRoleSource(fromMembership ? 'membership' : 'profile');
           setTenantId(tId);
           setTenantStatus(tStatus);
           setLoadedUserId(user.id);
@@ -191,12 +217,13 @@ export function useUserRole() {
       active = false;
       clearTimeout(timeoutId);
     };
-  }, [user]);
+  }, [user, activeTenantId]);
 
   const isFetching = isLoading || (user !== null && loadedUserId !== user.id);
 
   return {
     role,
+    roleSource,
     tenantId,
     tenantStatus,
     isLoading: isFetching,

@@ -36,6 +36,7 @@ import {
   BarChart3,
   Star,
 } from 'lucide-react';
+import { IconBadge } from '@/components/ui/icon-badge';
 
 interface AcademyGroup {
   id: string;
@@ -496,8 +497,8 @@ export default function AdminAcademy() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <GraduationCap className="w-8 h-8 text-primary animate-pulse" /> 
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+            <IconBadge icon={<GraduationCap />} tone="indigo" size="md" />
             NOVA CRM & O'quv Markazi Boshqaruvi
           </h1>
           <p className="text-white/60 text-sm mt-1">Guruhlar, animated QR davomat, NovaCoins rag'batlantirish tizimi va qarzdorlik tahlillari.</p>

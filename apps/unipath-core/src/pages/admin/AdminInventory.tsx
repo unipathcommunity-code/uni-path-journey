@@ -83,7 +83,7 @@ export default function AdminInventory() {
 
   useEffect(() => {
     async function fetchInventoryData() {
-      if (!activeTenant) return;
+      if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
         // 1. Fetch Suppliers

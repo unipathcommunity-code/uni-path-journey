@@ -19,7 +19,18 @@ No test runner is configured. TypeScript errors surface during `npm run build`.
 
 ## What This Is
 
-**UniPath** — a multi-tenant SaaS platform at `unipath.me`. One codebase serves every registered business. Each business gets its own subdomain (`mytour.unipath.me`) and a vertically-specific admin dashboard determined by `business_type`.
+**UniPath** — a multi-tenant SaaS **ecosystem** at `unipath.me` for systematizing EVERY kind of business (originally consulting-only; consulting is now just one vertical + the fallback). One codebase serves every registered business. Each business gets its own subdomain (`mytour.unipath.me`) and a vertically-specific admin dashboard determined by `business_type`.
+
+Two formerly standalone products are fully absorbed into the core app (no separate builds/deployments):
+- **NOVA** (learning-center OS) → `apps/unipath-core/src/academy/` — mounted for `academy` tenants
+- **UniTour** (tour-company OS) → `apps/unipath-core/src/tour/` — mounted for `tour` tenants
+
+`EcosystemRouter` in `apps/unipath-core/src/App.tsx` picks the route tree by the active tenant's vertical (tour→TourRoutes, academy→NovaRoutes, everything else→core/consulting routes). Live code root is `apps/unipath-core/src/` (pnpm monorepo; shared `packages/{auth,tenant,db,ui,...}`).
+
+### Identity: one account, many businesses
+Supabase auth email is global. `tenant_memberships` (`supabase/migrations/20260705120000_tenant_memberships.sql`) gives a user a SEPARATE role per business (`join_tenant` / `get_membership_role` RPCs). `hooks/useUserRole.ts` resolves the role for the ACTIVE tenant from memberships first, falling back to legacy `profiles.role` + `tenants.owner_email`. End-users route by vertical: education verticals (`academy|consulting|tour`) → `/student/dashboard`, all others → `/member/dashboard` (vertical-aware member portal).
+
+**Migrations are NOT auto-applied** — run new SQL files in the Supabase SQL editor (or via `supabase db push` with the real DB password).
 
 Supported verticals: `tour` · `academy` · `hotel` · `restaurant` · `clinic` · `gym` · `manufacturing` · `parking` · `auto_service` · `wholesale` · `wedding_hall` · `kindergarten` · `library` · `cosmetics` · `stadium` · `pharmacy` · `consulting` (default fallback)
 
@@ -157,11 +168,14 @@ We are unifying the standalone NOVA (`novaios-main/`) and UniTour (`unitour-me-m
    - `AppShell.tsx` dynamically renders the correct sidebar menu (NOVA, UniTour, or Consulting) depending on `activeTenant.business_type` or the active application route.
    - The compact `BranchSwitcher` component in the sidebar manages both cross-org switching and cross-app switching under a single dropdown.
 
-### Immediate Action Checklist for Claude Code:
-1. **Initialize Monorepo Scaffold**: Create `pnpm-workspace.yaml` and restructure `novaios-main/` -> `apps/nova/`, `unitour-me-main/` -> `apps/unitour/`, and the current root -> `apps/unipath-core/`.
-2. **Create Core Packages**: Set up `packages/db`, `packages/ui`, `packages/auth`, and `packages/tenant` and export the shared logic.
-3. **Unify AuthContext**: Port the global `AuthContext` to use a shared connection and read custom JWT Claims.
-4. **Migrate NOVA and UniTour Pages**: Integrate educational and travel views into the unified routing layout under the main `AppShell` with plan limits and RLS schema separation.
+### Integration status (July 2026) — checklist COMPLETED:
+1. ✅ Monorepo scaffold: `pnpm-workspace.yaml`, core lives in `apps/unipath-core/` (NOVA/UniTour merged INTO `src/academy` & `src/tour` instead of separate apps — simpler, one build).
+2. ✅ Core packages: `packages/db`, `packages/ui`, `packages/auth`, `packages/tenant` created and consumed via `workspace:*`.
+3. ✅ Unified AuthContext: `contexts/AuthContext.tsx` bridges `@unipath/auth`; tenant resolution in `@unipath/tenant` `TenantProvider`.
+4. ✅ NOVA & UniTour mounted via `EcosystemRouter` by tenant vertical. JWT custom claims path exists (`extractJWTClaims`) but is not yet populated server-side — future work.
+5. ✅ Identity layer: `tenant_memberships` (one account, many businesses) — see "Identity" section above.
+
+Deploy: Vercel git integration on the repo root (`pnpm -r build && node scripts/merge-dist.js` → root `dist/`). **Deploy = commit + push to main.**
 
 ---
 

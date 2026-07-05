@@ -262,8 +262,8 @@ const WebsiteBuilder = () => {
                 </h1>
                 <p className="text-xs text-muted-foreground truncate">
                   {isSuperAdmin
-                    ? "Har bir o'quv markaz uchun alohida sayt"
-                    : "Markazingiz sahifasi — bir necha soniyada"}
+                    ? "Har bir biznes uchun alohida sayt"
+                    : "Biznesingiz sahifasi — bir necha soniyada"}
                 </p>
               </div>
             </div>
@@ -294,10 +294,10 @@ const WebsiteBuilder = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold tracking-widest text-muted-foreground">
-                      O'QUV MARKAZ
+                      BIZNES
                     </p>
                     <p className="text-sm font-semibold truncate">
-                      {activeOrg?.name || "Markaz tanlang"}
+                      {activeOrg?.name || "Firmani tanlang"}
                     </p>
                   </div>
                 </div>

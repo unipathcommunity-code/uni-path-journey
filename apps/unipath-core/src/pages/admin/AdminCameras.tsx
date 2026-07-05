@@ -106,7 +106,7 @@ export default function AdminCameras() {
   };
 
   async function fetchCameraData() {
-    if (!activeTenant) return;
+    if (!activeTenant) { setLoading(false); return; }
     try {
       setLoading(true);
       // 1. Fetch devices

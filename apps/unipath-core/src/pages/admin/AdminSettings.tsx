@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone, Palette, Check, Send, ExternalLink, Copy, CheckCheck } from "lucide-react";
+import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone, Palette, Check, Send, ExternalLink, Copy, CheckCheck, Image as ImageIcon, Upload, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,32 @@ import PageTransition from "@/components/common/PageTransition";
 import { motion } from "framer-motion";
 import { THEME_PRESETS, injectTheme } from "@/lib/themes";
 import { useApp } from "@/contexts/AppContext";
+
+// Downscale + convert an uploaded image to a small PNG data URL (stored in config.branding.logo_url).
+// Avoids needing a configured Supabase Storage bucket — the logo travels inside the tenant config.
+function downscaleImage(file: File, max: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas mavjud emas'));
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject(new Error("Rasmni o'qib bo'lmadi"));
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => reject(new Error("Faylni o'qib bo'lmadi"));
+    reader.readAsDataURL(file);
+  });
+}
 
 const AdminSettings = () => {
   const { user } = useAuth();
@@ -80,6 +106,9 @@ const AdminSettings = () => {
       });
     }
   }, [profile]);
+
+  const [logoUrl, setLogoUrl] = useState<string>((activeTenant?.config?.branding as any)?.logo_url || '');
+  const [logoSaving, setLogoSaving] = useState(false);
 
   const saveBranding = async (extra: Record<string, any>) => {
     if (!activeTenant?.id) throw new Error('Tenant topilmadi');
@@ -157,6 +186,38 @@ const AdminSettings = () => {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Faqat rasm fayli tanlang'); return; }
+    if (file.size > 3 * 1024 * 1024) { toast.error("Rasm hajmi 3MB dan kichik bo'lsin"); return; }
+    setLogoSaving(true);
+    try {
+      const dataUrl = await downscaleImage(file, 512);
+      await saveBranding({ logo_url: dataUrl });
+      setLogoUrl(dataUrl);
+      toast.success("Logo saqlandi! Saytingizda ko'rinadi.");
+    } catch (err: any) {
+      toast.error(err.message || 'Logo yuklashda xatolik');
+    } finally {
+      setLogoSaving(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    setLogoSaving(true);
+    try {
+      await saveBranding({ logo_url: '' });
+      setLogoUrl('');
+      toast.success("Logo o'chirildi");
+    } catch {
+      toast.error('Xatolik yuz berdi');
+    } finally {
+      setLogoSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -222,6 +283,44 @@ const AdminSettings = () => {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Saqlash
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Brending — Logo */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Logotip (Brending)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Biznesingiz logosi — saytingiz sarlavhasida, kabinet panelida va hujjatlarda avtomatik ko'rinadi.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-2xl border border-border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
+                  {logoUrl
+                    ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    : <span className="text-2xl font-black text-muted-foreground">{(activeTenant?.name || 'U').charAt(0).toUpperCase()}</span>}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={logoSaving} />
+                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border border-border hover:bg-muted transition ${logoSaving ? 'opacity-60 pointer-events-none' : ''}`}>
+                        {logoSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Logo yuklash
+                      </span>
+                    </label>
+                    {logoUrl && (
+                      <button onClick={handleLogoRemove} disabled={logoSaving} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-rose-500 hover:bg-rose-500/10 transition">
+                        <Trash2 className="h-4 w-4" /> O'chirish
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">PNG yoki JPG · kvadrat shakl tavsiya etiladi · maks 3MB.</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

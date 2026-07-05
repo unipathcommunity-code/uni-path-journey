@@ -59,7 +59,7 @@ export default function AdminWholesale() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!activeTenant) return;
+      if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
         // Attempt to fetch from database, fallback to mockup if table doesn't exist

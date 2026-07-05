@@ -27,6 +27,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PublicMenuOrder from '@/components/restaurant/PublicMenuOrder';
+import PublicHallBooking from '@/components/wedding/PublicHallBooking';
+import PublicHotelBooking from '@/components/hotel/PublicHotelBooking';
+import PublicGymBooking from '@/components/gym/PublicGymBooking';
 
 // ─── Vertical config ──────────────────────────────────────────────────────────
 const VERTICAL_META: Record<string, {
@@ -467,7 +471,7 @@ export default function TenantPublicPage() {
             <Button
               size="sm"
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 gap-1.5 hidden md:flex"
+              className="bg-white/5 border-white/20 text-white hover:bg-white/15 hover:text-white gap-1.5 hidden md:flex"
               onClick={() => navigate('/auth')}
             >
               <LogIn className="w-4 h-4" /> Kirish
@@ -500,7 +504,9 @@ export default function TenantPublicPage() {
 
         <div className="relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs font-bold text-white/70 mx-auto">
-            <Icon className="w-4 h-4" style={{ color: brandColor }} />
+            {logoUrl
+              ? <img src={logoUrl} alt={tenantName} className="w-4 h-4 rounded object-contain" />
+              : <Icon className="w-4 h-4" style={{ color: brandColor }} />}
             <span style={{ color: brandColor }}>{tenantName}</span>
             <span>· unipath.me</span>
           </div>
@@ -522,7 +528,7 @@ export default function TenantPublicPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 font-bold text-base px-8 py-6 rounded-2xl"
+              className="bg-white/5 border-white/20 text-white hover:bg-white/15 hover:text-white font-bold text-base px-8 py-6 rounded-2xl"
               onClick={() => navigate('/auth')}
             >
               Shaxsiy kabinet
@@ -546,17 +552,54 @@ export default function TenantPublicPage() {
             {vertical === 'tour' ? '✈️ Sayohat Paketlarimiz'
               : vertical === 'academy' ? '📚 Kurs & Dasturlar'
               : vertical === 'consulting' ? "🎓 Yo'nalishlar"
-              : vertical === 'hotel' ? '🛏 Xona Turlari'
+              : vertical === 'hotel' ? '🛏 Xonalar & Onlayn bron'
+              : vertical === 'restaurant' ? '🍽 Menyu & Onlayn buyurtma'
+              : vertical === 'wedding_hall' ? '💍 Zallar & Onlayn bron'
+              : vertical === 'gym' ? '🏋️ Dars jadvali & Onlayn yozilish'
               : '⭐ Xizmatlarimiz'}
           </h2>
           <p className="text-white/50 text-sm">
-            {displayItems.length === 0 && !loadingItems
-              ? "Tez orada qo'shiladi..."
-              : `${displayItems.length} ta taklif mavjud`}
+            {vertical === 'restaurant'
+              ? 'Menyudan tanlang va olib ketish yoki yetkazib berishga buyurtma bering'
+              : vertical === 'wedding_hall'
+                ? 'Sanani tanlang va tantanangiz uchun zalni onlayn bron qiling'
+                : vertical === 'hotel'
+                  ? 'Sanalarni tanlang va xonani onlayn bron qiling'
+                  : displayItems.length === 0 && !loadingItems
+                    ? "Tez orada qo'shiladi..."
+                    : `${displayItems.length} ta taklif mavjud`}
           </p>
         </div>
 
-        {loadingItems ? (
+        {vertical === 'restaurant' && activeTenant?.id ? (
+          <PublicMenuOrder
+            tenantId={activeTenant.id}
+            tenantName={tenantName}
+            brandColor={brandColor}
+            branding={activeTenant?.config?.branding}
+          />
+        ) : vertical === 'wedding_hall' && activeTenant?.id ? (
+          <PublicHallBooking
+            tenantId={activeTenant.id}
+            tenantName={tenantName}
+            brandColor={brandColor}
+            branding={activeTenant?.config?.branding}
+          />
+        ) : vertical === 'hotel' && activeTenant?.id ? (
+          <PublicHotelBooking
+            tenantId={activeTenant.id}
+            tenantName={tenantName}
+            brandColor={brandColor}
+            branding={activeTenant?.config?.branding}
+          />
+        ) : vertical === 'gym' && activeTenant?.id ? (
+          <PublicGymBooking
+            tenantId={activeTenant.id}
+            tenantName={tenantName}
+            brandColor={brandColor}
+            branding={activeTenant?.config?.branding}
+          />
+        ) : loadingItems ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white/5 rounded-2xl h-48 animate-pulse" />
@@ -708,7 +751,9 @@ export default function TenantPublicPage() {
       <footer className="border-t border-white/5 py-8 text-center">
         <div className="max-w-6xl mx-auto px-4 space-y-2">
           <div className="flex items-center justify-center gap-2 text-sm font-semibold text-white/50">
-            <Icon className="w-4 h-4" style={{ color: brandColor }} />
+            {logoUrl
+              ? <img src={logoUrl} alt={tenantName} className="w-5 h-5 rounded object-contain" />
+              : <Icon className="w-4 h-4" style={{ color: brandColor }} />}
             {tenantName}
           </div>
           <p className="text-[11px] text-white/25">

@@ -14,6 +14,7 @@ import {
   Target, Zap, FolderOpen, GraduationCap, Wallet, LayoutList,
   Plus, ChevronRight, Activity,
 } from 'lucide-react';
+import { IconBadge } from '@/components/ui/icon-badge';
 
 interface Stats {
   totalStudents: number;
@@ -284,9 +285,7 @@ export default function AdminConsulting() {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-              <LayoutList className="w-4 h-4 text-primary" />
-            </div>
+            <IconBadge icon={<LayoutList />} tone="primary" size="sm" />
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">CRM & Consulting</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">{tenantName}</h1>

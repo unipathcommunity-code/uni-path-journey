@@ -46,7 +46,7 @@ export default function AdminParking() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!activeTenant) return;
+      if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
         const mockSessions: ParkingSession[] = [

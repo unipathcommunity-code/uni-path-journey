@@ -49,6 +49,8 @@ import {
   UserCheck,
   Plane,
   MapPin,
+  Calendar,
+  Sparkles,
   LucideIcon,
 } from 'lucide-react';
 
@@ -89,16 +91,32 @@ const VERTICAL_NAV: Record<string, VerticalNavItem[]> = {
     { icon: Bell,          label: 'E\'lonlar',              href: '/admin/announcements' },
   ],
   gym:           [
-    { icon: Dumbbell,      label: "A'zolar",    href: '/admin/gym' },
-    { icon: ClipboardList, label: "Mashg'ulot", href: '/admin/gym' },
+    { icon: LayoutDashboard, label: 'Boshqaruv', href: '/admin/gym?tab=overview' },
+    { icon: Calendar,        label: 'Jadval',     href: '/admin/gym?tab=schedule' },
+    { icon: Users,           label: "A'zolar",    href: '/admin/gym?tab=members' },
+    { icon: UserCheck,       label: 'Check-in',   href: '/admin/gym?tab=checkin' },
+    { icon: ClipboardList,   label: 'Bronlar',    href: '/admin/gym?tab=bookings' },
+    { icon: CreditCard,      label: 'Abonement',  href: '/admin/gym?tab=plans' },
+    { icon: BarChart3,       label: 'Hisobot',    href: '/admin/gym?tab=reports' },
   ],
   hotel:         [
-    { icon: Bed,           label: 'Xonalar',    href: '/admin/hotel' },
-    { icon: ClipboardList, label: 'Bronlar',    href: '/admin/hotel' },
+    { icon: LayoutDashboard, label: 'Boshqaruv',   href: '/admin/hotel?tab=overview' },
+    { icon: Calendar,        label: 'Kalendar',     href: '/admin/hotel?tab=calendar' },
+    { icon: ClipboardList,   label: 'Bronlar',      href: '/admin/hotel?tab=bookings' },
+    { icon: Users,           label: 'Mehmonlar',    href: '/admin/hotel?tab=guests' },
+    { icon: Sparkles,        label: 'Tozalash',     href: '/admin/hotel?tab=housekeeping' },
+    { icon: Bed,             label: 'Xonalar',      href: '/admin/hotel?tab=rooms' },
+    { icon: CreditCard,      label: 'Narxlar',      href: '/admin/hotel?tab=rates' },
+    { icon: BarChart3,       label: 'Hisobotlar',   href: '/admin/hotel?tab=reports' },
   ],
   restaurant:    [
-    { icon: UtensilsCrossed, label: 'Menyu',    href: '/admin/restaurant' },
-    { icon: ClipboardList,   label: 'Buyurtmalar', href: '/admin/restaurant' },
+    { icon: LayoutDashboard, label: 'Boshqaruv',     href: '/admin/restaurant?tab=overview' },
+    { icon: Receipt,         label: 'Buyurtma (POS)', href: '/admin/restaurant?tab=pos' },
+    { icon: UtensilsCrossed, label: 'Oshxona (KDS)',  href: '/admin/restaurant?tab=kds' },
+    { icon: CreditCard,      label: 'Kassa',          href: '/admin/restaurant?tab=cashier' },
+    { icon: BookOpen,        label: 'Menyu',          href: '/admin/restaurant?tab=menu' },
+    { icon: Store,           label: 'Stollar & QR',   href: '/admin/restaurant?tab=tables' },
+    { icon: BarChart3,       label: 'Hisobotlar',     href: '/admin/restaurant?tab=reports' },
   ],
   clinic:        [
     { icon: HeartPulse,    label: 'Bemorlar',   href: '/admin/clinic' },
@@ -121,8 +139,12 @@ const VERTICAL_NAV: Record<string, VerticalNavItem[]> = {
     { icon: ClipboardList, label: 'Buyurtmalar',href: '/admin/auto-service' },
   ],
   wedding_hall:  [
-    { icon: Heart,         label: 'Zal Bron',   href: '/admin/wedding-hall' },
-    { icon: ClipboardList, label: 'Buyurtmalar',href: '/admin/wedding-hall' },
+    { icon: LayoutDashboard, label: 'Boshqaruv',   href: '/admin/wedding-hall?tab=overview' },
+    { icon: Calendar,        label: 'Kalendar',     href: '/admin/wedding-hall?tab=calendar' },
+    { icon: ClipboardList,   label: 'Buyurtmalar',  href: '/admin/wedding-hall?tab=bookings' },
+    { icon: CreditCard,      label: "To'lovlar",    href: '/admin/wedding-hall?tab=payments' },
+    { icon: Heart,           label: 'Zallar',       href: '/admin/wedding-hall?tab=halls' },
+    { icon: BarChart3,       label: 'Hisobotlar',   href: '/admin/wedding-hall?tab=reports' },
   ],
   kindergarten:  [
     { icon: Baby,          label: 'Bolalar',    href: '/admin/kindergarten' },
@@ -331,23 +353,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         to={href}
         onClick={() => setSidebarOpen(false)}
         className={`
-          flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-sm
+          group flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 text-sm
           ${isActive
-            ? (isDarkTheme ? 'bg-primary text-primary-foreground font-semibold shadow-md shadow-primary/20' : 'bg-primary text-primary-foreground font-semibold shadow-sm')
+            ? (isDarkTheme ? 'bg-white/10 text-white font-semibold' : 'bg-primary/10 text-primary font-semibold')
             : (isDarkTheme ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-muted-foreground hover:bg-muted hover:text-foreground')
           }
         `}
       >
-        <Icon className="w-4 h-4 shrink-0" />
+        <span className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-all duration-200
+          ${isActive
+            ? 'bg-gradient-to-br from-primary/80 to-primary text-white shadow-md shadow-primary/30 ring-1 ring-white/25'
+            : (isDarkTheme ? 'bg-white/5 text-white/70 group-hover:bg-white/10' : 'bg-muted text-muted-foreground group-hover:bg-background group-hover:text-foreground')
+          }`}>
+          <Icon className="w-4 h-4" />
+        </span>
         <span className="truncate">{label}</span>
       </Link>
     );
   };
 
   const LockedNavItem = ({ icon: Icon, label, badge }: { icon: LucideIcon; label: string; badge: string }) => (
-    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm text-muted-foreground/40 cursor-not-allowed select-none">
+    <div className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-muted-foreground/40 cursor-not-allowed select-none">
       <div className="flex items-center gap-3">
-        <Icon className="w-4 h-4 shrink-0" />
+        <span className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-muted/50">
+          <Icon className="w-4 h-4 shrink-0" />
+        </span>
         <span className="truncate">{label}</span>
       </div>
       <div className="flex items-center gap-1 shrink-0">
@@ -413,9 +443,21 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   )}
                   <div className="min-w-0">
                     <p className={`font-semibold text-sm truncate leading-tight ${isAcademy || isTour ? 'text-white' : 'text-foreground'}`}>{activeTenant.name}</p>
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${tierBadge.cls}`}>
-                      {tierBadge.label}
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${tierBadge.cls}`}>
+                        {tierBadge.label}
+                      </span>
+                      <span 
+                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded cursor-pointer transition-colors ${isAcademy || isTour ? 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'}`}
+                        onClick={() => {
+                          navigator.clipboard.writeText(activeTenant.id);
+                          alert('Business ID (Tenant ID) nusxalandi: ' + activeTenant.id);
+                        }}
+                        title="Nusxa olish uchun bosing"
+                      >
+                        ID: {activeTenant.id.substring(0, 8)}
+                      </span>
+                    </div>
                   </div>
                 </>
               ) : (

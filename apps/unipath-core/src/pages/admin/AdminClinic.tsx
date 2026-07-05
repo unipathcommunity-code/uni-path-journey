@@ -49,7 +49,7 @@ export default function AdminClinic() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!activeTenant) return;
+      if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
         // Fallback to mock data since we don't have schema tables for Clinic yet

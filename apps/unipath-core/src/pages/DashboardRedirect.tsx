@@ -157,8 +157,14 @@ export default function DashboardRedirect() {
   if (role === "teacher") return <Navigate to="/teacher" replace />;
   if (role === "accountant") return <Navigate to="/accountant" replace />;
   if (role === "parent") return <Navigate to="/parent" replace />;
-  
-  // Everyone else → student dashboard
-  return <Navigate to="/student/dashboard" replace />;
+
+  // End-users (members / customers / students):
+  // The study-abroad StudentDashboard only fits education verticals. Everyone
+  // else gets the vertical-aware member portal instead of the university flow.
+  const EDU_VERTICALS = ['academy', 'consulting', 'tour'];
+  if (EDU_VERTICALS.includes(vertical)) {
+    return <Navigate to="/student/dashboard" replace />;
+  }
+  return <Navigate to="/member/dashboard" replace />;
 }
 

@@ -70,7 +70,7 @@ export default function AdminManufacturing() {
 
   useEffect(() => {
     async function fetchMfgData() {
-      if (!activeTenant) return;
+      if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
         // 1. Fetch profiles for worker lookup

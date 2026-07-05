@@ -34,7 +34,9 @@ import {
   Edit,
   Trash,
   Globe,
+  Send,
   Loader2,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,6 +157,21 @@ const CAR_SHOWROOM_MODULES = [
   { id: 'analytics', label: 'Keng analitika', desc: 'Savdo hajmi, mashhurlar markalar va moliya tahlili' }
 ];
 
+// Gradient theme presets for per-tenant branding (vertical-neutral —
+// works for any firma: tour, academy, hotel, restaurant, wedding hall...).
+// Same preset family as the NOVA theme customizer, tastefully re-built in CSS.
+const THEME_PRESETS = [
+  { id: 'aurora',       name: 'Aurora',       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6ee7b7 100%)', primary: '262 83% 58%', accent: '160 70% 50%' },
+  { id: 'nebula',       name: 'Nebula',       gradient: 'linear-gradient(135deg, #4c1d95 0%, #a855f7 55%, #ec4899 100%)', primary: '280 75% 60%', accent: '325 80% 60%' },
+  { id: 'sunset_glow',  name: 'Sunset Glow',  gradient: 'linear-gradient(135deg, #f97316 0%, #ef4444 55%, #ec4899 100%)', primary: '20 90% 55%',  accent: '340 80% 60%' },
+  { id: 'ocean_pulse',  name: 'Ocean Pulse',  gradient: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 55%, #06b6d4 100%)', primary: '210 90% 55%', accent: '190 85% 50%' },
+  { id: 'cyber_mint',   name: 'Cyber Mint',   gradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 55%, #22d3ee 100%)', primary: '160 80% 42%', accent: '185 85% 50%' },
+  { id: 'royal_gold',   name: 'Royal Gold',   gradient: 'linear-gradient(135deg, #b45309 0%, #d4af37 55%, #fde68a 100%)', primary: '43 74% 49%',  accent: '36 90% 55%' },
+  { id: 'forest_deep',  name: 'Forest Deep',  gradient: 'linear-gradient(135deg, #14532d 0%, #16a34a 60%, #84cc16 100%)', primary: '150 60% 40%', accent: '90 60% 50%' },
+  { id: 'cyberpunk',    name: 'Cyberpunk',    gradient: 'linear-gradient(135deg, #d946ef 0%, #7c3aed 50%, #06b6d4 100%)', primary: '315 90% 55%', accent: '185 100% 50%' },
+  { id: 'minimal_mono', name: 'Minimal Mono', gradient: 'linear-gradient(135deg, #1f2937 0%, #6b7280 60%, #e5e7eb 100%)', primary: '220 10% 40%', accent: '220 12% 62%' },
+];
+
 const getModulesForVertical = (vertical: string) => {
   const v = String(vertical || 'consulting').toLowerCase().trim();
   if (v === 'academy' || v === 'nova' || v === 'edu') return ACADEMY_MODULES;
@@ -190,6 +207,16 @@ export default function SuperAdminDashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [isModulesDialogOpen, setIsModulesDialogOpen] = useState(false);
   const [modulesForm, setModulesForm] = useState<Record<string, boolean>>({});
+
+  // Telegram bot bind state
+  const [isTgOpen, setIsTgOpen] = useState(false);
+  const [tgForm, setTgForm] = useState({ token: '', username: '', chatId: '' });
+  const [savingTg, setSavingTg] = useState(false);
+
+  // Theme & branding customizer state (per-tenant, vertical-neutral)
+  const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [themeForm, setThemeForm] = useState({ preset: '', name: '', primary: '', accent: '' });
+  const [savingTheme, setSavingTheme] = useState(false);
 
   // Dynamic Pricing Plan states
   const [globalPlans, setGlobalPlans] = useState<any[]>([]);
@@ -1020,6 +1047,104 @@ export default function SuperAdminDashboard() {
     return found ? found.color : 'text-primary';
   };
 
+  // Impersonate the tenant, then land on a specific in-app target (settings, website builder…)
+  const goAsTenant = (target: string) => {
+    if (!selectedTenant) return;
+    const bt = selectedTenant.business_type || 'consulting';
+    const payload = {
+      ...selectedTenant,
+      business_type: bt,
+      config: {
+        ...(selectedTenant.config || {}),
+        business_type: bt,
+        modules: { ...((selectedTenant.config as any)?.modules || {}), [bt]: true },
+      },
+    };
+    localStorage.setItem('active_tenant', JSON.stringify(payload));
+    window.location.href = target;
+  };
+
+  const openTelegram = () => {
+    const b = (selectedTenant?.config?.branding) || {};
+    setTgForm({
+      token: b.telegram_bot_token || '',
+      username: b.telegram_bot_username || '',
+      chatId: b.telegram_chat_id || '',
+    });
+    setIsTgOpen(true);
+  };
+
+  const saveTelegram = async () => {
+    if (!selectedTenant) return;
+    setSavingTg(true);
+    try {
+      const newConfig = {
+        ...(selectedTenant.config || {}),
+        branding: {
+          ...((selectedTenant.config as any)?.branding || {}),
+          telegram_bot_token: tgForm.token.trim(),
+          telegram_bot_username: tgForm.username.trim().replace('@', ''),
+          telegram_chat_id: tgForm.chatId.trim(),
+        },
+      };
+      const { error } = await supabase.from('tenants').update({ config: newConfig }).eq('id', selectedTenant.id);
+      if (error) throw error;
+      setTenants(prev => prev.map(t => t.id === selectedTenant.id ? { ...t, config: newConfig } : t));
+      setSelectedTenant((prev: any) => ({ ...prev, config: newConfig }));
+      toast({ title: 'Saqlandi', description: 'Telegram bot sozlamalari yangilandi.' });
+      setIsTgOpen(false);
+    } catch (e: any) {
+      toast({ title: 'Xatolik', description: e.message, variant: 'destructive' });
+    } finally {
+      setSavingTg(false);
+    }
+  };
+
+  const openTheme = () => {
+    const b = (selectedTenant?.config?.branding) || {};
+    setThemeForm({
+      preset: b.theme_preset || '',
+      name: selectedTenant?.name || '',
+      primary: b.primary_color || '',
+      accent: b.accent_color || '',
+    });
+    setIsThemeOpen(true);
+  };
+
+  const applyThemePreset = (p: typeof THEME_PRESETS[number]) => {
+    setThemeForm(prev => ({ ...prev, preset: p.id, primary: p.primary, accent: p.accent }));
+  };
+
+  const saveTheme = async () => {
+    if (!selectedTenant) return;
+    setSavingTheme(true);
+    try {
+      const newName = themeForm.name.trim() || selectedTenant.name;
+      const newConfig = {
+        ...(selectedTenant.config || {}),
+        branding: {
+          ...((selectedTenant.config as any)?.branding || {}),
+          theme_preset: themeForm.preset,
+          primary_color: themeForm.primary.trim(),
+          accent_color: themeForm.accent.trim(),
+        },
+      };
+      const { error } = await (supabase as any)
+        .from('tenants')
+        .update({ config: newConfig, name: newName })
+        .eq('id', selectedTenant.id);
+      if (error) throw error;
+      setTenants(prev => prev.map(t => t.id === selectedTenant.id ? { ...t, name: newName, config: newConfig } : t));
+      setSelectedTenant((prev: any) => ({ ...prev, name: newName, config: newConfig }));
+      toast({ title: 'Saqlandi', description: 'Firma tema va brendingi yangilandi.' });
+      setIsThemeOpen(false);
+    } catch (e: any) {
+      toast({ title: 'Xatolik', description: e.message, variant: 'destructive' });
+    } finally {
+      setSavingTheme(false);
+    }
+  };
+
   const filteredTenants = tenants.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           t.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1434,12 +1559,159 @@ export default function SuperAdminDashboard() {
                               Tizimga Kirish (Impersonate)
                             </Button>
 
-                            <Button 
-                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5" 
+                            <Button
+                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5"
                               onClick={() => setIsModulesDialogOpen(true)}
                             >
-                              <Settings className="w-4 h-4" /> Modullarni sozlash
+                              <Settings className="w-4 h-4" /> Modullar
                             </Button>
+
+                            <Button
+                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 gap-1.5"
+                              onClick={openTelegram}
+                            >
+                              <Send className="w-4 h-4" /> Telegram bot
+                            </Button>
+
+                            <Button
+                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 gap-1.5"
+                              onClick={() => goAsTenant('/website-builder')}
+                            >
+                              <Globe className="w-4 h-4" /> Veb-sayt qurish
+                            </Button>
+
+                            <Button
+                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-white/5 hover:bg-white/10 text-white/80 gap-1.5"
+                              onClick={() => goAsTenant('/admin/settings')}
+                            >
+                              <Wrench className="w-4 h-4" /> Sozlamalar
+                            </Button>
+
+                            <Button
+                              className="flex-1 sm:flex-none text-xs font-bold rounded-xl bg-fuchsia-500/10 hover:bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/20 gap-1.5"
+                              onClick={openTheme}
+                            >
+                              <Palette className="w-4 h-4" /> Tema & Brending
+                            </Button>
+
+                            {/* Theme & branding customizer dialog */}
+                            <Dialog open={isThemeOpen} onOpenChange={setIsThemeOpen}>
+                              <DialogContent className="sm:max-w-[560px] bg-[#111111]/95 border border-white/5 text-white rounded-3xl backdrop-blur-xl">
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                                    <Palette className="w-5 h-5 text-fuchsia-400" /> Tema & Brending
+                                  </DialogTitle>
+                                  <DialogDescription className="text-white/50 text-xs">
+                                    {selectedTenant?.name} firmasi uchun tema preseti, nom va brend ranglarini sozlang. O'zgarishlar firmaning barcha sahifalariga tatbiq etiladi.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-xs max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                                  {/* Gradient presets */}
+                                  <div className="space-y-2">
+                                    <Label className="text-white/80 font-bold uppercase tracking-wider text-[10px]">Tema presetlari</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {THEME_PRESETS.map((p) => (
+                                        <button
+                                          key={p.id}
+                                          type="button"
+                                          onClick={() => applyThemePreset(p)}
+                                          className={`rounded-xl overflow-hidden border-2 text-left transition-all ${
+                                            themeForm.preset === p.id
+                                              ? 'border-fuchsia-400 ring-2 ring-fuchsia-400/30'
+                                              : 'border-white/10 hover:border-white/30'
+                                          }`}
+                                        >
+                                          <div className="h-12 w-full" style={{ background: p.gradient }} />
+                                          <div className="px-2 py-1.5 bg-white/[0.03] flex items-center justify-between gap-1">
+                                            <span className="text-[10px] font-bold text-white/80 truncate">{p.name}</span>
+                                            {themeForm.preset === p.id && <CheckCircle2 className="w-3 h-3 text-fuchsia-400 shrink-0" />}
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Firma nomi */}
+                                  <div className="space-y-1.5">
+                                    <Label className="text-white/80 font-bold">Firma nomi</Label>
+                                    <Input
+                                      value={themeForm.name}
+                                      onChange={(e) => setThemeForm({ ...themeForm, name: e.target.value })}
+                                      placeholder="Firma nomi"
+                                      className="bg-white/5 border-white/10 text-white rounded-xl h-11"
+                                    />
+                                  </div>
+
+                                  {/* HSL branding */}
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                      <Label className="text-white/80 font-bold flex items-center gap-1.5">
+                                        <span className="w-3 h-3 rounded-full border border-white/20 shrink-0" style={{ background: themeForm.primary ? `hsl(${themeForm.primary})` : 'transparent' }} />
+                                        Primary HSL
+                                      </Label>
+                                      <Input
+                                        value={themeForm.primary}
+                                        onChange={(e) => setThemeForm({ ...themeForm, primary: e.target.value })}
+                                        placeholder="262 83% 58%"
+                                        className="bg-white/5 border-white/10 text-white rounded-xl h-11 font-mono"
+                                      />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <Label className="text-white/80 font-bold flex items-center gap-1.5">
+                                        <span className="w-3 h-3 rounded-full border border-white/20 shrink-0" style={{ background: themeForm.accent ? `hsl(${themeForm.accent})` : 'transparent' }} />
+                                        Accent HSL
+                                      </Label>
+                                      <Input
+                                        value={themeForm.accent}
+                                        onChange={(e) => setThemeForm({ ...themeForm, accent: e.target.value })}
+                                        placeholder="180 70% 50%"
+                                        className="bg-white/5 border-white/10 text-white rounded-xl h-11 font-mono"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <DialogFooter className="gap-2">
+                                  <Button variant="outline" onClick={() => setIsThemeOpen(false)} className="border-white/10 rounded-xl text-white/70 bg-white/5 hover:bg-white/10 h-11">Bekor</Button>
+                                  <Button onClick={saveTheme} disabled={savingTheme} className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold rounded-xl h-11">
+                                    {savingTheme ? 'Saqlanmoqda...' : 'Saqlash'}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+
+                            {/* Telegram bot bind dialog */}
+                            <Dialog open={isTgOpen} onOpenChange={setIsTgOpen}>
+                              <DialogContent className="sm:max-w-[480px] bg-[#111111]/95 border border-white/5 text-white rounded-3xl backdrop-blur-xl">
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                                    <Send className="w-5 h-5 text-sky-400" /> Telegram bot ulash
+                                  </DialogTitle>
+                                  <DialogDescription className="text-white/50 text-xs">
+                                    {selectedTenant?.name} uchun bot token, username va admin chat ID. Public sahifadan kelgan murojaat/buyurtmalar shu botga yuboriladi.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-3 py-2 text-xs">
+                                  <div className="space-y-1.5">
+                                    <Label className="text-white/80 font-bold">Bot Token</Label>
+                                    <Input value={tgForm.token} onChange={(e) => setTgForm({ ...tgForm, token: e.target.value })} placeholder="123456:ABC-DEF..." className="bg-white/5 border-white/10 text-white rounded-xl h-11 font-mono" />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <Label className="text-white/80 font-bold">Bot Username</Label>
+                                    <Input value={tgForm.username} onChange={(e) => setTgForm({ ...tgForm, username: e.target.value })} placeholder="mybiznes_bot" className="bg-white/5 border-white/10 text-white rounded-xl h-11" />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <Label className="text-white/80 font-bold">Admin Chat ID</Label>
+                                    <Input value={tgForm.chatId} onChange={(e) => setTgForm({ ...tgForm, chatId: e.target.value })} placeholder="-1001234567890" className="bg-white/5 border-white/10 text-white rounded-xl h-11 font-mono" />
+                                  </div>
+                                </div>
+                                <DialogFooter className="gap-2">
+                                  <Button variant="outline" onClick={() => setIsTgOpen(false)} className="border-white/10 rounded-xl text-white/70 bg-white/5 hover:bg-white/10 h-11">Bekor</Button>
+                                  <Button onClick={saveTelegram} disabled={savingTg} className="bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl h-11">
+                                    {savingTg ? 'Saqlanmoqda...' : 'Saqlash'}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
 
                             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                               <DialogTrigger asChild>

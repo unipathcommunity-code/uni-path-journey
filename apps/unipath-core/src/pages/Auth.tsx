@@ -41,7 +41,27 @@ const Auth = () => {
   const logoUrl     = activeTenant?.config?.branding?.logo_url;
 
   const { user } = useAuth(); // Import useAuth from contexts/AuthContext or hooks/useAuth
-  
+
+  // Education verticals keep the study-abroad "student" flow; every other
+  // business gets a plain "member" (customer) role.
+  const EDU_VERTICALS = ['academy', 'consulting', 'tour'];
+  const defaultRole = vertical && !EDU_VERTICALS.includes(vertical) ? 'member' : 'student';
+
+  // One account, many businesses: after a successful login/signup on a tenant
+  // subdomain, ensure the user has a membership row for THIS tenant (idempotent,
+  // low-privilege roles only — see join_tenant RPC).
+  const ensureMembership = async () => {
+    if (!activeTenant?.id) return;
+    try {
+      await (supabase as any).rpc('join_tenant', {
+        p_tenant_id: activeTenant.id,
+        p_role: defaultRole,
+      });
+    } catch (e) {
+      console.warn('join_tenant unavailable (migration not applied yet?):', e);
+    }
+  };
+
   useEffect(() => {
     if (user && !loading) {
       navigate("/dashboard");
@@ -64,19 +84,22 @@ const Auth = () => {
       }
 
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { 
+            data: {
               full_name: fullName,
               tenant_id: activeTenant?.id || null,
-              role: "student"
+              role: defaultRole,
             },
             emailRedirectTo: window.location.origin,
           },
         });
         if (error) throw error;
+        // If email confirmation is disabled, a session exists — link the
+        // membership right away.
+        if (data?.session) await ensureMembership();
         toast.success("Hisob yaratildi! Email orqali tasdiqlang.");
         return;
       }
@@ -86,12 +109,21 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
+      // Link this account to the current business (no-op on root domain).
+      await ensureMembership();
+
       toast.success("Xush kelibsiz!");
       // DashboardRedirect will handle role-based routing
       navigate("/dashboard");
 
     } catch (err: any) {
-      toast.error(err.message || "Xatolik yuz berdi");
+      const msg: string = err?.message || '';
+      if (mode === 'signup' && /already registered|already exists|user already/i.test(msg)) {
+        toast.error("Bu email allaqachon ro'yxatdan o'tgan. Iltimos, \"Kirish\" orqali tizimga kiring.");
+        setMode('login');
+      } else {
+        toast.error(msg || 'Xatolik yuz berdi');
+      }
     } finally {
       setLoading(false);
     }

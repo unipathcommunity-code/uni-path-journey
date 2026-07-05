@@ -12,7 +12,6 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import StudentEvolution from "./pages/StudentEvolution";
 import NovaStore from "./pages/NovaStore";
 import ParentMirror from "./pages/ParentMirror";
@@ -49,7 +48,9 @@ export default function NovaRoutes() {
       {/* Authenticated */}
       <Route path="/app" element={<ProtectedRoute><RoleHome><StudentDashboard /></RoleHome></ProtectedRoute>} />
       <Route path="/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-      <Route path="/superadmin" element={<ProtectedRoute requiredRole="superadmin"><SuperAdminDashboard /></ProtectedRoute>} />
+      {/* Unified super admin — NOVA no longer has its own; always use the single /super-admin panel */}
+      <Route path="/superadmin" element={<Navigate to="/super-admin" replace />} />
+      <Route path="/super-admin/*" element={<Navigate to="/super-admin" replace />} />
       <Route path="/owner" element={<ProtectedRoute requiredRole="owner"><OwnerDashboard /></ProtectedRoute>} />
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />

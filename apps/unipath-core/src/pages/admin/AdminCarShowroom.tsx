@@ -94,7 +94,7 @@ export default function AdminCarShowroom() {
   const [calcApr, setCalcApr] = useState(18); // Default APR
 
   useEffect(() => {
-    if (!activeTenant) return;
+    if (!activeTenant) { setLoading(false); return; }
     
     // Load config base APR if defined by super admin
     const savedConfigs = localStorage.getItem('unipath_tenant_configs');

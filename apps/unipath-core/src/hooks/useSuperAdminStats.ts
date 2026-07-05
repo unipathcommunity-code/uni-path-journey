@@ -24,6 +24,7 @@ export interface SaTenant {
   monthlyPrice: number; // resolved from pricing_plans (UZS), 0 if unknown
   currency: string;
   created_at: string;
+  config: any; // full tenant config — needed to preserve branding on impersonation
 }
 
 /** Human label per vertical id (kept here so all pages share one source). */
@@ -101,6 +102,7 @@ export const useSuperAdminStats = () => {
           monthlyPrice: match?.price || 0,
           currency: match?.currency || "UZS",
           created_at: t.created_at,
+          config: t.config || null,
         };
       });
 

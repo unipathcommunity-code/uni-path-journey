@@ -45,7 +45,7 @@ export default function AdminAutoService() {
   });
 
   useEffect(() => {
-    if (!activeTenant) return;
+    if (!activeTenant) { setLoading(false); return; }
     setLoading(true);
     // Mock data
     setJobs([
