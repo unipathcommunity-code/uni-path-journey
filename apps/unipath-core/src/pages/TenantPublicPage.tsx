@@ -150,6 +150,60 @@ const VERTICAL_META: Record<string, {
     ctaLabel: "Joy bron qilish",
     sections: ['services', 'why', 'contact'],
   },
+  wedding_hall: {
+    icon: Building2,
+    color: '#ec4899',
+    gradient: 'from-pink-950 via-fuchsia-950 to-slate-950',
+    heroTitle: "Unutilmas to'y — hashamatli zalda",
+    heroSub: "Keng zallar, milliy taomlar, professional xizmat — tantanangiz biz bilan.",
+    ctaLabel: 'Zal band qilish',
+    sections: ['halls', 'why', 'contact'],
+  },
+  manufacturing: {
+    icon: Building2,
+    color: '#f59e0b',
+    gradient: 'from-stone-950 via-slate-900 to-slate-950',
+    heroTitle: 'Sifatli ishlab chiqarish',
+    heroSub: "Zamonaviy uskunalar, sifat nazorati, o'z vaqtida yetkazib berish.",
+    ctaLabel: "Buyurtma so'rash",
+    sections: ['services', 'why', 'contact'],
+  },
+  parking: {
+    icon: Car,
+    color: '#3b82f6',
+    gradient: 'from-blue-950 via-slate-900 to-slate-950',
+    heroTitle: 'Xavfsiz va qulay avtoturargoh',
+    heroSub: '24/7 qo\'riqlash, videokuzatuv, qulay joylashuv.',
+    ctaLabel: 'Joy band qilish',
+    sections: ['services', 'why', 'contact'],
+  },
+  cosmetics: {
+    icon: ShoppingBag,
+    color: '#d946ef',
+    gradient: 'from-fuchsia-950 via-slate-900 to-slate-950',
+    heroTitle: "Go'zallik — bizning san'atimiz",
+    heroSub: 'Professional ustalar, sifatli mahsulotlar, zamonaviy uslublar.',
+    ctaLabel: 'Yozilish',
+    sections: ['services', 'why', 'contact'],
+  },
+  pharmacy: {
+    icon: Stethoscope,
+    color: '#22c55e',
+    gradient: 'from-green-950 via-emerald-950 to-slate-950',
+    heroTitle: "Sog'liq uchun ishonchli hamkor",
+    heroSub: 'Sertifikatlangan dorilar, hamyonbop narxlar, tez xizmat.',
+    ctaLabel: "Bog'lanish",
+    sections: ['services', 'why', 'contact'],
+  },
+  car_showroom: {
+    icon: Car,
+    color: '#ef4444',
+    gradient: 'from-red-950 via-slate-900 to-slate-950',
+    heroTitle: "Orzuingizdagi avtomobil shu yerda",
+    heroSub: 'Keng tanlov, rasmiy kafolat, qulay to\'lov shartlari.',
+    ctaLabel: 'Test-drayv',
+    sections: ['services', 'why', 'contact'],
+  },
 };
 
 // Fallback for unknown verticals
@@ -222,18 +276,13 @@ export default function TenantPublicPage() {
           .limit(6);
         return data || [];
       },
-      hotel: async () => {
-        const { data } = await (supabase as any)
-          .from('rooms')
-          .select('id, name, type, price_per_night, capacity, amenities')
-          .eq('tenant_id', tid)
-          .limit(6)
-          .catch(() => ({ data: [] }));
-        return (data as any) || [];
-      },
     };
 
-    const fetch = fetchers[vertical] || fetchers.consulting;
+    // Verticals with a dedicated booking/order widget fetch their own data —
+    // and unknown verticals must NEVER fall back to consulting content
+    // (universities on a gym site was exactly that bug).
+    const noop = async () => [] as any[];
+    const fetch = fetchers[vertical] || noop;
     fetch()
       .then(setItems)
       .catch(() => setItems([]))
@@ -434,6 +483,61 @@ export default function TenantPublicPage() {
       { id: 'm2', name: 'Polsha davlat universitetlari', country: 'Polsha' },
       { id: 'm3', name: 'Rossiya texnik universitetlari', country: 'Rossiya' },
     ],
+    clinic: [
+      { id: 'm1', name: 'Terapevt qabuli' },
+      { id: 'm2', name: 'UZI tekshiruvi' },
+      { id: 'm3', name: 'Laboratoriya tahlillari' },
+    ],
+    auto_service: [
+      { id: 'm1', name: 'Moy almashtirish' },
+      { id: 'm2', name: 'Diagnostika (kompyuter)' },
+      { id: 'm3', name: "Hodovoy ta'miri" },
+    ],
+    kindergarten: [
+      { id: 'm1', name: 'Kichik guruh (3-4 yosh)' },
+      { id: 'm2', name: "O'rta guruh (4-5 yosh)" },
+      { id: 'm3', name: 'Maktabga tayyorlov (6-7 yosh)' },
+    ],
+    library: [
+      { id: 'm1', name: "Badiiy adabiyot bo'limi" },
+      { id: 'm2', name: 'Ilmiy va darsliklar' },
+      { id: 'm3', name: "Bolalar adabiyoti" },
+    ],
+    wholesale: [
+      { id: 'm1', name: 'Oziq-ovqat mahsulotlari (ulgurji)' },
+      { id: 'm2', name: 'Qurilish mollari (ulgurji)' },
+      { id: 'm3', name: 'Maishiy texnika (ulgurji)' },
+    ],
+    stadium: [
+      { id: 'm1', name: 'Futbol maydoni (soatbay)' },
+      { id: 'm2', name: 'Mini-futbol zali' },
+      { id: 'm3', name: 'Tennis korti' },
+    ],
+    cosmetics: [
+      { id: 'm1', name: 'Soch turmagi & bo\'yash' },
+      { id: 'm2', name: 'Yuz parvarishi (uz-care)' },
+      { id: 'm3', name: 'Manikyur & pedikyur' },
+    ],
+    pharmacy: [
+      { id: 'm1', name: 'Retseptli dorilar' },
+      { id: 'm2', name: 'Vitaminlar va BAD' },
+      { id: 'm3', name: 'Tibbiy buyumlar' },
+    ],
+    manufacturing: [
+      { id: 'm1', name: 'Buyurtma asosida ishlab chiqarish' },
+      { id: 'm2', name: 'Ulgurji yetkazib berish' },
+      { id: 'm3', name: 'Sifat sertifikatlari' },
+    ],
+    parking: [
+      { id: 'm1', name: 'Soatbay to\'xtash joyi' },
+      { id: 'm2', name: 'Oylik abonement' },
+      { id: 'm3', name: 'VIP yopiq joy' },
+    ],
+    car_showroom: [
+      { id: 'm1', name: 'Yangi avtomobillar' },
+      { id: 'm2', name: 'Test-drayv xizmati' },
+      { id: 'm3', name: 'Trade-in almashtirish' },
+    ],
   };
   const displayItems = items.length > 0 ? items : (MOCK_ITEMS[vertical] || []);
 
@@ -462,7 +566,7 @@ export default function TenantPublicPage() {
           <div className="hidden md:flex items-center gap-6 text-sm text-white/70">
             {vertical === 'tour' && <a href="#tours" className="hover:text-white transition">Turlar</a>}
             {vertical === 'academy' && <a href="#courses" className="hover:text-white transition">Kurslar</a>}
-            {(vertical === 'consulting' || !VERTICAL_META[vertical]) && <a href="#services" className="hover:text-white transition">Xizmatlar</a>}
+            {vertical !== 'tour' && vertical !== 'academy' && <a href="#services" className="hover:text-white transition">Xizmatlar</a>}
             <a href="#why" className="hover:text-white transition">Nima uchun biz?</a>
             <a href="#contact" className="hover:text-white transition">Bog'lanish</a>
           </div>
@@ -565,9 +669,11 @@ export default function TenantPublicPage() {
                 ? 'Sanani tanlang va tantanangiz uchun zalni onlayn bron qiling'
                 : vertical === 'hotel'
                   ? 'Sanalarni tanlang va xonani onlayn bron qiling'
-                  : displayItems.length === 0 && !loadingItems
-                    ? "Tez orada qo'shiladi..."
-                    : `${displayItems.length} ta taklif mavjud`}
+                  : vertical === 'gym'
+                    ? "Dars jadvalidan mashg'ulot tanlang va onlayn yoziling"
+                    : displayItems.length === 0 && !loadingItems
+                      ? "Tez orada qo'shiladi..."
+                      : `${displayItems.length} ta taklif mavjud`}
           </p>
         </div>
 
