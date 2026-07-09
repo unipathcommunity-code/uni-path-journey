@@ -172,19 +172,17 @@ export default function TourRoutes() {
           <Route path="notifications" element={<AdminNotifications />} />
           <Route path="promo-codes" element={<AdminPromoCodes />} />
           <Route path="newsletter" element={<AdminNewsletter />} />
-          <Route path="support" element={<AdminSupport />} />
           <Route path="settings" element={<AdminSettings />} />
-          <Route path="feature-toggles" element={<AdminFeatureToggles />} />
           <Route path="analytics" element={<AdminAnalytics />} />
-          <Route path="user-control" element={<AdminUserControl />} />
-          <Route path="tour-companies" element={<AdminTourCompanies />} />
-          <Route path="subscriptions" element={<AdminSubscriptions />} />
-          <Route path="telegram-bots" element={<AdminTelegramBots />} />
-          <Route path="billing" element={<AdminBilling />} />
-          <Route path="feature-overrides" element={<AdminFeatureOverrides />} />
-          <Route path="feature-matrix" element={<AdminFeatureMatrix />} />
-          <Route path="change-requests" element={<AdminChangeRequests />} />
-          <Route path="site-editor/:companyId" element={<AdminSiteEditor />} />
+          {/* Platform (super-admin) sections — removed from the tenant panel; they live ONLY
+              at the single platform /super-admin. Any direct URL hit redirects there. */}
+          {[
+            "support", "feature-toggles", "user-control", "tour-companies", "subscriptions",
+            "telegram-bots", "billing", "feature-overrides", "feature-matrix", "change-requests",
+            "site-editor/:companyId",
+          ].map((p) => (
+            <Route key={p} path={p} element={<Navigate to="/super-admin" replace />} />
+          ))}
         </Route>
 
         {/* Tour Company Panel (Multi-tenant) */}
