@@ -314,6 +314,17 @@ export default function SuperAdminDashboard() {
       
       if (error) throw error;
       
+      // Real per-business user counts (bound accounts + memberships)
+      const userCount: Record<string, number> = {};
+      try {
+        const [{ data: profs }, { data: mems }] = await Promise.all([
+          supabase.from('profiles').select('tenant_id'),
+          (supabase as any).from('tenant_memberships').select('tenant_id'),
+        ]);
+        for (const p of (profs || [])) if ((p as any).tenant_id) userCount[(p as any).tenant_id] = (userCount[(p as any).tenant_id] || 0) + 1;
+        for (const m of (mems || [])) if (m.tenant_id) userCount[m.tenant_id] = (userCount[m.tenant_id] || 0) + 1;
+      } catch (e) { /* stats are best-effort */ }
+
       const mapped = data?.map(t => ({
         id: t.id,
         name: t.name,
@@ -322,7 +333,7 @@ export default function SuperAdminDashboard() {
         domain: t.subdomain ? `${t.subdomain}.unipath.me` : (t.custom_domain || 'N/A'),
         status: t.status || 'pending',
         plan: t.plan || 'Starter',
-        students: 0,
+        students: userCount[t.id] || 0,
         owner_name: t.owner_name,
         owner_email: t.owner_email,
         owner_phone: t.owner_phone,
