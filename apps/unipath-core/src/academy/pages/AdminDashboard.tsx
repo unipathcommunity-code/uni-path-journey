@@ -75,13 +75,7 @@ const AdminDashboard = () => {
                 <Crown className="w-4 h-4 text-warning" />
               </button>
             )}
-            {hasRole("superadmin") && (
-              <button onClick={() => navigate("/superadmin")}
-                className="glass p-2 rounded-xl border border-primary/40 hover:bg-primary/10 transition"
-                aria-label="SuperAdmin" title="SuperAdmin Panel">
-                <Crown className="w-4 h-4 text-primary" />
-              </button>
-            )}
+            {/* Super admin panel lives ONLY at the platform /super-admin — not inside a tenant panel. */}
             <button onClick={() => navigate("/profile")} className="glass p-2 rounded-xl hover:bg-muted/40 transition" aria-label="Profile">
               <UserIcon className="w-4 h-4 text-muted-foreground" />
             </button>
