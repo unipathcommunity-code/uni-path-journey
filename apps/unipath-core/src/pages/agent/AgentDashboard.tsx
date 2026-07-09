@@ -66,10 +66,6 @@ const AgentDashboard = () => {
   if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
   if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
 
-  if (vertical === 'academy') {
-    return <TeacherDashboard />;
-  }
-
   const { data: agent, isLoading: agentLoading } = useQuery({
     queryKey: ["agent-profile", user?.id],
     queryFn: async () => {
@@ -127,6 +123,12 @@ const AgentDashboard = () => {
     },
     enabled: !!agent?.id,
   });
+
+  // Academy tenants use the teacher dashboard. This check MUST stay below all hooks
+  // above — an early return before them broke the Rules of Hooks and crashed the page.
+  if (vertical === 'academy') {
+    return <TeacherDashboard />;
+  }
 
   const statsCards = [
     {
