@@ -34,8 +34,6 @@ export function useUserRole(client: TypedSupabaseClient): UserRoleState {
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
 
 const SUPER_ADMIN_EMAILS = [
-  'admin@unipath.me',
-  'root@unipath.me',
   'unipath.community@gmail.com',
 ];
 
@@ -55,7 +53,7 @@ const SUPER_ADMIN_EMAILS = [
       // Fast-path: Check email allowlist first.
       // Super admins do not require database profile lookups to resolve their role.
       const email = user.email?.toLowerCase();
-      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
 
       if (isSa) {
         setRole('super_admin');
@@ -110,7 +108,7 @@ const SUPER_ADMIN_EMAILS = [
         setResolvedUserId(user.id);
       } catch {
         const fallbackEmail = user?.email?.toLowerCase();
-        const fallbackIsSa = !!fallbackEmail && (SUPER_ADMIN_EMAILS.includes(fallbackEmail) || fallbackEmail.includes('odilbek'));
+        const fallbackIsSa = !!fallbackEmail && (SUPER_ADMIN_EMAILS.includes(fallbackEmail));
         setRole(fallbackIsSa ? 'super_admin' : 'user');
         setResolvedUserId(user.id);
       } finally {

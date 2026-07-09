@@ -12,9 +12,8 @@ export const AGENT_ROLES: UserRole[] = ['specialist', 'mentor', 'agent'];
 
 // Emails always treated as platform super_admin (lowercase). Also keep these
 // users' DB profiles.role = 'super_admin' so server-side RLS recognizes them.
+// The ONE and only platform super admin. Everything else is a normal tenant user.
 export const SUPER_ADMIN_EMAILS: string[] = [
-  'admin@unipath.me',
-  'root@unipath.me',
   'unipath.community@gmail.com',
 ];
 
@@ -42,7 +41,7 @@ export function useUserRole() {
     const timeoutId = setTimeout(() => {
       if (active && !queryFinishedRef.current) {
         const email = user?.email?.toLowerCase();
-        const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+        const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
         console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role. isSa:', isSa);
         setRole(isSa ? 'super_admin' : 'user');
         setLoadedUserId(user ? user.id : null);
@@ -68,7 +67,7 @@ export function useUserRole() {
       // Super admins do not require database profile lookups to resolve their role.
       // This protects them from database network timeouts, adblocker blocks, or RLS failures.
       const email = user.email?.toLowerCase();
-      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email) || email.includes('odilbek'));
+      const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
 
       if (isSa) {
         console.log('useUserRole: detected super admin email, executing fast-path role resolution');
