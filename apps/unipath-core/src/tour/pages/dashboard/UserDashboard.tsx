@@ -242,7 +242,7 @@ const UserDashboard = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-12"
+          className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white py-12"
         >
           <div className="container-custom">
             <div className="flex flex-col md:flex-row items-center gap-6">
@@ -263,7 +263,7 @@ const UserDashboard = () => {
                 <h1 className="text-2xl md:text-3xl font-bold">
                   {profile?.full_name || user?.email?.split("@")[0] || t("dashboard.user")}
                 </h1>
-                <p className="text-primary-foreground/80">{user?.email}</p>
+                <p className="text-white/80">{user?.email}</p>
               </div>
 
               <div className="md:ml-auto flex flex-wrap gap-2">
