@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, Settings, LogOut, Menu, Mail,
   ShieldCheck, MessageSquare, Ticket, History, Bell,
   BarChart3, Briefcase, CreditCard, Bot, Receipt, Search, Sparkles,
-  Inbox, Grid3x3,
+  Inbox, Grid3x3, Map, MapPin, Building2, Car, UserCheck, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +32,22 @@ const AdminLayout = () => {
       ],
     },
     {
-      // Single tour-company management (platform-wide SaaS admin lives ONLY at /super-admin)
+      // This tour company's own catalog (platform-wide SaaS admin lives ONLY at /super-admin)
+      label: "Turlar & Yo'nalishlar",
+      items: [
+        { href: "/admin/tours", label: "Turlar", icon: Map },
+        { href: "/admin/tours/new", label: "Yangi tur qo'shish", icon: Plus },
+        { href: "/admin/destinations", label: "Yo'nalishlar", icon: MapPin },
+        { href: "/admin/hotels", label: "Mehmonxonalar", icon: Building2 },
+        { href: "/admin/vehicles", label: "Transport", icon: Car },
+        { href: "/admin/agents", label: "Agentlar", icon: UserCheck },
+      ],
+    },
+    {
       label: "Boshqaruv",
       items: [
         { href: "/admin/bookings", label: "Buyurtmalar", icon: Ticket },
-        { href: "/admin/users", label: t("admin.users"), icon: Users },
+        { href: "/admin/users", label: "Foydalanuvchilar", icon: Users },
         { href: "/admin/notifications", label: "Bildirishnomalar", icon: Bell },
         { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
       ],
