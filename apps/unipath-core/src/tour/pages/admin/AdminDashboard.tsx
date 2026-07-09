@@ -290,30 +290,6 @@ const AdminDashboard = () => {
             </Link>
           </CardContent>
         </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-800 dark:text-purple-200 font-medium">Tour kompaniyalar</p>
-                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">
-                  {stats?.companies || 0}
-                  {stats?.pendingCompanies ? (
-                    <span className="text-base font-normal text-purple-500 ml-2">
-                      ({stats.pendingCompanies} kutmoqda)
-                    </span>
-                  ) : null}
-                </p>
-              </div>
-              <Building2 className="h-10 w-10 text-purple-600/50" />
-            </div>
-            <Link to="/admin/tour-companies">
-              <Button variant="link" className="px-0 text-purple-700 dark:text-purple-300">
-                Boshqarish →
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Charts Section */}
