@@ -32,21 +32,11 @@ const AdminLayout = () => {
       ],
     },
     {
-      label: "SaaS",
+      // Single tour-company management (platform-wide SaaS admin lives ONLY at /super-admin)
+      label: "Boshqaruv",
       items: [
-        { href: "/admin/tour-companies", label: "Tour kompaniyalar", icon: Briefcase },
-        { href: "/admin/change-requests", label: "So'rovlar", icon: Inbox },
-        { href: "/admin/feature-matrix", label: "Funksiya matritsasi", icon: Grid3x3 },
-        { href: "/admin/subscriptions", label: "Obunalar", icon: CreditCard },
-        { href: "/admin/billing", label: "Hisob-kitoblar", icon: Receipt },
-        { href: "/admin/telegram-bots", label: "Telegram botlar", icon: Bot },
-      ],
-    },
-    {
-      label: "Mijozlar",
-      items: [
-        { href: "/admin/users", label: t("admin.users"), icon: Users },
         { href: "/admin/bookings", label: "Buyurtmalar", icon: Ticket },
+        { href: "/admin/users", label: t("admin.users"), icon: Users },
         { href: "/admin/notifications", label: "Bildirishnomalar", icon: Bell },
         { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
       ],
@@ -55,7 +45,6 @@ const AdminLayout = () => {
       label: "Tizim",
       items: [
         { href: "/admin/audit-log", label: "Harakat tarixi", icon: History },
-        { href: "/admin/support", label: "Qo'llab-quvvatlash", icon: MessageSquare },
         { href: "/admin/settings", label: "Sozlamalar", icon: Settings },
       ],
     },
