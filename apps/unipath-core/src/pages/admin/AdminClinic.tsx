@@ -52,13 +52,12 @@ export default function AdminClinic() {
       if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
-        // Fallback to mock data since we don't have schema tables for Clinic yet
-        const mockPatients: Patient[] = [
-          { id: '1', name: 'Karimova Dilnoza', phone: '+998 90 321 45 67', age: 28, doctor_name: 'Dr. Alisherov N.', status: 'treating', appointment_date: new Date().toISOString().split('T')[0] },
-          { id: '2', name: 'Tursunov Sardor', phone: '+998 93 456 12 34', age: 45, doctor_name: 'Dr. Rixsiyeva M.', status: 'scheduled', appointment_date: new Date().toISOString().split('T')[0] },
-          { id: '3', name: 'Axmedov Bobur', phone: '+998 97 789 54 32', age: 34, doctor_name: 'Dr. Umarov A.', status: 'completed', appointment_date: new Date(Date.now() - 86400000).toISOString().split('T')[0] }
-        ];
-        setPatients(mockPatients);
+        const { data } = await (supabase as any)
+          .from('clinic_appointments')
+          .select('*')
+          .eq('tenant_id', activeTenant.id)
+          .order('appointment_date', { ascending: false });
+        setPatients((data || []) as Patient[]);
       } catch (err) {
         console.error(err);
       } finally {
@@ -68,38 +67,52 @@ export default function AdminClinic() {
     fetchData();
   }, [activeTenant]);
 
-  const handleAddPatient = (e: React.FormEvent) => {
+  const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPatient.name || !newPatient.phone) {
-      toast({ title: 'Xatolik', description: 'Firma nomi va telefon raqamini kiriting!', variant: 'destructive' });
+      toast({ title: 'Xatolik', description: 'Bemor ismi va telefon raqamini kiriting!', variant: 'destructive' });
       return;
     }
+    try {
+      const { data, error } = await (supabase as any)
+        .from('clinic_appointments')
+        .insert({
+          name: newPatient.name,
+          phone: newPatient.phone,
+          age: parseInt(newPatient.age) || null,
+          doctor_name: newPatient.doctor_name,
+          status: newPatient.status,
+          appointment_date: newPatient.appointment_date,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setPatients([data as Patient, ...patients]);
+      setIsPatientModalOpen(false);
+      setNewPatient({ name: '', phone: '', age: '', doctor_name: 'Dr. Alisherov N.', status: 'scheduled', appointment_date: new Date().toISOString().split('T')[0] });
+      toast({ title: 'Muvaffaqiyatli', description: "Bemor navbatga qo'shildi!" });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
+  };
 
-    const patient: Patient = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: newPatient.name,
-      phone: newPatient.phone,
-      age: parseInt(newPatient.age) || 30,
-      doctor_name: newPatient.doctor_name,
-      status: newPatient.status,
-      appointment_date: newPatient.appointment_date
-    };
+  const advanceStatus = async (p: Patient) => {
+    const next = p.status === 'scheduled' ? 'treating' : p.status === 'treating' ? 'completed' : 'scheduled';
+    try {
+      await (supabase as any).from('clinic_appointments').update({ status: next }).eq('id', p.id);
+      setPatients(patients.map(x => x.id === p.id ? { ...x, status: next } : x));
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
+  };
 
-    setPatients([patient, ...patients]);
-    setIsPatientModalOpen(false);
-    setNewPatient({
-      name: '',
-      phone: '',
-      age: '',
-      doctor_name: 'Dr. Alisherov N.',
-      status: 'scheduled',
-      appointment_date: new Date().toISOString().split('T')[0]
-    });
-
-    toast({
-      title: "Muvaffaqiyatli",
-      description: "Bemor muvaffaqiyatli navbatga qo'shildi!"
-    });
+  const removePatient = async (id: string) => {
+    try {
+      await (supabase as any).from('clinic_appointments').delete().eq('id', id);
+      setPatients(patients.filter(x => x.id !== id));
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
   const filteredPatients = patients.filter(p => 
@@ -231,7 +244,10 @@ export default function AdminClinic() {
                       </span>
                     </td>
                     <td className="px-4 py-4.5 text-right">
-                      <Button variant="ghost" size="sm" className="hover:bg-white/10 text-xs">Batafsil</Button>
+                      <div className="flex justify-end gap-1.5">
+                        <Button variant="ghost" size="sm" onClick={() => advanceStatus(p)} className="hover:bg-white/10 text-xs">Holat →</Button>
+                        <Button variant="ghost" size="sm" onClick={() => removePatient(p.id)} className="text-rose-500 hover:bg-rose-500/10 text-xs">O'chirish</Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
