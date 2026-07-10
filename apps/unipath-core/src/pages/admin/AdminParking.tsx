@@ -49,12 +49,12 @@ export default function AdminParking() {
       if (!activeTenant) { setLoading(false); return; }
       try {
         setLoading(true);
-        const mockSessions: ParkingSession[] = [
-          { id: '1', plate_number: '01 A 777 AA', slot_name: 'A-05', zone: 'Zone A', status: 'active', started_at: new Date(Date.now() - 3600000 * 2).toISOString(), amount_due: 15000 },
-          { id: '2', plate_number: '01 X 100 XX', slot_name: 'B-14', zone: 'Zone B', status: 'active', started_at: new Date(Date.now() - 3600000 * 4).toISOString(), amount_due: 30000 },
-          { id: '3', plate_number: '10 Y 999 YY', slot_name: 'C-02', zone: 'Zone C', status: 'completed', started_at: new Date(Date.now() - 3600000 * 8).toISOString(), amount_due: 50000 }
-        ];
-        setSessions(mockSessions);
+        const { data } = await (supabase as any)
+          .from('parking_sessions')
+          .select('*')
+          .eq('tenant_id', activeTenant.id)
+          .order('started_at', { ascending: false });
+        setSessions((data || []) as ParkingSession[]);
       } catch (err) {
         console.error(err);
       } finally {
@@ -64,37 +64,42 @@ export default function AdminParking() {
     fetchData();
   }, [activeTenant]);
 
-  const handleStartParking = (e: React.FormEvent) => {
+  const handleStartParking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSession.plate_number) {
       toast({ title: 'Xatolik', description: 'Avtomobil davlat raqamini kiriting!', variant: 'destructive' });
       return;
     }
+    try {
+      const { data, error } = await (supabase as any)
+        .from('parking_sessions')
+        .insert({
+          plate_number: newSession.plate_number.toUpperCase(),
+          slot_name: newSession.slot_name,
+          zone: newSession.zone,
+          status: newSession.status,
+          started_at: newSession.started_at,
+          amount_due: 5000,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setSessions([data as ParkingSession, ...sessions]);
+      setIsParkingModalOpen(false);
+      setNewSession({ plate_number: '', slot_name: 'A-12', zone: 'Zone A', status: 'active', started_at: new Date().toISOString() });
+      toast({ title: 'Muvaffaqiyatli', description: 'Avtoturargoh sessiyasi faollashtirildi!' });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
+  };
 
-    const session: ParkingSession = {
-      id: Math.random().toString(36).substring(2, 9),
-      plate_number: newSession.plate_number.toUpperCase(),
-      slot_name: newSession.slot_name,
-      zone: newSession.zone,
-      status: newSession.status,
-      started_at: newSession.started_at,
-      amount_due: 5000 // initial base fee
-    };
-
-    setSessions([session, ...sessions]);
-    setIsParkingModalOpen(false);
-    setNewSession({
-      plate_number: '',
-      slot_name: 'A-12',
-      zone: 'Zone A',
-      status: 'active',
-      started_at: new Date().toISOString()
-    });
-
-    toast({
-      title: "Muvaffaqiyatli",
-      description: "Avtoturargoh sessiyasi faollashtirildi!"
-    });
+  const endSession = async (s: ParkingSession) => {
+    try {
+      await (supabase as any).from('parking_sessions').update({ status: 'completed' }).eq('id', s.id);
+      setSessions(sessions.map(x => x.id === s.id ? { ...x, status: 'completed' } : x));
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
   const filteredSessions = sessions.filter(s => 
