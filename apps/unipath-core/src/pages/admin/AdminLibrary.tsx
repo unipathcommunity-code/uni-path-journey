@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,42 +45,21 @@ export default function AdminLibrary() {
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
 
-  const [books, setBooks] = useState<BookItem[]>([
-    { id: '1', title: 'O\'tkan kunlar', author: 'Abdulla Qodiriy', category: 'Klassika', copies: 10, available: 7 },
-    { id: '2', title: 'Sariq devni minib', author: 'Xudoyberdi To\'xtaboyev', category: 'Bolalar adabiyoti', copies: 5, available: 2 },
-    { id: '3', title: 'Dunyoning ishlari', author: 'O\'tkir Hoshimov', category: 'Roman', copies: 8, available: 8 },
-    { id: '4', title: 'Atomic Habits', author: 'James Clear', category: 'Shaxsiy rivojlanish', copies: 12, available: 11 }
-  ]);
+  const { activeTenant } = useApp();
+  const [books, setBooks] = useState<BookItem[]>([]);
+  const [loans, setLoans] = useState<BookLoan[]>([]);
 
-  const [loans, setLoans] = useState<BookLoan[]>([
-    {
-      id: '1',
-      book_title: 'O\'tkan kunlar',
-      borrower_name: 'Jasur Temirov',
-      borrower_phone: '+998 90 444 33 22',
-      loan_date: '2026-05-10',
-      return_deadline: '2026-05-24',
-      status: 'active'
-    },
-    {
-      id: '2',
-      book_title: 'Sariq devni minib',
-      borrower_name: 'Farrux Alimov',
-      borrower_phone: '+998 93 111 88 99',
-      loan_date: '2026-05-01',
-      return_deadline: '2026-05-15',
-      status: 'overdue'
-    },
-    {
-      id: '3',
-      book_title: 'O\'tkan kunlar',
-      borrower_name: 'Nigora Salimova',
-      borrower_phone: '+998 94 777 66 11',
-      loan_date: '2026-05-05',
-      return_deadline: '2026-05-19',
-      status: 'returned'
-    }
-  ]);
+  useEffect(() => {
+    if (!activeTenant?.id) return;
+    (async () => {
+      const [{ data: bk }, { data: ln }] = await Promise.all([
+        (supabase as any).from('library_books').select('*').eq('tenant_id', activeTenant.id).order('created_at', { ascending: false }),
+        (supabase as any).from('library_loans').select('*').eq('tenant_id', activeTenant.id).order('loan_date', { ascending: false }),
+      ]);
+      setBooks((bk || []) as BookItem[]);
+      setLoans((ln || []) as BookLoan[]);
+    })();
+  }, [activeTenant?.id]);
 
   // Form states
   const [newBook, setNewBook] = useState({
@@ -98,63 +79,60 @@ export default function AdminLibrary() {
     status: 'active' as BookLoan['status']
   });
 
-  const handleAddBook = (e: React.FormEvent) => {
+  const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBook.title || !newBook.author) {
       toast({ title: 'Xatolik', description: 'Kitob nomi va muallifini to\'ldiring!', variant: 'destructive' });
       return;
     }
-
-    const item: BookItem = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newBook,
-      copies: Number(newBook.copies),
-      available: Number(newBook.copies)
-    };
-
-    setBooks([item, ...books]);
-    setIsBookModalOpen(false);
-    setNewBook({ title: '', author: '', category: 'Klassika', copies: 5, available: 5 });
-    toast({ title: 'Muvaffaqiyatli', description: 'Yangi kitob katalogga muvaffaqiyatli qo\'shildi!' });
+    try {
+      const { data, error } = await (supabase as any).from('library_books').insert({
+        title: newBook.title, author: newBook.author, category: newBook.category,
+        copies: Number(newBook.copies), available: Number(newBook.copies),
+      }).select().single();
+      if (error) throw error;
+      setBooks([data as BookItem, ...books]);
+      setIsBookModalOpen(false);
+      setNewBook({ title: '', author: '', category: 'Klassika', copies: 5, available: 5 });
+      toast({ title: 'Muvaffaqiyatli', description: 'Yangi kitob katalogga qo\'shildi!' });
+    } catch (err: any) { toast({ title: 'Xatolik', description: err.message, variant: 'destructive' }); }
   };
 
-  const handleAddLoan = (e: React.FormEvent) => {
+  const handleAddLoan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLoan.borrower_name || !newLoan.borrower_phone) {
       toast({ title: 'Xatolik', description: 'Kitobxon ma\'lumotlarini to\'ldiring!', variant: 'destructive' });
       return;
     }
-
-    // Decrement available count for the selected book
-    setBooks(books.map(b => b.title === newLoan.book_title ? { ...b, available: Math.max(0, b.available - 1) } : b));
-
-    const loan: BookLoan = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newLoan
-    };
-
-    setLoans([loan, ...loans]);
-    setIsLoanModalOpen(false);
-    setNewLoan({
-      book_title: books[0]?.title || 'O\'tkan kunlar',
-      borrower_name: '',
-      borrower_phone: '',
-      loan_date: new Date().toISOString().split('T')[0],
-      return_deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: 'active'
-    });
-
-    toast({ title: 'Muvaffaqiyatli', description: 'Kitob muvaffaqiyatli ijaraga berildi!' });
+    const book = books.find(b => b.title === newLoan.book_title);
+    try {
+      const { data, error } = await (supabase as any).from('library_loans').insert({
+        book_title: newLoan.book_title, borrower_name: newLoan.borrower_name, borrower_phone: newLoan.borrower_phone,
+        loan_date: newLoan.loan_date, return_deadline: newLoan.return_deadline, status: newLoan.status,
+      }).select().single();
+      if (error) throw error;
+      if (book) {
+        await (supabase as any).from('library_books').update({ available: Math.max(0, book.available - 1) }).eq('id', book.id);
+        setBooks(books.map(b => b.id === book.id ? { ...b, available: Math.max(0, b.available - 1) } : b));
+      }
+      setLoans([data as BookLoan, ...loans]);
+      setIsLoanModalOpen(false);
+      setNewLoan({ book_title: books[0]?.title || '', borrower_name: '', borrower_phone: '', loan_date: new Date().toISOString().split('T')[0], return_deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'active' });
+      toast({ title: 'Muvaffaqiyatli', description: 'Kitob ijaraga berildi!' });
+    } catch (err: any) { toast({ title: 'Xatolik', description: err.message, variant: 'destructive' }); }
   };
 
-  const handleReturnBook = (id: string, bookTitle: string) => {
+  const handleReturnBook = async (id: string, bookTitle: string) => {
+    await (supabase as any).from('library_loans').update({ status: 'returned' }).eq('id', id);
+    const book = books.find(b => b.title === bookTitle);
+    if (book) await (supabase as any).from('library_books').update({ available: Math.min(book.copies, book.available + 1) }).eq('id', book.id);
     setLoans(loans.map(l => l.id === id ? { ...l, status: 'returned' } : l));
-    // Increment available count
     setBooks(books.map(b => b.title === bookTitle ? { ...b, available: Math.min(b.copies, b.available + 1) } : b));
-    toast({ title: 'Muvaffaqiyatli', description: 'Kitob muvaffaqiyatli qaytarib olindi!' });
+    toast({ title: 'Muvaffaqiyatli', description: 'Kitob qaytarib olindi!' });
   };
 
-  const handleDeleteBook = (id: string) => {
+  const handleDeleteBook = async (id: string) => {
+    await (supabase as any).from('library_books').delete().eq('id', id);
     setBooks(books.filter(b => b.id !== id));
     toast({ title: 'O\'chirildi', description: 'Kitob katalogdan o\'chirildi.' });
   };
