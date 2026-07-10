@@ -17,6 +17,8 @@ const AdminLibrary = lazy(() => import('./AdminLibrary'));
 const AdminCosmetics = lazy(() => import('./AdminCosmetics'));
 const AdminStadium = lazy(() => import('./AdminStadium'));
 const AdminCarShowroom = lazy(() => import('./AdminCarShowroom'));
+const AdminInventory = lazy(() => import('./AdminInventory'));
+const AdminWholesale = lazy(() => import('./AdminWholesale'));
 const AdminConsulting = lazy(() => import('./AdminConsulting'));
 
 const DashboardLoader = () => (
@@ -85,6 +87,8 @@ export default function AdminDashboardPage() {
     if (vertical === 'cosmetics')     return <AdminCosmetics />;
     if (vertical === 'stadium')       return <AdminStadium />;
     if (vertical === 'car_showroom')  return <AdminCarShowroom />;
+    if (vertical === 'pharmacy')      return <AdminInventory />;
+    if (vertical === 'wholesale')     return <AdminWholesale />;
 
     return <AdminConsulting />;
   };

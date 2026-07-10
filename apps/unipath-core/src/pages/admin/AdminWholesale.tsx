@@ -57,45 +57,32 @@ export default function AdminWholesale() {
   const [orderItems, setOrderItems] = useState('');
   const [orderAmount, setOrderAmount] = useState('12000000');
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!activeTenant) { setLoading(false); return; }
-      try {
-        setLoading(true);
-        // Attempt to fetch from database, fallback to mockup if table doesn't exist
-        const { data: clientsData, error: clientErr } = await supabase
-          .from('wholesale_clients' as any)
-          .select('*')
-          .order('name', { ascending: true });
+  async function loadData() {
+    if (!activeTenant) { setLoading(false); return; }
+    try {
+      setLoading(true);
+      const { data: clientsData } = await supabase
+        .from('wholesale_clients' as any)
+        .select('*')
+        .eq('tenant_id', activeTenant.id)
+        .order('name', { ascending: true });
 
-        const { data: ordersData, error: orderErr } = await supabase
-          .from('wholesale_orders' as any)
-          .select('*')
-          .order('created_at', { ascending: false });
+      const { data: ordersData } = await supabase
+        .from('wholesale_orders' as any)
+        .select('*')
+        .eq('tenant_id', activeTenant.id)
+        .order('created_at', { ascending: false });
 
-        if (clientErr || orderErr) {
-          throw new Error('Fallback to mock data');
-        }
-
-        setClients(clientsData || []);
-        setOrders(ordersData || []);
-      } catch (err) {
-        // Mock data fallback
-        setClients([
-          { id: '1', name: 'Global Trade LLC', phone: '+998 90 123 45 67', tier: 'platinum', total_spent: 450000000 },
-          { id: '2', name: 'Premium Logistics', phone: '+998 93 765 43 21', tier: 'gold', total_spent: 280000000 },
-          { id: '3', name: 'Sherzod Supermarket', phone: '+998 97 111 22 33', tier: 'silver', total_spent: 95000000 }
-        ]);
-        setOrders([
-          { id: '101', client_name: 'Global Trade LLC', items_summary: '500x Box A, 200x Box B', total_amount: 32000000, status: 'shipping', created_at: new Date().toISOString() },
-          { id: '102', client_name: 'Premium Logistics', items_summary: '1000x Item C', total_amount: 75000000, status: 'delivered', created_at: new Date(Date.now() - 86400000).toISOString() },
-          { id: '103', client_name: 'Sherzod Supermarket', items_summary: '150x Item A', total_amount: 9000000, status: 'pending', created_at: new Date(Date.now() - 172800000).toISOString() }
-        ]);
-      } finally {
-        setLoading(false);
-      }
+      setClients((clientsData as any) || []);
+      setOrders((ordersData as any) || []);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
+  }
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant]);
 
   const handleCreateClient = async (e: React.FormEvent) => {
@@ -103,28 +90,16 @@ export default function AdminWholesale() {
     if (!newClientName.trim()) return;
 
     try {
-      const newClient = {
-        id: Math.random().toString(36).substr(2, 9),
+      const { error } = await supabase.from('wholesale_clients' as any).insert({
+        tenant_id: activeTenant?.id,
         name: newClientName,
         phone: newClientPhone,
         tier: newClientTier,
         total_spent: 0
-      };
+      });
+      if (error) throw error;
 
-      // Try database insert if table exists
-      try {
-        await supabase.from('wholesale_clients' as any).insert({
-          tenant_id: activeTenant?.id,
-          name: newClientName,
-          phone: newClientPhone,
-          tier: newClientTier,
-          total_spent: 0
-        });
-      } catch (dbErr) {
-        // Silent catch for dev/mock mode
-      }
-
-      setClients([...clients, newClient]);
+      await loadData();
       setIsClientModalOpen(false);
       setNewClientName('');
       setNewClientPhone('');
@@ -147,28 +122,16 @@ export default function AdminWholesale() {
 
     try {
       const amount = parseFloat(orderAmount);
-      const newOrder: WholesaleOrder = {
-        id: Math.random().toString(36).substr(2, 9),
+      const { error } = await supabase.from('wholesale_orders' as any).insert({
+        tenant_id: activeTenant?.id,
         client_name: selectedClient.name,
         items_summary: orderItems,
         total_amount: amount,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      };
+        status: 'pending'
+      });
+      if (error) throw error;
 
-      try {
-        await supabase.from('wholesale_orders' as any).insert({
-          tenant_id: activeTenant?.id,
-          client_name: selectedClient.name,
-          items_summary: orderItems,
-          total_amount: amount,
-          status: 'pending'
-        });
-      } catch (dbErr) {
-        // Silent catch
-      }
-
-      setOrders([newOrder, ...orders]);
+      await loadData();
       setIsOrderModalOpen(false);
       setOrderItems('');
       toast({

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,118 +94,89 @@ export default function AdminCarShowroom() {
   const [calcMonths, setCalcMonths] = useState(36);
   const [calcApr, setCalcApr] = useState(18); // Default APR
 
-  useEffect(() => {
+  async function loadCars() {
     if (!activeTenant) { setLoading(false); return; }
-    
+    try {
+      setLoading(true);
+      const { data } = await supabase
+        .from('showroom_cars' as any)
+        .select('*')
+        .eq('tenant_id', activeTenant.id)
+        .order('created_at', { ascending: false });
+      setCars(((data as any) || []).map((c: any) => ({
+        ...c,
+        battery_capacity: c.battery_capacity || undefined,
+        range_km: c.range_km || undefined,
+      })));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     // Load config base APR if defined by super admin
     const savedConfigs = localStorage.getItem('unipath_tenant_configs');
-    if (savedConfigs) {
+    if (savedConfigs && activeTenant) {
       try {
         const configs = JSON.parse(savedConfigs);
         const tenantConfig = configs[activeTenant.id];
-        if (tenantConfig?.baseApr) {
-          setCalcApr(tenantConfig.baseApr);
-        }
+        if (tenantConfig?.baseApr) setCalcApr(tenantConfig.baseApr);
       } catch (e) {
         console.warn("Failed to load tenant base APR:", e);
       }
     }
-
-    setLoading(true);
-    
-    // Load from localStorage or seed fallback mocks
-    const savedCars = localStorage.getItem('unipath_showroom_cars');
-    const savedTestDrives = localStorage.getItem('unipath_showroom_testdrives');
-    const savedDeals = localStorage.getItem('unipath_showroom_deals');
-
-    if (savedCars) {
-      setCars(JSON.parse(savedCars));
-    } else {
-      const defaultCars: CarItem[] = [
-        { id: 'c-1', brand: 'BYD', model: 'Song Plus EV Champion', color: 'Oq (Pearl White)', year: 2026, price: 360000000, engine: 'Electro', battery_capacity: '71.7 kWh', range_km: 505, status: 'available' },
-        { id: 'c-2', brand: 'Chevrolet', model: 'Tahoe Premier', color: 'Qora (Black Metallic)', year: 2025, price: 1150000000, engine: 'Petrol', status: 'reserved' },
-        { id: 'c-3', brand: 'Tesla', model: 'Model Y Long Range', color: 'Kulrang (Midnight Silver)', year: 2026, price: 520000000, engine: 'Electro', status: 'sold' }
-      ];
-      setCars(defaultCars);
-      localStorage.setItem('unipath_showroom_cars', JSON.stringify(defaultCars));
-    }
-
-    if (savedTestDrives) {
-      setTestDrives(JSON.parse(savedTestDrives));
-    } else {
-      const defaultTestDrives: TestDrive[] = [
-        { id: 'td-1', car_id: 'c-1', car_name: 'BYD Song Plus EV Champion', customer_name: 'Axmedov Bobur', customer_phone: '+998 90 123-45-67', status: 'pending', date: new Date(Date.now() + 86400000).toISOString().split('T')[0], time: '11:00' },
-        { id: 'td-2', car_id: 'c-2', car_name: 'Chevrolet Tahoe Premier', customer_name: 'Usmanov Sherzod', customer_phone: '+998 97 999-88-77', status: 'completed', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], time: '15:30' }
-      ];
-      setTestDrives(defaultTestDrives);
-      localStorage.setItem('unipath_showroom_testdrives', JSON.stringify(defaultTestDrives));
-    }
-
-    if (savedDeals) {
-      setDeals(JSON.parse(savedDeals));
-    } else {
-      const defaultDeals: DealItem[] = [
-        { id: 'd-1', customer_name: 'Samatov Sardor', customer_phone: '+998 94 444-55-66', car_model: 'BYD Song Plus EV Champion', stage: 'finance_approval', deal_amount: 360000000, down_payment: 100000000, monthly_payment: 9800000, duration_months: 36 }
-      ];
-      setDeals(defaultDeals);
-      localStorage.setItem('unipath_showroom_deals', JSON.stringify(defaultDeals));
-    }
-
-    setLoading(false);
+    loadCars();
+    // Test-drives & deals are populated from customer-facing bookings (future phase).
+    setTestDrives([]);
+    setDeals([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant]);
 
-  const handleAddCar = (e: React.FormEvent) => {
+  const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCar.brand || !newCar.model || !newCar.color || !newCar.price) {
       toast({ title: 'Xatolik', description: 'Barcha majdonlarni to\'ldiring', variant: 'destructive' });
       return;
     }
 
-    const created: CarItem = {
-      id: 'c-' + Date.now(),
-      brand: newCar.brand,
-      model: newCar.model,
-      color: newCar.color,
-      year: Number(newCar.year),
-      price: Number(newCar.price),
-      engine: newCar.engine,
-      battery_capacity: newCar.battery_capacity || undefined,
-      range_km: newCar.range_km ? Number(newCar.range_km) : undefined,
-      status: newCar.status
-    };
+    try {
+      const { error } = await supabase.from('showroom_cars' as any).insert({
+        tenant_id: activeTenant?.id,
+        brand: newCar.brand,
+        model: newCar.model,
+        color: newCar.color,
+        year: Number(newCar.year),
+        price: Number(newCar.price),
+        engine: newCar.engine,
+        battery_capacity: newCar.battery_capacity || null,
+        range_km: newCar.range_km ? Number(newCar.range_km) : null,
+        status: newCar.status
+      });
+      if (error) throw error;
 
-    const updated = [created, ...cars];
-    setCars(updated);
-    localStorage.setItem('unipath_showroom_cars', JSON.stringify(updated));
-    setIsAddModalOpen(false);
-    
-    // Reset form
-    setNewCar({
-      brand: '',
-      model: '',
-      color: '',
-      year: 2026,
-      price: 350000000,
-      engine: 'Electro',
-      battery_capacity: '',
-      range_km: 500,
-      status: 'available'
-    });
-
-    toast({ title: 'Muvaffaqiyatli', description: `Yangi avtomobil katalogga qo'shildi: ${created.brand} ${created.model}` });
+      await loadCars();
+      setIsAddModalOpen(false);
+      setNewCar({
+        brand: '', model: '', color: '', year: 2026, price: 350000000,
+        engine: 'Electro', battery_capacity: '', range_km: 500, status: 'available'
+      });
+      toast({ title: 'Muvaffaqiyatli', description: `Yangi avtomobil katalogga qo'shildi: ${newCar.brand} ${newCar.model}` });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
-  const updateCarStatus = (carId: string, status: 'available' | 'reserved' | 'sold') => {
-    const updated = cars.map(c => c.id === carId ? { ...c, status } : c);
-    setCars(updated);
-    localStorage.setItem('unipath_showroom_cars', JSON.stringify(updated));
+  const updateCarStatus = async (carId: string, status: 'available' | 'reserved' | 'sold') => {
+    setCars(cars.map(c => c.id === carId ? { ...c, status } : c));
+    const { error } = await supabase.from('showroom_cars' as any).update({ status }).eq('id', carId);
+    if (error) { toast({ title: 'Xatolik', description: error.message, variant: 'destructive' }); loadCars(); return; }
     toast({ title: 'Muvaffaqiyatli', description: 'Avtomobil statusi yangilandi' });
   };
 
-  const deleteCar = (carId: string) => {
-    const updated = cars.filter(c => c.id !== carId);
-    setCars(updated);
-    localStorage.setItem('unipath_showroom_cars', JSON.stringify(updated));
+  const deleteCar = async (carId: string) => {
+    setCars(cars.filter(c => c.id !== carId));
+    const { error } = await supabase.from('showroom_cars' as any).delete().eq('id', carId);
+    if (error) { toast({ title: 'Xatolik', description: error.message, variant: 'destructive' }); loadCars(); return; }
     toast({ title: "O'chirildi", description: 'Avtomobil katalogdan olib tashlandi' });
   };
 
