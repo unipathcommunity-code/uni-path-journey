@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone } from "lucide-react";
+import { Settings, Shield, Bell, Globe, Database, Save, Loader2, User, Mail, Phone, Palette, Check } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { THEME_PRESETS, injectTheme } from "@/lib/themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +19,30 @@ import { motion } from "framer-motion";
 const AdminSettings = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { activeTenant } = useApp();
   const [saving, setSaving] = useState(false);
+  const [themeSaving, setThemeSaving] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<string>(
+    (activeTenant?.config as any)?.branding?.theme_color || "blue"
+  );
+
+  const handleThemeSelect = async (themeId: string) => {
+    setSelectedTheme(themeId);
+    injectTheme(themeId); // apply instantly
+    if (!activeTenant?.id) return;
+    setThemeSaving(true);
+    try {
+      const cfg = (activeTenant.config as any) || {};
+      const updated = { ...cfg, branding: { ...(cfg.branding || {}), theme_color: themeId } };
+      const { error } = await supabase.from("tenants").update({ config: updated }).eq("id", activeTenant.id);
+      if (error) throw error;
+      toast.success("Mavzu rangi saqlandi!");
+    } catch (e: any) {
+      toast.error(e.message || "Xatolik");
+    } finally {
+      setThemeSaving(false);
+    }
+  };
 
   const { data: profile } = useQuery({
     queryKey: ["admin-profile", user?.id],
@@ -74,6 +99,39 @@ const AdminSettings = () => {
           </h1>
           <p className="text-muted-foreground">Tizim va profil sozlamalari</p>
         </motion.div>
+
+        {/* Theme / brand color picker */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" /> Mavzu rangi (Brending)
+              {themeSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Firmangiz rangini tanlang — sayt va panelга darrov qo'llanadi.</p>
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3">
+              {THEME_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleThemeSelect(p.id)}
+                  className={`relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all hover:scale-105 ${
+                    selectedTheme === p.id ? "border-primary shadow-lg" : "border-border hover:border-primary/40"
+                  }`}
+                  title={p.name}
+                >
+                  <span className="w-9 h-9 rounded-full shadow-inner ring-2 ring-white/50" style={{ backgroundColor: p.colorHex }} />
+                  <span className="text-[10px] font-medium text-center leading-tight truncate w-full">{p.name}</span>
+                  {selectedTheme === p.id && (
+                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                      <Check className="w-3 h-3" />
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Profile Settings */}
