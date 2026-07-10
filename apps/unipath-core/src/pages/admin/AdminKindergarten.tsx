@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,48 +35,16 @@ export default function AdminKindergarten() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [kids, setKids] = useState<Kid[]>([
-    {
-      id: '1',
-      name: 'Asadbek Yusupov',
-      age: 5,
-      group_name: 'Kamalak (Rainbow)',
-      parent_name: 'Jasur Yusupov',
-      parent_phone: '+998 90 999 88 77',
-      status: 'present',
-      payment_status: 'paid'
-    },
-    {
-      id: '2',
-      name: 'Zahro Karimova',
-      age: 4,
-      group_name: 'Quyoshcha (Sun)',
-      parent_name: 'Madina Karimova',
-      parent_phone: '+998 93 456 12 34',
-      status: 'present',
-      payment_status: 'unpaid'
-    },
-    {
-      id: '3',
-      name: 'Muhammadali Ergashev',
-      age: 6,
-      group_name: 'Yulduzcha (Star)',
-      parent_name: 'Bekzod Ergashev',
-      parent_phone: '+998 97 111 22 33',
-      status: 'absent',
-      payment_status: 'paid'
-    },
-    {
-      id: '4',
-      name: 'Oisha Sobirova',
-      age: 5,
-      group_name: 'Kamalak (Rainbow)',
-      parent_name: 'Shahlo Sobirova',
-      parent_phone: '+998 99 777 55 44',
-      status: 'sick',
-      payment_status: 'paid'
-    }
-  ]);
+  const { activeTenant } = useApp();
+  const [kids, setKids] = useState<Kid[]>([]);
+
+  useEffect(() => {
+    if (!activeTenant?.id) return;
+    (async () => {
+      const { data } = await (supabase as any).from('kindergarten_kids').select('*').eq('tenant_id', activeTenant.id).order('created_at', { ascending: false });
+      setKids((data || []) as Kid[]);
+    })();
+  }, [activeTenant?.id]);
 
   const [newKid, setNewKid] = useState({
     name: '',
@@ -86,7 +56,7 @@ export default function AdminKindergarten() {
     payment_status: 'unpaid' as Kid['payment_status']
   });
 
-  const handleAddKid = (e: React.FormEvent) => {
+  const handleAddKid = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKid.name || !newKid.parent_name || !newKid.parent_phone) {
       toast({
@@ -97,50 +67,40 @@ export default function AdminKindergarten() {
       return;
     }
 
-    const kid: Kid = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newKid,
-      age: Number(newKid.age)
-    };
-
-    setKids([kid, ...kids]);
-    setIsModalOpen(false);
-    setNewKid({
-      name: '',
-      age: 5,
-      group_name: 'Kamalak (Rainbow)',
-      parent_name: '',
-      parent_phone: '',
-      status: 'present',
-      payment_status: 'unpaid'
-    });
-
-    toast({
-      title: 'Muvaffaqiyatli',
-      description: 'Yangi bola bog\'cha ro\'yxatiga muvaffaqiyatli qo\'shildi!'
-    });
+    try {
+      const { data, error } = await (supabase as any).from('kindergarten_kids').insert({
+        name: newKid.name, age: Number(newKid.age), group_name: newKid.group_name,
+        parent_name: newKid.parent_name, parent_phone: newKid.parent_phone,
+        status: newKid.status, payment_status: newKid.payment_status,
+      }).select().single();
+      if (error) throw error;
+      setKids([data as Kid, ...kids]);
+      setIsModalOpen(false);
+      setNewKid({ name: '', age: 5, group_name: 'Kamalak (Rainbow)', parent_name: '', parent_phone: '', status: 'present', payment_status: 'unpaid' });
+      toast({ title: 'Muvaffaqiyatli', description: 'Yangi bola bog\'cha ro\'yxatiga qo\'shildi!' });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    await (supabase as any).from('kindergarten_kids').delete().eq('id', id);
     setKids(kids.filter(k => k.id !== id));
-    toast({
-      title: 'O\'chirildi',
-      description: 'Bola ro\'yxatdan o\'chirildi.'
-    });
+    toast({ title: 'O\'chirildi', description: 'Bola ro\'yxatdan o\'chirildi.' });
   };
 
-  const handleStatusChange = (id: string, status: Kid['status']) => {
+  const handleStatusChange = async (id: string, status: Kid['status']) => {
+    await (supabase as any).from('kindergarten_kids').update({ status }).eq('id', id);
     setKids(kids.map(k => k.id === id ? { ...k, status } : k));
-    toast({
-      title: 'Davomat yangilandi',
-      description: `Bola holati "${status}" ga o'zgartirildi.`
-    });
   };
 
-  const handlePaymentToggle = (id: string) => {
-    setKids(kids.map(k => k.id === id ? { 
-      ...k, 
-      payment_status: k.payment_status === 'paid' ? 'unpaid' : 'paid' 
+  const handlePaymentToggle = async (id: string) => {
+    const kid = kids.find(k => k.id === id);
+    const next = kid?.payment_status === 'paid' ? 'unpaid' : 'paid';
+    await (supabase as any).from('kindergarten_kids').update({ payment_status: next }).eq('id', id);
+    setKids(kids.map(k => k.id === id ? {
+      ...k,
+      payment_status: k.payment_status === 'paid' ? 'unpaid' : 'paid'
     } : k));
     toast({
       title: 'To\'lov statusi o\'zgardi',

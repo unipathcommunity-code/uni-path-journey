@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,41 +34,16 @@ export default function AdminStadium() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bookings, setBookings] = useState<StadiumBooking[]>([
-    {
-      id: '1',
-      client_name: 'Farhod Alimov',
-      phone: '+998 90 123 45 67',
-      booking_date: '2026-05-23',
-      start_time: '18:00',
-      duration_hours: 2,
-      field_name: 'A-Stadion (Yopiq)',
-      total_price: 300000,
-      status: 'confirmed'
-    },
-    {
-      id: '2',
-      client_name: 'Bobur Karimov',
-      phone: '+998 93 987 65 43',
-      booking_date: '2026-05-23',
-      start_time: '20:00',
-      duration_hours: 1.5,
-      field_name: 'B-Stadion (Ochiq)',
-      total_price: 180000,
-      status: 'pending'
-    },
-    {
-      id: '3',
-      client_name: 'Nodir Salimov',
-      phone: '+998 94 333 22 11',
-      booking_date: '2026-05-24',
-      start_time: '16:00',
-      duration_hours: 1,
-      field_name: 'C-Mini Futbol',
-      total_price: 100000,
-      status: 'confirmed'
-    }
-  ]);
+  const { activeTenant } = useApp();
+  const [bookings, setBookings] = useState<StadiumBooking[]>([]);
+
+  useEffect(() => {
+    if (!activeTenant?.id) return;
+    (async () => {
+      const { data } = await (supabase as any).from('stadium_bookings').select('*').eq('tenant_id', activeTenant.id).order('booking_date', { ascending: false });
+      setBookings((data || []) as StadiumBooking[]);
+    })();
+  }, [activeTenant?.id]);
 
   const [newBooking, setNewBooking] = useState({
     client_name: '',
@@ -79,7 +56,7 @@ export default function AdminStadium() {
     status: 'pending' as StadiumBooking['status']
   });
 
-  const handleAddBooking = (e: React.FormEvent) => {
+  const handleAddBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBooking.client_name || !newBooking.phone || !newBooking.booking_date) {
       toast({
@@ -90,12 +67,19 @@ export default function AdminStadium() {
       return;
     }
 
-    const booking: StadiumBooking = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newBooking,
-      duration_hours: Number(newBooking.duration_hours),
-      total_price: Number(newBooking.total_price)
-    };
+    let booking: StadiumBooking;
+    try {
+      const { data, error } = await (supabase as any).from('stadium_bookings').insert({
+        client_name: newBooking.client_name, phone: newBooking.phone, booking_date: newBooking.booking_date,
+        start_time: newBooking.start_time, duration_hours: Number(newBooking.duration_hours),
+        field_name: newBooking.field_name, total_price: Number(newBooking.total_price), status: newBooking.status,
+      }).select().single();
+      if (error) throw error;
+      booking = data as StadiumBooking;
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+      return;
+    }
 
     setBookings([booking, ...bookings]);
     setIsModalOpen(false);
