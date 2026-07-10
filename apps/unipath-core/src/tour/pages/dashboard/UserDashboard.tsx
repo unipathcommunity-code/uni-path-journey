@@ -273,13 +273,24 @@ const UserDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-white">{stat.value}</p>
-                  <p className="text-white/70 text-sm">{stat.label}</p>
-                </div>
-              ))}
+            <div className="grid grid-cols-3 gap-3 md:gap-4 mt-8">
+              {stats.map((stat, index) => {
+                const Icon = stat.icon;
+                return (
+                  <div
+                    key={index}
+                    className="bg-white/10 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 ring-1 ring-white/10 hover:bg-white/[0.15] hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-white/30 to-white/5 ring-1 ring-white/25 shadow-lg flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-white drop-shadow" />
+                    </span>
+                    <div className="min-w-0 text-left">
+                      <p className="text-2xl font-bold text-white leading-none">{stat.value}</p>
+                      <p className="text-white/70 text-xs mt-1 truncate">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </motion.div>
@@ -308,12 +319,14 @@ const UserDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : bookings.length === 0 ? (
-                <Card className="text-center py-12">
+                <Card className="text-center py-14 border-dashed">
                   <CardContent>
-                    <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20 shadow-inner flex items-center justify-center">
+                      <Package className="h-10 w-10 text-primary" />
+                    </div>
                     <h3 className="text-lg font-semibold mb-2">{t("dashboard.noBookings")}</h3>
-                    <p className="text-muted-foreground mb-6">{t("dashboard.noBookingsDesc")}</p>
-                    <Button asChild><Link to="/tours">{t("dashboard.viewTours")}</Link></Button>
+                    <p className="text-muted-foreground mb-6 max-w-sm mx-auto">{t("dashboard.noBookingsDesc")}</p>
+                    <Button asChild size="lg" className="rounded-xl px-8"><Link to="/tours">{t("dashboard.viewTours")}</Link></Button>
                   </CardContent>
                 </Card>
               ) : (
