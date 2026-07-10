@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import TourFilters from "@/components/tours/TourFilters";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 import { tourTypes } from "@/data/tours";
 import { motion } from "framer-motion";
 import { useFeatureToggles } from "@/hooks/useFeatureToggles";
@@ -27,16 +28,18 @@ const ToursPage = () => {
   const [durationRange, setDurationRange] = useState<[number, number]>([1, 15]);
   const [sortBy, setSortBy] = useState("price-low");
 
+  const { activeTenant } = useApp();
   const { data: dbTours = [], isLoading } = useQuery({
-    queryKey: ["tours"],
+    queryKey: ["tours", activeTenant?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tours")
-        .select("*")
-        .eq("status", "approved");
+      // Only THIS tour company's tours (each tour tenant = one company)
+      let q = supabase.from("tours").select("*").eq("status", "approved");
+      if (activeTenant?.id) q = q.eq("tenant_id", activeTenant.id);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
+    enabled: !!activeTenant?.id,
   });
 
   const filteredTours = useMemo(() => {

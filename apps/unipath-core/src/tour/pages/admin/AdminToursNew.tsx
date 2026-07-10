@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface ItineraryDay {
@@ -117,6 +118,8 @@ const AdminToursNew = () => {
     },
   });
 
+  const { activeTenant } = useApp();
+
   const createTourMutation = useMutation({
     mutationFn: async () => {
       // Create tour
@@ -137,7 +140,8 @@ const AdminToursNew = () => {
           tour_type: formData.tour_type,
           max_people: formData.max_people,
           featured: formData.featured,
-          status: formData.status,
+          tenant_id: activeTenant?.id || null,
+          status: "approved", // single tenant → no platform moderation; show immediately
         })
         .select()
         .single();
