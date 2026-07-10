@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,47 +46,43 @@ export default function AdminAutoService() {
   });
 
   useEffect(() => {
-    if (!activeTenant) { setLoading(false); return; }
-    setLoading(true);
-    // Mock data
-    setJobs([
-      { id: '1', car_model: 'Chevrolet Gentra', plate_number: '01 A 777 AA', customer_name: 'Farrux Alimov', status: 'in_progress', service_type: 'Dvigatel moyini almashtirish', price: 250000, assigned_mechanic: 'Baxodir Usta' },
-      { id: '2', car_model: 'Chevrolet Cobalt', plate_number: '10 X 100 XX', customer_name: 'Jasur Mavlonov', status: 'pending', service_type: 'Xodovoy qismini ta\'mirlash', price: 600000, assigned_mechanic: 'Diyor Usta' },
-      { id: '3', car_model: 'BYD Song Plus', plate_number: '01 U 001 UU', customer_name: 'Sardor Qodirov', status: 'completed', service_type: 'Elektr tizimlarini diagnostika qilish', price: 350000, assigned_mechanic: 'Temur Elektrik' }
-    ]);
-    setLoading(false);
+    if (!activeTenant?.id) { setLoading(false); return; }
+    (async () => {
+      setLoading(true);
+      const { data } = await (supabase as any)
+        .from('auto_jobs')
+        .select('*')
+        .eq('tenant_id', activeTenant.id)
+        .order('created_at', { ascending: false });
+      setJobs((data || []) as AutoJob[]);
+      setLoading(false);
+    })();
   }, [activeTenant]);
 
-  const handleAddJob = (e: React.FormEvent) => {
+  const handleAddJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newJob.car_model || !newJob.plate_number || !newJob.customer_name) {
       toast({ title: 'Xatolik', description: 'Barcha maydonlarni to\'ldiring', variant: 'destructive' });
       return;
     }
-
-    const job: AutoJob = {
-      id: Math.random().toString(36).substring(2, 9),
-      car_model: newJob.car_model,
-      plate_number: newJob.plate_number.toUpperCase(),
-      customer_name: newJob.customer_name,
-      status: 'pending',
-      service_type: newJob.service_type,
-      price: Number(newJob.price),
-      assigned_mechanic: newJob.assigned_mechanic
-    };
-
-    setJobs([job, ...jobs]);
-    setIsModalOpen(false);
-    setNewJob({
-      car_model: '',
-      plate_number: '',
-      customer_name: '',
-      service_type: 'Moy almashtirish',
-      price: 150000,
-      assigned_mechanic: 'Baxodir Usta'
-    });
-
-    toast({ title: 'Muvaffaqiyatli', description: 'Avtoservis buyurtmasi ro\'yxatga olindi!' });
+    try {
+      const { data, error } = await (supabase as any).from('auto_jobs').insert({
+        car_model: newJob.car_model,
+        plate_number: newJob.plate_number.toUpperCase(),
+        customer_name: newJob.customer_name,
+        status: 'pending',
+        service_type: newJob.service_type,
+        price: Number(newJob.price),
+        assigned_mechanic: newJob.assigned_mechanic,
+      }).select().single();
+      if (error) throw error;
+      setJobs([data as AutoJob, ...jobs]);
+      setIsModalOpen(false);
+      setNewJob({ car_model: '', plate_number: '', customer_name: '', service_type: 'Moy almashtirish', price: 150000, assigned_mechanic: 'Baxodir Usta' });
+      toast({ title: 'Muvaffaqiyatli', description: 'Avtoservis buyurtmasi ro\'yxatga olindi!' });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
   const filteredJobs = jobs.filter(j => 

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,17 +43,21 @@ export default function AdminCosmetics() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
 
-  const [products, setProducts] = useState<CosmeticItem[]>([
-    { id: '1', name: 'SPF 50 Sunscreen Cream', brand: 'Missha', category: 'Yuz parvarishi', price: 140000, stock: 45, expiry_date: '2027-04-12' },
-    { id: '2', name: 'Hyaluronic Acid Serum', brand: 'The Ordinary', category: 'Zardob', price: 95000, stock: 4, expiry_date: '2026-12-01' },
-    { id: '3', name: 'Velvet Lip Tint', brand: 'Romand', category: 'Makiyaj (Lab)', price: 120000, stock: 25, expiry_date: '2027-08-20' },
-    { id: '4', name: 'Hydrating Cleanser', brand: 'CeraVe', category: 'Tozalash', price: 175000, stock: 18, expiry_date: '2026-09-15' }
-  ]);
+  const { activeTenant } = useApp();
+  const [products, setProducts] = useState<CosmeticItem[]>([]);
+  const [sales, setSales] = useState<SaleRecord[]>([]);
 
-  const [sales, setSales] = useState<SaleRecord[]>([
-    { id: '1', product_name: 'SPF 50 Sunscreen Cream', quantity: 2, total_price: 280000, sale_date: '2026-05-23' },
-    { id: '2', product_name: 'Velvet Lip Tint', quantity: 1, total_price: 120000, sale_date: '2026-05-23' }
-  ]);
+  useEffect(() => {
+    if (!activeTenant?.id) return;
+    (async () => {
+      const [{ data: prod }, { data: sale }] = await Promise.all([
+        (supabase as any).from('cosmetics_products').select('*').eq('tenant_id', activeTenant.id).order('created_at', { ascending: false }),
+        (supabase as any).from('cosmetics_sales').select('*').eq('tenant_id', activeTenant.id).order('sale_date', { ascending: false }),
+      ]);
+      setProducts((prod || []) as CosmeticItem[]);
+      setSales((sale || []) as SaleRecord[]);
+    })();
+  }, [activeTenant?.id]);
 
   // Form states
   const [newProduct, setNewProduct] = useState({
@@ -68,57 +74,60 @@ export default function AdminCosmetics() {
     quantity: 1
   });
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.brand || !newProduct.expiry_date) {
       toast({ title: 'Xatolik', description: 'Iltimos, barcha majburiy maydonlarni kiriting!', variant: 'destructive' });
       return;
     }
-
-    const item: CosmeticItem = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newProduct,
-      price: Number(newProduct.price),
-      stock: Number(newProduct.stock)
-    };
-
-    setProducts([item, ...products]);
-    setIsProductModalOpen(false);
-    setNewProduct({ name: '', brand: '', category: 'Yuz parvarishi', price: 100000, stock: 20, expiry_date: '' });
-    toast({ title: 'Muvaffaqiyatli', description: 'Yangi mahsulot omborga qo\'shildi!' });
+    try {
+      const { data, error } = await (supabase as any).from('cosmetics_products').insert({
+        name: newProduct.name, brand: newProduct.brand, category: newProduct.category,
+        price: Number(newProduct.price), stock: Number(newProduct.stock), expiry_date: newProduct.expiry_date || null,
+      }).select().single();
+      if (error) throw error;
+      setProducts([data as CosmeticItem, ...products]);
+      setIsProductModalOpen(false);
+      setNewProduct({ name: '', brand: '', category: 'Yuz parvarishi', price: 100000, stock: 20, expiry_date: '' });
+      toast({ title: 'Muvaffaqiyatli', description: 'Yangi mahsulot omborga qo\'shildi!' });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
-  const handleAddSale = (e: React.FormEvent) => {
+  const handleAddSale = async (e: React.FormEvent) => {
     e.preventDefault();
     const product = products.find(p => p.name === newSale.product_name);
     if (!product) return;
-
     if (product.stock < newSale.quantity) {
       toast({ title: 'Etarli zaxira yo\'q', description: `Omborda faqat ${product.stock} ta qolgan!`, variant: 'destructive' });
       return;
     }
-
-    // Deduct stock
-    setProducts(products.map(p => p.name === newSale.product_name ? { ...p, stock: p.stock - newSale.quantity } : p));
-
     const total = product.price * newSale.quantity;
-    const sale: SaleRecord = {
-      id: Math.random().toString(36).substring(2, 9),
-      product_name: newSale.product_name,
-      quantity: newSale.quantity,
-      total_price: total,
-      sale_date: new Date().toISOString().split('T')[0]
-    };
-
-    setSales([sale, ...sales]);
-    setIsSaleModalOpen(false);
-    setNewSale({ product_name: products[0]?.name || 'SPF 50 Sunscreen Cream', quantity: 1 });
-    toast({ title: 'Muvaffaqiyatli', description: `Sotuv amalga oshirildi! Jami: ${total.toLocaleString()} UZS` });
+    try {
+      const { data, error } = await (supabase as any).from('cosmetics_sales').insert({
+        product_name: newSale.product_name, quantity: newSale.quantity, total_price: total, sale_date: new Date().toISOString().split('T')[0],
+      }).select().single();
+      if (error) throw error;
+      await (supabase as any).from('cosmetics_products').update({ stock: product.stock - newSale.quantity }).eq('id', product.id);
+      setProducts(products.map(p => p.id === product.id ? { ...p, stock: p.stock - newSale.quantity } : p));
+      setSales([data as SaleRecord, ...sales]);
+      setIsSaleModalOpen(false);
+      setNewSale({ product_name: products[0]?.name || '', quantity: 1 });
+      toast({ title: 'Muvaffaqiyatli', description: `Sotuv amalga oshirildi! Jami: ${total.toLocaleString()} UZS` });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast({ title: 'O\'chirildi', description: 'Mahsulot ro\'yxatdan o\'chirildi.' });
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await (supabase as any).from('cosmetics_products').delete().eq('id', id);
+      setProducts(products.filter(p => p.id !== id));
+      toast({ title: 'O\'chirildi', description: 'Mahsulot ro\'yxatdan o\'chirildi.' });
+    } catch (err: any) {
+      toast({ title: 'Xatolik', description: err.message, variant: 'destructive' });
+    }
   };
 
   const filteredProducts = products.filter(p => 
