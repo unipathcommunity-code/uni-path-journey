@@ -30,13 +30,13 @@ const AdminAgents = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => { const { error } = await (supabase as any).from("agents").insert({ name: data.name, company_name: data.company_name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }); if (error) throw error; },
+    mutationFn: async (data: typeof formData) => { const { error } = await (supabase as any).from("agents").insert({ name: data.name, company_name: data.company_name || data.name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }); if (error) throw error; },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-agents"] }); toast({ title: t("admin.success"), description: t("admin.agentAdded") }); resetForm(); },
     onError: () => { toast({ title: t("admin.error"), description: t("admin.error"), variant: "destructive" }); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => { const { error } = await (supabase as any).from("agents").update({ name: data.name, company_name: data.company_name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }).eq("id", id); if (error) throw error; },
+    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => { const { error } = await (supabase as any).from("agents").update({ name: data.name, company_name: data.company_name || data.name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }).eq("id", id); if (error) throw error; },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-agents"] }); toast({ title: t("admin.success"), description: t("admin.agentUpdated") }); resetForm(); },
     onError: () => { toast({ title: t("admin.error"), description: t("admin.error"), variant: "destructive" }); },
   });
@@ -51,7 +51,7 @@ const AdminAgents = () => {
 
   const handleEdit = (agent: Agent) => { setEditingAgent(agent); setFormData({ name: agent.name, company_name: agent.company_name, phone: agent.phone, email: agent.email || "", address: agent.address || "", description: agent.description || "", commission_rate: agent.commission_rate || 10, is_active: agent.is_active, contract_start_date: agent.contract_start_date || "", contract_end_date: agent.contract_end_date || "", logo: agent.logo || "" }); setIsDialogOpen(true); };
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!formData.name || !formData.company_name || !formData.phone) { toast({ title: t("admin.error"), description: t("admin.fillRequired"), variant: "destructive" }); return; } if (editingAgent) { updateMutation.mutate({ id: editingAgent.id, data: formData }); } else { createMutation.mutate(formData); } };
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!formData.name || !formData.phone) { toast({ title: t("admin.error"), description: t("admin.fillRequired"), variant: "destructive" }); return; } if (editingAgent) { updateMutation.mutate({ id: editingAgent.id, data: formData }); } else { createMutation.mutate(formData); } };
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
@@ -65,15 +65,12 @@ const AdminAgents = () => {
             <DialogHeader><DialogTitle>{editingAgent ? t("admin.editAgent") : t("admin.addAgent")}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>{t("admin.responsiblePerson")} *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-                <div className="space-y-2"><Label>{t("admin.companyName")} *</Label><Input value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Agent ismi *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ism Familiya" /></div>
                 <div className="space-y-2"><Label>{t("admin.phone")} *</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+998 90 123 45 67" /></div>
                 <div className="space-y-2"><Label>Email</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-                <div className="space-y-2 md:col-span-2"><Label>{t("admin.address")}</Label><Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} /></div>
-                <div className="space-y-2"><Label>{t("admin.commissionRate")}</Label><Input type="number" min="0" max="100" value={formData.commission_rate} onChange={(e) => setFormData({ ...formData, commission_rate: Number(e.target.value) })} /></div>
-                <div className="space-y-2"><Label>{t("admin.logoUrl")}</Label><Input value={formData.logo} onChange={(e) => setFormData({ ...formData, logo: e.target.value })} /></div>
-                <div className="space-y-2"><Label>{t("admin.contractStart")}</Label><Input type="date" value={formData.contract_start_date} onChange={(e) => setFormData({ ...formData, contract_start_date: e.target.value })} /></div>
-                <div className="space-y-2"><Label>{t("admin.contractEnd")}</Label><Input type="date" value={formData.contract_end_date} onChange={(e) => setFormData({ ...formData, contract_end_date: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Komissiya foizi (%)</Label><Input type="number" min="0" max="100" value={formData.commission_rate} onChange={(e) => setFormData({ ...formData, commission_rate: Number(e.target.value) })} /></div>
+                <div className="space-y-2"><Label>Shartnoma boshlanishi</Label><Input type="date" value={formData.contract_start_date} onChange={(e) => setFormData({ ...formData, contract_start_date: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Shartnoma tugashi</Label><Input type="date" value={formData.contract_end_date} onChange={(e) => setFormData({ ...formData, contract_end_date: e.target.value })} /></div>
                 <div className="space-y-2 md:col-span-2"><Label>{t("admin.description")}</Label><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} /></div>
                 <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })} /><Label>{t("admin.active")}</Label></div>
               </div>
@@ -96,8 +93,8 @@ const AdminAgents = () => {
         {agents.map(agent => (
           <div key={agent.id} className="bg-card rounded-xl border overflow-hidden">
             <div className="p-4 border-b flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-lg">{agent.company_name.charAt(0)}</div>
-              <div className="flex-1"><h3 className="font-semibold">{agent.company_name}</h3><p className="text-sm text-muted-foreground">{agent.name}</p></div>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-lg">{(agent.name || "A").charAt(0)}</div>
+              <div className="flex-1"><h3 className="font-semibold">{agent.name}</h3><p className="text-sm text-muted-foreground">Sotuv agenti</p></div>
               <Badge variant={agent.is_active ? "default" : "secondary"}>{agent.is_active ? t("admin.active") : t("admin.inactive")}</Badge>
             </div>
             <div className="p-4 space-y-3">
