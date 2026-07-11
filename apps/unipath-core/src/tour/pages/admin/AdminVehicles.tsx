@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/contexts/AppContext";
 
 interface VehicleForm { name: string; vehicle_type: string; brand: string; model: string; color: string; capacity: number; plate_number: string; driver_name: string; driver_phone: string; price_per_day: number; description: string; image: string; has_air_conditioning: boolean; has_wifi: boolean; has_tv: boolean; has_toilet: boolean; is_available: boolean; }
 
@@ -22,6 +23,7 @@ const initialFormData: VehicleForm = { name: "", vehicle_type: "car", brand: "",
 const AdminVehicles = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -35,12 +37,13 @@ const AdminVehicles = () => {
   ];
 
   const { data: vehicles = [], isLoading } = useQuery({
-    queryKey: ["admin-vehicles"],
-    queryFn: async () => { const { data, error } = await supabase.from("vehicles").select("*").order("vehicle_type"); if (error) throw error; return data; },
+    queryKey: ["admin-vehicles", activeTenant?.id],
+    enabled: !!activeTenant?.id,
+    queryFn: async () => { const { data, error } = await (supabase as any).from("vehicles").select("*").eq("tenant_id", activeTenant!.id).order("vehicle_type"); if (error) throw error; return data; },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: VehicleForm) => { const { error } = await supabase.from("vehicles").insert({ ...data, price_per_day: data.price_per_day || null }); if (error) throw error; },
+    mutationFn: async (data: VehicleForm) => { const { error } = await (supabase as any).from("vehicles").insert({ ...data, tenant_id: activeTenant?.id, price_per_day: data.price_per_day || null }); if (error) throw error; },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-vehicles"] }); toast({ title: t("admin.success"), description: t("admin.vehicleAdded") }); resetForm(); },
     onError: () => { toast({ title: t("admin.error"), description: t("admin.error"), variant: "destructive" }); },
   });

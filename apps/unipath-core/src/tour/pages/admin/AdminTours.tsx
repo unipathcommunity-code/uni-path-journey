@@ -24,22 +24,26 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/contexts/AppContext";
 
 type StatusFilter = "all" | "approved" | "pending" | "rejected";
 
 const AdminTours = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: tours = [], isLoading } = useQuery({
-    queryKey: ["admin-tours", statusFilter],
+    queryKey: ["admin-tours", statusFilter, activeTenant?.id],
+    enabled: !!activeTenant?.id,
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("tours")
         .select("*")
+        .eq("tenant_id", activeTenant!.id)
         .order("created_at", { ascending: false });
 
       if (statusFilter !== "all") {

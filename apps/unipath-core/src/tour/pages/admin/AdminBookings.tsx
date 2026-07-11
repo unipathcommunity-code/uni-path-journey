@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
 import { useTranslation } from "react-i18next";
 import {
   Ticket, Search, Calendar, MapPin, Users, MoreHorizontal, Loader2, Check, X, Eye, DollarSign, Clock, FileText, Send, Download, Building2, ExternalLink,
@@ -102,6 +103,7 @@ const DocumentViewItem = ({ doc }: { doc: BookingDocument }) => {
 
 const AdminBookings = () => {
   const { t } = useTranslation();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -112,14 +114,16 @@ const AdminBookings = () => {
   const [assignNotes, setAssignNotes] = useState("");
 
   const { data: agents = [] } = useQuery({
-    queryKey: ["admin-agents-for-assignment"],
-    queryFn: async () => { const { data, error } = await (supabase as any).from("agents").select("id, name, company_name, phone, email").eq("is_active", true).order("company_name"); if (error) throw error; return data as Agent[]; },
+    queryKey: ["admin-agents-for-assignment", activeTenant?.id],
+    enabled: !!activeTenant?.id,
+    queryFn: async () => { const { data, error } = await (supabase as any).from("agents").select("id, name, company_name, phone, email").eq("tenant_id", activeTenant!.id).eq("is_active", true).order("company_name"); if (error) throw error; return data as Agent[]; },
   });
 
   const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ["admin-bookings-with-docs"],
+    queryKey: ["admin-bookings-with-docs", activeTenant?.id],
+    enabled: !!activeTenant?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("bookings").select(`*, tours (title, destination, country, image)`).order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("bookings").select(`*, tours (title, destination, country, image)`).eq("tenant_id", activeTenant!.id).order("created_at", { ascending: false });
       if (error) throw error;
       const userIds = [...new Set(data?.map(b => b.user_id) || [])];
       const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, phone").in("user_id", userIds);

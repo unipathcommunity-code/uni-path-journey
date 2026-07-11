@@ -43,7 +43,6 @@ import AdminTourEdit from "./pages/admin/AdminTourEdit";
 import AdminDestinations from "./pages/admin/AdminDestinations";
 import AdminHotels from "./pages/admin/AdminHotels";
 import AdminVehicles from "./pages/admin/AdminVehicles";
-import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAgents from "./pages/admin/AdminAgents";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBookings from "./pages/admin/AdminBookings";
@@ -55,9 +54,7 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminPromoCodes from "./pages/admin/AdminPromoCodes";
 import AdminNewsletter from "./pages/admin/AdminNewsletter";
 import AdminSettings from "./pages/admin/AdminSettings";
-import AdminFeatureToggles from "./pages/admin/AdminFeatureToggles";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminUserControl from "./pages/admin/AdminUserControl";
 
 // Agent
 import AgentLayout from "./components/agent/AgentLayout";
@@ -87,14 +84,6 @@ import CompanyAnalytics from "./pages/company/CompanyAnalytics";
 import CompanySettings from "./pages/company/CompanySettings";
 import RegisterCompanyPage from "./pages/RegisterCompanyPage";
 import CompanyPublicSite from "./pages/CompanyPublicSite";
-import AdminTourCompanies from "./pages/admin/AdminTourCompanies";
-import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
-import AdminTelegramBots from "./pages/admin/AdminTelegramBots";
-import AdminBilling from "./pages/admin/AdminBilling";
-import AdminFeatureOverrides from "./pages/admin/AdminFeatureOverrides";
-import AdminChangeRequests from "./pages/admin/AdminChangeRequests";
-import AdminSiteEditor from "./pages/admin/AdminSiteEditor";
-import AdminFeatureMatrix from "./pages/admin/AdminFeatureMatrix";
 
 const PageAnalyticsTracker = () => { usePageAnalytics(); return null; };
 

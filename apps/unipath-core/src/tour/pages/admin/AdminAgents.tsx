@@ -12,12 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { useApp } from "@/contexts/AppContext";
 
 interface Agent { id: string; name: string; company_name: string; phone: string; email: string | null; address: string | null; description: string | null; commission_rate: number | null; is_active: boolean; contract_start_date: string | null; contract_end_date: string | null; logo: string | null; user_id: string | null; created_at: string; }
 
 const AdminAgents = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -25,12 +27,13 @@ const AdminAgents = () => {
   const [formData, setFormData] = useState({ name: "", company_name: "", phone: "", email: "", address: "", description: "", commission_rate: 10, is_active: true, contract_start_date: "", contract_end_date: "", logo: "" });
 
   const { data: agents = [], isLoading } = useQuery({
-    queryKey: ["admin-agents"],
-    queryFn: async () => { const { data, error } = await (supabase as any).from("agents").select("*").order("created_at", { ascending: false }); if (error) throw error; return data as Agent[]; },
+    queryKey: ["admin-agents", activeTenant?.id],
+    enabled: !!activeTenant?.id,
+    queryFn: async () => { const { data, error } = await (supabase as any).from("agents").select("*").eq("tenant_id", activeTenant!.id).order("created_at", { ascending: false }); if (error) throw error; return data as Agent[]; },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => { const { error } = await (supabase as any).from("agents").insert({ name: data.name, company_name: data.company_name || data.name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }); if (error) throw error; },
+    mutationFn: async (data: typeof formData) => { const { error } = await (supabase as any).from("agents").insert({ tenant_id: activeTenant?.id, name: data.name, company_name: data.company_name || data.name, phone: data.phone, email: data.email || null, address: data.address || null, description: data.description || null, commission_rate: data.commission_rate, is_active: data.is_active, contract_start_date: data.contract_start_date || null, contract_end_date: data.contract_end_date || null, logo: data.logo || null }); if (error) throw error; },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-agents"] }); toast({ title: t("admin.success"), description: t("admin.agentAdded") }); resetForm(); },
     onError: () => { toast({ title: t("admin.error"), description: t("admin.error"), variant: "destructive" }); },
   });

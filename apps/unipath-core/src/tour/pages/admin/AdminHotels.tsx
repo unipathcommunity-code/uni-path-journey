@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/contexts/AppContext";
 
 interface HotelForm { name: string; destination_id: string; address: string; description: string; star_rating: number; room_count: number; price_per_night: number; image: string; phone: string; email: string; has_restaurant: boolean; has_wifi: boolean; has_parking: boolean; has_pool: boolean; has_gym: boolean; has_spa: boolean; has_air_conditioning: boolean; breakfast_included: boolean; lunch_included: boolean; dinner_included: boolean; is_partner: boolean; }
 
@@ -22,6 +23,7 @@ const initialFormData: HotelForm = { name: "", destination_id: "", address: "", 
 const AdminHotels = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -29,17 +31,19 @@ const AdminHotels = () => {
   const [formData, setFormData] = useState<HotelForm>(initialFormData);
 
   const { data: hotels = [], isLoading } = useQuery({
-    queryKey: ["admin-hotels"],
-    queryFn: async () => { const { data, error } = await supabase.from("hotels").select("*, destinations(name)").order("star_rating", { ascending: false }); if (error) throw error; return data; },
+    queryKey: ["admin-hotels", activeTenant?.id],
+    enabled: !!activeTenant?.id,
+    queryFn: async () => { const { data, error } = await (supabase as any).from("hotels").select("*, destinations(name)").eq("tenant_id", activeTenant!.id).order("star_rating", { ascending: false }); if (error) throw error; return data; },
   });
 
   const { data: destinations = [] } = useQuery({
-    queryKey: ["destinations-list"],
-    queryFn: async () => { const { data, error } = await supabase.from("destinations").select("id, name").order("name"); if (error) throw error; return data; },
+    queryKey: ["destinations-list", activeTenant?.id],
+    enabled: !!activeTenant?.id,
+    queryFn: async () => { const { data, error } = await (supabase as any).from("destinations").select("id, name").eq("tenant_id", activeTenant!.id).order("name"); if (error) throw error; return data; },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: HotelForm) => { const { error } = await supabase.from("hotels").insert({ ...data, destination_id: data.destination_id || null, price_per_night: data.price_per_night || null, room_count: data.room_count || null }); if (error) throw error; },
+    mutationFn: async (data: HotelForm) => { const { error } = await (supabase as any).from("hotels").insert({ ...data, tenant_id: activeTenant?.id, destination_id: data.destination_id || null, price_per_night: data.price_per_night || null, room_count: data.room_count || null }); if (error) throw error; },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-hotels"] }); toast({ title: t("admin.success"), description: t("admin.hotelAdded") }); resetForm(); },
     onError: () => { toast({ title: t("admin.error"), description: t("admin.error"), variant: "destructive" }); },
   });

@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/contexts/AppContext";
 
 interface Destination {
   id: string;
@@ -49,6 +50,7 @@ const regions = [
 
 const AdminDestinations = () => {
   const { toast } = useToast();
+  const { activeTenant } = useApp();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -61,11 +63,13 @@ const AdminDestinations = () => {
   });
 
   const { data: destinations = [], isLoading } = useQuery({
-    queryKey: ["admin-destinations"],
+    queryKey: ["admin-destinations", activeTenant?.id],
+    enabled: !!activeTenant?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("destinations")
         .select("*")
+        .eq("tenant_id", activeTenant!.id)
         .order("name");
       if (error) throw error;
       return data as Destination[];
@@ -74,7 +78,8 @@ const AdminDestinations = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("destinations").insert({
+      const { error } = await (supabase as any).from("destinations").insert({
+        tenant_id: activeTenant?.id,
         name: data.name,
         country: data.country,
         region: data.region,
