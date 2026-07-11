@@ -29,6 +29,19 @@ interface UserWithProfile {
   bookings_count?: number;
 }
 
+const ROLE_OPTIONS: { value: string; label: string }[] = [
+  { value: "admin", label: "Administrator" },
+  { value: "manager", label: "Menejer" },
+  { value: "accountant", label: "Buxgalter" },
+  { value: "agent", label: "Agent" },
+  { value: "member", label: "Oddiy foydalanuvchi" },
+];
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Egasi", admin: "Administrator", manager: "Menejer", accountant: "Buxgalter",
+  agent: "Agent", mentor: "Mentor", specialist: "Mutaxassis",
+  member: "Oddiy foydalanuvchi", student: "Talaba", user: "Oddiy foydalanuvchi",
+};
+
 const AdminUsers = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -54,11 +67,14 @@ const AdminUsers = () => {
       const { data: profiles, error: profilesError } = await profilesQuery;
       if (profilesError) throw profilesError;
 
-      // Get roles for the fetched profile user_ids only
+      // Roles come from tenant_memberships (per-business platform role) — the same
+      // source useUserRole reads, so an assigned role actually routes the user.
       const profileUserIds = profiles?.map(p => p.user_id) || [];
       let roles: any[] = [];
-      if (profileUserIds.length > 0) {
-        const { data: rolesData, error: rolesError } = await supabase.from("user_roles").select("user_id, role").in('user_id', profileUserIds);
+      if (profileUserIds.length > 0 && tid) {
+        const { data: rolesData, error: rolesError } = await (supabase as any)
+          .from("tenant_memberships").select("user_id, role")
+          .eq("tenant_id", tid).in('user_id', profileUserIds);
         if (rolesError) throw rolesError;
         roles = rolesData || [];
       }
@@ -98,22 +114,19 @@ const AdminUsers = () => {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: "admin" | "moderator" | "user" }) => {
-      const { data: existing } = await (supabase as any).from("user_roles").select("id").eq("user_id", userId).maybeSingle();
-      if (existing) {
-        const { error } = await (supabase as any).from("user_roles").update({ role }).eq("user_id", userId);
-        if (error) throw error;
-      } else {
-        const { error } = await (supabase as any).from("user_roles").insert({ user_id: userId, role });
-        if (error) throw error;
-      }
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      if (!tid) throw new Error("Faol biznes topilmadi");
+      const { error } = await (supabase as any).from("tenant_memberships")
+        .upsert({ user_id: userId, tenant_id: tid, role, status: "active" },
+                { onConflict: "user_id,tenant_id" });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success(t("admin.roleUpdated"));
       setSelectedUser(null);
     },
-    onError: () => { toast.error(t("admin.roleError")); },
+    onError: (err: any) => { toast.error(err?.message || t("admin.roleError")); },
   });
 
   // Assign user's bookings to an agent
@@ -180,17 +193,23 @@ const AdminUsers = () => {
   });
 
   const getRoleBadge = (role?: string) => {
+    const label = ROLE_LABELS[role || "member"] || "Oddiy foydalanuvchi";
     switch (role) {
-      case "admin": return <Badge className="bg-destructive/10 text-destructive border-destructive/20">{t("admin.admin")}</Badge>;
-      case "moderator": return <Badge className="bg-primary/10 text-primary border-primary/20">{t("admin.moderator")}</Badge>;
-      default: return <Badge variant="secondary">{t("admin.user")}</Badge>;
+      case "owner":
+      case "admin": return <Badge className="bg-destructive/10 text-destructive border-destructive/20">{label}</Badge>;
+      case "manager":
+      case "accountant": return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">{label}</Badge>;
+      case "agent":
+      case "mentor":
+      case "specialist": return <Badge className="bg-primary/10 text-primary border-primary/20">{label}</Badge>;
+      default: return <Badge variant="secondary">{label}</Badge>;
     }
   };
 
   const stats = [
     { label: t("admin.totalUsers"), value: users.length, icon: Users, color: "text-primary", bgColor: "bg-primary/10" },
-    { label: t("admin.admins"), value: users.filter((u: any) => u.role?.role === "admin").length, icon: ShieldCheck, color: "text-destructive", bgColor: "bg-destructive/10" },
-    { label: t("admin.moderators"), value: users.filter((u: any) => u.role?.role === "moderator").length, icon: Shield, color: "text-accent-foreground", bgColor: "bg-accent/20" },
+    { label: "Administratorlar", value: users.filter((u: any) => u.role?.role === "admin" || u.role?.role === "owner").length, icon: ShieldCheck, color: "text-destructive", bgColor: "bg-destructive/10" },
+    { label: "Agentlar", value: users.filter((u: any) => ["agent", "mentor", "specialist"].includes(u.role?.role)).length, icon: Shield, color: "text-primary", bgColor: "bg-primary/10" },
   ];
 
   const activeAgents = agents.filter(a => a.status === "approved" || a.status === "active");
@@ -237,9 +256,7 @@ const AdminUsers = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("admin.allRoles")}</SelectItem>
-                <SelectItem value="admin">{t("admin.admin")}</SelectItem>
-                <SelectItem value="moderator">{t("admin.moderator")}</SelectItem>
-                <SelectItem value="user">{t("admin.user")}</SelectItem>
+                {ROLE_OPTIONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -272,7 +289,7 @@ const AdminUsers = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => { setSelectedUser(user); setNewRole(user.role?.role || "user"); }}>
+                    <DropdownMenuItem onClick={() => { setSelectedUser(user); setNewRole(user.role?.role || "member"); }}>
                       <Shield className="h-4 w-4 mr-2" />{t("admin.assignRole")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { setAssignAgentUser(user); setSelectedAgentId(""); setAssignNotes(""); }}>
@@ -280,13 +297,16 @@ const AdminUsers = () => {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "admin" })} className="text-destructive">
-                      <ShieldCheck className="h-4 w-4 mr-2" />{t("admin.makeAdmin")}
+                      <ShieldCheck className="h-4 w-4 mr-2" />Administrator qilish
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "moderator" })} className="text-primary">
-                      <Shield className="h-4 w-4 mr-2" />{t("admin.makeModerator")}
+                    <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "manager" })} className="text-amber-600">
+                      <Shield className="h-4 w-4 mr-2" />Menejer qilish
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "user" })}>
-                      <ShieldOff className="h-4 w-4 mr-2" />{t("admin.makeUser")}
+                    <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "agent" })} className="text-primary">
+                      <UserPlus className="h-4 w-4 mr-2" />Agent qilish
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "member" })}>
+                      <ShieldOff className="h-4 w-4 mr-2" />Oddiy foydalanuvchi
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -359,7 +379,7 @@ const AdminUsers = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setNewRole(user.role?.role || "user"); }}>
+                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setNewRole(user.role?.role || "member"); }}>
                               <Shield className="h-4 w-4 mr-2" />{t("admin.assignRole")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => { setAssignAgentUser(user); setSelectedAgentId(""); setAssignNotes(""); }}>
@@ -367,13 +387,16 @@ const AdminUsers = () => {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "admin" })} className="text-destructive">
-                              <ShieldCheck className="h-4 w-4 mr-2" />{t("admin.makeAdmin")}
+                              <ShieldCheck className="h-4 w-4 mr-2" />Administrator qilish
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "moderator" })} className="text-primary">
-                              <Shield className="h-4 w-4 mr-2" />{t("admin.makeModerator")}
+                            <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "manager" })} className="text-amber-600">
+                              <Shield className="h-4 w-4 mr-2" />Menejer qilish
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "user" })}>
-                              <ShieldOff className="h-4 w-4 mr-2" />{t("admin.makeUser")}
+                            <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "agent" })} className="text-primary">
+                              <UserPlus className="h-4 w-4 mr-2" />Agent qilish
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: user.id, role: "member" })}>
+                              <ShieldOff className="h-4 w-4 mr-2" />Oddiy foydalanuvchi
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -410,16 +433,14 @@ const AdminUsers = () => {
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">{t("admin.user")}</SelectItem>
-                  <SelectItem value="moderator">{t("admin.moderator")}</SelectItem>
-                  <SelectItem value="admin">{t("admin.admin")}</SelectItem>
+                  {ROLE_OPTIONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setSelectedUser(null)} className="flex-1">{t("admin.cancel")}</Button>
               <Button
-                onClick={() => selectedUser && updateRoleMutation.mutate({ userId: selectedUser.id, role: newRole as "admin" | "moderator" | "user" })}
+                onClick={() => selectedUser && updateRoleMutation.mutate({ userId: selectedUser.id, role: newRole })}
                 className="flex-1"
                 disabled={updateRoleMutation.isPending}
               >
