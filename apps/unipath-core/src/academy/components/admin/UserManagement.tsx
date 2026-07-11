@@ -4,9 +4,23 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useApp } from "@/contexts/AppContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+
+// Map academy role names to the unified platform role + pick the highest one for
+// tenant_memberships (single role per user per tenant, which the router reads).
+const ROLE_RANK: Record<string, number> = {
+  super_admin: 100, superadmin: 100, owner: 90, admin: 80, manager: 70,
+  accountant: 60, teacher: 50, mentor: 45, agent: 40, specialist: 35,
+  parent: 20, student: 10, member: 5,
+};
+const mapRole = (r: string) => (r === "superadmin" ? "super_admin" : r);
+const pickTopRole = (roles: string[]) => {
+  if (!roles.length) return "student";
+  return roles.map(mapRole).sort((a, b) => (ROLE_RANK[b] ?? 30) - (ROLE_RANK[a] ?? 30))[0];
+};
 
 interface UserWithRoles {
   id: string;
@@ -34,17 +48,35 @@ const roleBadgeColors: Record<AppRole, string> = {
 
 const UserManagement = ({ users, onRefresh }: UserManagementProps) => {
   const { t } = useLanguage();
+  const { activeTenant } = useApp();
+  const tid = activeTenant?.id;
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
   const toggleRole = async (userId: string, role: AppRole, hasRole: boolean) => {
     setUpdating(true);
     try {
+      // Academy's own org-scoped list (kept for the multi-role display) — now
+      // tenant-scoped via organization_id so roles no longer go global.
       if (hasRole) {
-        await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
+        await supabase.from("user_roles").delete()
+          .eq("user_id", userId).eq("role", role).eq("organization_id", tid as any);
       } else {
-        await supabase.from("user_roles").insert({ user_id: userId, role });
+        await (supabase as any).from("user_roles")
+          .insert({ user_id: userId, role, organization_id: tid });
       }
+
+      // Unified source of truth the router reads: set the membership to the user's
+      // highest remaining role for THIS tenant.
+      const current = users.find((u) => u.user_id === userId)?.roles ?? [];
+      const next = hasRole ? current.filter((r) => r !== role) : [...current, role];
+      const topRole = pickTopRole(next as string[]);
+      if (tid) {
+        await (supabase as any).from("tenant_memberships")
+          .upsert({ user_id: userId, tenant_id: tid, role: topRole, status: "active" },
+                  { onConflict: "user_id,tenant_id" });
+      }
+
       toast.success(`Role ${hasRole ? "removed" : "assigned"}`);
       onRefresh();
     } catch (err: any) {

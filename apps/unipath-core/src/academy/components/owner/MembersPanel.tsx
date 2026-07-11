@@ -191,6 +191,20 @@ const MembersPanel = () => {
         if (error) throw error;
         toast.success(`${roleMeta[role].label} berildi`);
       }
+
+      // Mirror to tenant_memberships (org == tenant) so the router picks up the
+      // role — set the member's highest remaining role for this tenant.
+      const rank: Record<string, number> = { super_admin: 100, superadmin: 100, owner: 90, admin: 80, manager: 70, accountant: 60, teacher: 50, mentor: 45, agent: 40, specialist: 35, parent: 20, student: 10, member: 5 };
+      const nextRoles = (has ? m.roles.filter((r) => r !== role) : [...m.roles, role])
+        .map((r) => (r === "superadmin" ? "super_admin" : r));
+      const topRole = nextRoles.length
+        ? nextRoles.sort((a, b) => (rank[b] ?? 30) - (rank[a] ?? 30))[0]
+        : "student";
+      await (supabase as any)
+        .from("tenant_memberships")
+        .upsert({ user_id: m.user_id, tenant_id: orgId, role: topRole, status: "active" },
+                { onConflict: "user_id,tenant_id" });
+
       load();
     } catch (e: any) {
       toast.error(e.message || "Saqlashda xatolik");
