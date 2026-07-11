@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { useApp } from "@/contexts/AppContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { MeshBackground } from "@/components/MeshBackground";
 
 type NavItem = { href: string; label: string; icon: any };
 type NavGroup = { label: string; items: NavItem[] };
@@ -22,6 +25,17 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { t } = useTranslation();
+  const { activeTenant } = useApp();
+  const { role } = useUserRole();
+
+  const roleLabel =
+    role === 'super_admin' ? 'Super admin'
+    : (role === 'owner' || role === 'admin') ? 'Administrator'
+    : role === 'manager' ? 'Menejer'
+    : role === 'accountant' ? 'Buxgalter'
+    : role === 'agent' ? 'Agent'
+    : 'Foydalanuvchi';
+  const logoUrl = (activeTenant as any)?.config?.branding?.logo_url as string | undefined;
 
   const groups: NavGroup[] = [
     {
@@ -69,18 +83,23 @@ const AdminLayout = () => {
   const initial = (user?.email || "A").charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background border-r transform transition-transform lg:transform-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+    <div className="relative min-h-screen">
+      <MeshBackground />
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background/70 backdrop-blur-2xl border-r border-white/40 transform transition-transform lg:transform-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className="flex flex-col h-full">
           <div className="px-5 py-5 border-b">
             <Link to="/admin" className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold shadow-md">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <div className="leading-tight">
-                <p className="font-bold text-sm">UniTour</p>
+              {logoUrl ? (
+                <img src={logoUrl} alt={activeTenant?.name || 'Logo'} className="h-9 w-9 rounded-xl object-contain shadow-md bg-white/5" />
+              ) : (
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold shadow-md">
+                  {activeTenant?.name ? activeTenant.name.charAt(0).toUpperCase() : <Sparkles className="h-4 w-4" />}
+                </div>
+              )}
+              <div className="leading-tight min-w-0">
+                <p className="font-bold text-sm truncate max-w-[150px]">{activeTenant?.name || 'Tur agentligi'}</p>
                 <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <ShieldCheck className="h-2.5 w-2.5" /> Super Admin
+                  <ShieldCheck className="h-2.5 w-2.5" /> Tur agentligi
                 </p>
               </div>
             </Link>
@@ -112,7 +131,7 @@ const AdminLayout = () => {
               <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">{initial}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{user?.email}</p>
-                <p className="text-[10px] text-muted-foreground">Super admin</p>
+                <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={async () => { await signOut(); navigate("/auth"); }}>
@@ -126,7 +145,7 @@ const AdminLayout = () => {
       {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <div className="lg:ml-64">
-        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b">
+        <header className="sticky top-0 z-30 bg-background/60 backdrop-blur-2xl border-b border-white/40">
           <div className="flex items-center justify-between gap-4 px-4 md:px-6 h-16">
             <button className="lg:hidden p-2 text-foreground" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-6 w-6" />
@@ -134,7 +153,7 @@ const AdminLayout = () => {
             <div className="hidden md:flex items-center flex-1 max-w-md">
               <div className="relative w-full">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Qidirish: kompaniya, foydalanuvchi, buyurtma..." className="pl-9 h-9 rounded-xl bg-muted/50 border-0 focus-visible:bg-background" />
+                <Input placeholder="Qidirish: tur, foydalanuvchi, buyurtma..." className="pl-9 h-9 rounded-xl bg-muted/50 border-0 focus-visible:bg-background" />
               </div>
             </div>
             <div className="flex items-center gap-3 ml-auto">
