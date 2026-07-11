@@ -6,9 +6,13 @@ import UniTourLoader from "@/components/common/UniTourLoader";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ("super_admin" | "admin" | "moderator" | "company_owner" | "company_staff" | "user")[];
+  allowedRoles?: string[];
   requireAgent?: boolean;
 }
+
+// Unified platform role groups (same as core useUserRole).
+const ADMIN_ROLES = ["super_admin", "admin", "owner", "manager", "accountant"];
+const AGENT_ROLES = ["agent", "specialist", "mentor"];
 
 const ProtectedRoute = ({ children, allowedRoles, requireAgent }: ProtectedRouteProps) => {
   const { user, loading, userRole } = useAuth();
@@ -70,14 +74,9 @@ const ProtectedRoute = ({ children, allowedRoles, requireAgent }: ProtectedRoute
 };
 
 function getRoleRedirect(role: string | null): string {
-  switch (role) {
-    case "super_admin": return "/admin";
-    case "admin": return "/admin";
-    case "moderator": return "/operator";
-    case "company_owner": return "/company";
-    case "company_staff": return "/company";
-    default: return "/dashboard";
-  }
+  if (role && ADMIN_ROLES.includes(role)) return "/admin";
+  if (role && AGENT_ROLES.includes(role)) return "/agent";
+  return "/dashboard";
 }
 
 export default ProtectedRoute;

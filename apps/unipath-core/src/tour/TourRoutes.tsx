@@ -121,7 +121,7 @@ export default function TourRoutes() {
         <Route
           path="/operator"
           element={
-            <ProtectedRoute allowedRoles={["moderator", "admin", "super_admin"]}>
+            <ProtectedRoute allowedRoles={["super_admin", "admin", "owner", "manager"]}>
               <OperatorLayout />
             </ProtectedRoute>
           }
@@ -138,7 +138,7 @@ export default function TourRoutes() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <ProtectedRoute allowedRoles={["super_admin", "admin", "owner", "manager", "accountant"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
