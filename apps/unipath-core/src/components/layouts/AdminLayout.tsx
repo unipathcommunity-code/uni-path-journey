@@ -7,6 +7,7 @@ import type { AppEntry } from '@unipath/tenant';
 import { usePlanLimits, PlanTier } from '@/hooks/usePlanLimits';
 import { useTranslation } from '@/lib/i18n';
 import { Logo } from '@/components/Logo';
+import { MeshBackground } from '@/components/MeshBackground';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useUserRole } from '@/hooks/useUserRole';
 import {
@@ -394,7 +395,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   );
 
   return (
-    <div className={`min-h-screen flex ${isAcademy || isTour ? 'bg-[#020202] text-white dark' : 'bg-muted/30 text-foreground'}`}>
+    <div className={`relative min-h-screen flex ${isAcademy || isTour ? 'text-white dark' : 'text-foreground'}`}>
+
+      {/* Glassmorphism gradient-mesh backdrop (theme-tinted) */}
+      <MeshBackground dark={isAcademy || isTour} />
 
       {/* Impersonation Banner */}
       {isImpersonating && (
@@ -423,7 +427,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           fixed lg:sticky top-0 left-0 z-50 h-screen w-68
           transform transition-transform duration-300 lg:transform-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${isAcademy || isTour ? 'bg-[#09090b] text-white border-r border-white/10 dark' : 'bg-card border-r border-border'}
+          backdrop-blur-2xl
+          ${isAcademy || isTour ? 'bg-[#09090b]/80 text-white border-r border-white/10 dark' : 'bg-card/70 border-r border-white/40 shadow-[1px_0_30px_-12px_hsl(240_50%_30%_/_0.25)]'}
         `}
         style={{ width: '268px' }}
       >
@@ -563,7 +568,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* ── Main content ── */}
       <main className="flex-1 min-w-0">
         {/* Top bar */}
-        <header className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isAcademy || isTour ? 'bg-[#09090b]/80 border-white/10 text-white dark' : 'bg-background/80 border-border text-foreground'}`}>
+        <header className={`sticky top-0 z-30 backdrop-blur-2xl border-b ${isAcademy || isTour ? 'bg-[#09090b]/70 border-white/10 text-white dark' : 'bg-background/60 border-white/40 text-foreground'}`}>
           <div className="flex items-center justify-between h-14 px-4 md:px-6">
             <div className="flex items-center gap-3">
               <button
