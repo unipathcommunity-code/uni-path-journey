@@ -195,13 +195,10 @@ const SiteLogin = () => {
 
       // Owners/admins go to their dashboards even when they happen to enter
       // through the public site (handy on shared devices).
-      if (roles.includes("superadmin")) navigate("/superadmin");
-      else if (roles.includes("owner")) navigate("/owner");
-      else if (roles.includes("admin")) navigate("/admin");
-      else if (roles.includes("teacher")) navigate("/teacher");
-      else if (roles.includes("parent")) navigate("/parent");
+      if (roles.includes("superadmin")) navigate("/super-admin");
+      else if (roles.includes("owner") || roles.includes("admin")) navigate("/admin");
       else if (roles.includes("accountant")) navigate("/accountant");
-      else navigate("/app"); // default: student cabinet
+      else navigate("/student/dashboard"); // default: student cabinet
     } catch (err: any) {
       toast.error(err?.message || "Xatolik yuz berdi");
     } finally {

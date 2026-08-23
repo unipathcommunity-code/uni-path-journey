@@ -6,26 +6,8 @@ export type { TenantConfig };
 // Business verticals
 // ---------------------------------------------------------------------------
 
-/** All supported verticals. `consulting` is always the last-resort fallback. */
-export type BusinessVertical =
-  | 'tour'
-  | 'academy'
-  | 'hotel'
-  | 'restaurant'
-  | 'clinic'
-  | 'gym'
-  | 'manufacturing'
-  | 'parking'
-  | 'auto_service'
-  | 'wholesale'
-  | 'wedding_hall'
-  | 'kindergarten'
-  | 'library'
-  | 'cosmetics'
-  | 'stadium'
-  | 'pharmacy'
-  | 'car_showroom'
-  | 'consulting';
+/** The single vertical this platform serves. */
+export type BusinessVertical = 'consulting';
 
 // ---------------------------------------------------------------------------
 // Tenant domain model

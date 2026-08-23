@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@unipath/tenant";
 import { Loader2 } from "lucide-react";
-import UniTourLoader from "@/components/common/UniTourLoader";
+import PageLoader from "@/components/common/PageLoader";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -67,7 +67,7 @@ const ProtectedRoute = ({
   });
 
   if (loading || (requireAgent && agentLoading)) {
-    return <UniTourLoader size="lg" text="Yuklanmoqda..." />;
+    return <PageLoader size="lg" text="Yuklanmoqda..." />;
   }
 
   if (!user) {
@@ -99,9 +99,7 @@ const ProtectedRoute = ({
     const isTenantSpecificRoute = 
       location.pathname.startsWith('/student') || 
       location.pathname.startsWith('/agent') || 
-      location.pathname.startsWith('/teacher') || 
-      location.pathname.startsWith('/accountant') || 
-      location.pathname.startsWith('/parent');
+      location.pathname.startsWith('/accountant');
 
     if (isTenantSpecificRoute) {
       if (isSuperAdmin) {

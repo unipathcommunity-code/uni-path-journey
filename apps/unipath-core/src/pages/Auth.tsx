@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  Shield, Mail, Lock, User, ArrowRight, Loader2,
-  Plane, GraduationCap, Building2, Utensils, Bed, Dumbbell
+  Shield, Mail, Lock, User, ArrowRight, Loader2, Building2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,18 +11,6 @@ import { useAuth } from "@/hooks/useAuth";
 import ThemeLangSwitcher from "@/components/ThemeLangSwitcher";
 
 type AuthMode = "login" | "signup" | "forgot";
-
-/** Returns icon + label for a vertical */
-function verticalMeta(vertical: string | null) {
-  switch (vertical) {
-    case "tour":        return { Icon: Plane,          label: "Turistik Kompaniya", color: "text-sky-400" };
-    case "academy":     return { Icon: GraduationCap,  label: "O'quv Markaz",       color: "text-emerald-400" };
-    case "hotel":       return { Icon: Bed,             label: "Mehmonxona",          color: "text-indigo-400" };
-    case "restaurant":  return { Icon: Utensils,        label: "Restoran",            color: "text-orange-400" };
-    case "gym":         return { Icon: Dumbbell,        label: "Sport Zal",           color: "text-rose-400" };
-    default:            return { Icon: Building2,       label: "Biznes",              color: "text-primary" };
-  }
-}
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -36,16 +23,15 @@ const Auth = () => {
 
   // Branding — tenant subdomain OR generic UniPath
   const tenantName  = activeTenant?.name || "UniPath";
-  const vertical    = activeTenant?.business_type || null;
-  const { Icon, label, color } = verticalMeta(vertical);
+  const Icon  = Building2;
+  const label = "Konsalting";
+  const color = "text-primary";
   const logoUrl     = activeTenant?.config?.branding?.logo_url;
 
   const { user } = useAuth(); // Import useAuth from contexts/AuthContext or hooks/useAuth
 
-  // Education verticals keep the study-abroad "student" flow; every other
-  // business gets a plain "member" (customer) role.
-  const EDU_VERTICALS = ['academy', 'consulting', 'tour'];
-  const defaultRole = vertical && !EDU_VERTICALS.includes(vertical) ? 'member' : 'student';
+  // Consulting end-users follow the study-abroad "student" flow.
+  const defaultRole = 'student';
 
   // One account, many businesses: after a successful login/signup on a tenant
   // subdomain, ensure the user has a membership row for THIS tenant (idempotent,

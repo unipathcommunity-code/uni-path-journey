@@ -26,7 +26,7 @@ interface UserWithProfile {
   created_at: string;
   profile?: { full_name: string | null; phone: string | null; avatar_url: string | null };
   role?: { role: string };
-  bookings_count?: number;
+  applications_count?: number;
 }
 
 const ROLE_OPTIONS: { value: string; label: string }[] = [
@@ -79,17 +79,17 @@ const AdminUsers = () => {
         roles = rolesData || [];
       }
 
-      // Get bookings counts for the same user_ids
-      let bookingsCounts: any[] = [];
+      // Get application counts for the same user_ids
+      let applicationCounts: any[] = [];
       if (profileUserIds.length > 0) {
-        const { data: bookingsData, error: bookingsError } = await supabase.from("bookings").select("user_id").in('user_id', profileUserIds);
-        if (!bookingsError) bookingsCounts = bookingsData || [];
+        const { data: appsData, error: appsError } = await supabase.from("applications").select("user_id").in('user_id', profileUserIds);
+        if (!appsError) applicationCounts = appsData || [];
       }
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]));
       const roleMap = new Map(roles?.map(r => [r.user_id, r]));
-      const bookingsMap = new Map<string, number>();
-      bookingsCounts?.forEach(b => { bookingsMap.set(b.user_id, (bookingsMap.get(b.user_id) || 0) + 1); });
+      const applicationsMap = new Map<string, number>();
+      applicationCounts?.forEach(a => { applicationsMap.set(a.user_id, (applicationsMap.get(a.user_id) || 0) + 1); });
 
       const userIds = [...new Set([...profiles?.map(p => p.user_id) || [], ...roles?.map(r => r.user_id) || []])];
       return userIds.map(userId => ({
@@ -98,7 +98,7 @@ const AdminUsers = () => {
         created_at: new Date().toISOString(),
         profile: profileMap.get(userId) || null,
         role: roleMap.get(userId) || null,
-        bookings_count: bookingsMap.get(userId) || 0,
+        applications_count: applicationsMap.get(userId) || 0,
       }));
     },
   });
@@ -129,49 +129,28 @@ const AdminUsers = () => {
     onError: (err: any) => { toast.error(err?.message || t("admin.roleError")); },
   });
 
-  // Assign user's bookings to an agent
+  // Assign a client to an agent (consulting CRM link)
   const assignToAgentMutation = useMutation({
     mutationFn: async ({ userId, agentId, notes }: { userId: string; agentId: string; notes: string }) => {
-      // Get user's bookings
-      const { data: userBookings, error: bookingsErr } = await supabase
-        .from("bookings")
+      // Already linked? Only touch the notes — `status` drives RLS, never overwrite it here.
+      const { data: existing } = await supabase
+        .from("agent_students")
         .select("id")
-        .eq("user_id", userId);
-      if (bookingsErr) throw bookingsErr;
+        .eq("student_id", userId)
+        .eq("agent_id", agentId)
+        .maybeSingle();
 
-      if (!userBookings || userBookings.length === 0) {
-        throw new Error("Bu foydalanuvchida buyurtma mavjud emas");
-      }
-
-      // Assign each booking to the agent
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      for (const booking of userBookings) {
-        // Check if already assigned
-        const { data: existing } = await supabase
-          .from("booking_agent_assignments")
-          .select("id")
-          .eq("booking_id", booking.id)
-          .maybeSingle();
-
-        if (existing) {
-          // Update existing assignment
-          await supabase
-            .from("booking_agent_assignments")
-            .update({ agent_id: agentId, notes, assigned_by: user.id })
-            .eq("id", existing.id);
-        } else {
-          // Create new assignment
-          await supabase
-            .from("booking_agent_assignments")
-            .insert({
-              booking_id: booking.id,
-              agent_id: agentId,
-              assigned_by: user.id,
-              notes,
-            });
-        }
+      if (existing) {
+        const { error } = await supabase
+          .from("agent_students")
+          .update({ notes })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("agent_students")
+          .insert({ agent_id: agentId, student_id: userId, notes });
+        if (error) throw error;
       }
     },
     onSuccess: () => {
@@ -313,7 +292,7 @@ const AdminUsers = () => {
               </div>
               <div className="flex items-center gap-2 mt-3">
                 {getRoleBadge(user.role?.role)}
-                <Badge variant="outline" className="text-xs">{user.bookings_count || 0} ta buyurtma</Badge>
+                <Badge variant="outline" className="text-xs">{user.applications_count || 0} ta ariza</Badge>
               </div>
             </CardContent>
           </Card>
@@ -360,7 +339,7 @@ const AdminUsers = () => {
                     </td>
                     <td className="px-6 py-4">{getRoleBadge(user.role?.role)}</td>
                     <td className="px-6 py-4">
-                      <Badge variant="outline">{user.bookings_count || 0} ta</Badge>
+                      <Badge variant="outline">{user.applications_count || 0} ta</Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1">
@@ -472,7 +451,7 @@ const AdminUsers = () => {
                   <p className="font-medium text-sm">{assignAgentUser?.profile?.full_name || t("admin.unknown")}</p>
                   <p className="text-xs text-muted-foreground">{assignAgentUser?.profile?.phone || ""}</p>
                 </div>
-                <Badge variant="outline" className="ml-auto text-xs">{(assignAgentUser as any)?.bookings_count || 0} buyurtma</Badge>
+                <Badge variant="outline" className="ml-auto text-xs">{(assignAgentUser as any)?.applications_count || 0} ariza</Badge>
               </div>
             </div>
 

@@ -6,37 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useApp } from "@/contexts/AppContext";
 
 const AdminAccounting = () => {
   const { t } = useTranslation();
-  const { activeTenant } = useApp();
   
-  const rawV = activeTenant?.business_type || (activeTenant?.config as any)?.business_type || 'academy';
-  let vertical = String(rawV).toLowerCase().trim();
-  if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
-  if (vertical === 'unitour' || vertical === 'tour_farm') vertical = 'tour';
-
   const { data: transactions = [], isLoading: transLoading } = useQuery({
-    queryKey: ["admin-accounting", vertical],
+    queryKey: ["admin-accounting"],
     queryFn: async () => {
       try {
-        if (vertical === 'tour') {
-          const { data, error } = await supabase.from("tour_bookings").select(`*, tour_packages (title, destination)`).order("created_at", { ascending: false });
-          if (error) {
-            console.warn("tour_bookings query failed", error);
-            return [];
-          }
-          return data || [];
-        } else {
-          // Default academy / others
-          const { data, error } = await supabase.from("payment_transactions").select(`*`).order("created_at", { ascending: false });
-          if (error) {
-            console.warn("payment_transactions query failed", error);
-            return [];
-          }
-          return data || [];
+        const { data, error } = await supabase.from("payment_transactions").select(`*`).order("created_at", { ascending: false });
+        if (error) {
+          console.warn("payment_transactions query failed", error);
+          return [];
         }
+        return data || [];
       } catch (err) {
         console.error("Accounting query error", err);
         return [];
@@ -57,8 +40,8 @@ const AdminAccounting = () => {
     },
   });
 
-  const totalRevenue = transactions.filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed").reduce((sum: number, b: any) => sum + (b.total_price || b.amount || 0), 0);
-  const pendingRevenue = transactions.filter((b: any) => b.status === "pending").reduce((sum: number, b: any) => sum + (b.total_price || b.amount || 0), 0);
+  const totalRevenue = transactions.filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed").reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
+  const pendingRevenue = transactions.filter((b: any) => b.status === "pending").reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
   
   const totalCommissions = referrals.reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
   const paidCommissions = referrals.filter((r: any) => r.status === "paid" || r.status === "completed").reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
@@ -71,7 +54,7 @@ const AdminAccounting = () => {
     const now = new Date();
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   });
-  const thisMonthRevenue = thisMonth.filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed").reduce((sum: number, b: any) => sum + (b.total_price || b.amount || 0), 0);
+  const thisMonthRevenue = thisMonth.filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed").reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
 
   const formatPrice = (price: number) => new Intl.NumberFormat("uz-UZ").format(price) + " UZS";
 
@@ -149,10 +132,10 @@ const AdminAccounting = () => {
                   <TableRow key={transaction.id}>
                     <TableCell>{new Date(transaction.created_at || transaction.payment_date).toLocaleDateString("uz-UZ")}</TableCell>
                     <TableCell className="font-medium">
-                      {transaction.tour_packages?.title || transaction.description || transaction.payment_method || "Umumiy To'lov"}
+                      {transaction.description || transaction.payment_method || "Umumiy To'lov"}
                     </TableCell>
                     <TableCell><Badge variant="outline" className="bg-green-50 text-green-700">Kirim</Badge></TableCell>
-                    <TableCell className="font-semibold text-green-600">+{formatPrice(transaction.total_price || transaction.amount || 0)}</TableCell>
+                    <TableCell className="font-semibold text-green-600">+{formatPrice(transaction.amount || 0)}</TableCell>
                     <TableCell>
                       <Badge className={(transaction.status === "confirmed" || transaction.status === "paid" || transaction.status === "completed") ? "bg-green-100 text-green-700" : transaction.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}>
                         {(transaction.status === "confirmed" || transaction.status === "paid" || transaction.status === "completed") ? "Tasdiqlangan" : transaction.status === "pending" ? "Kutilmoqda" : "Bekor qilingan"}

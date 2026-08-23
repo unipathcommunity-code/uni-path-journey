@@ -4,27 +4,10 @@ import type { BusinessVertical } from './types';
 import { VERTICAL_LABELS } from './verticals';
 
 // ---------------------------------------------------------------------------
-// Vertical icon map (emoji fallback — no icon library dependency in the package)
+// Vertical icon (emoji fallback — no icon library dependency in the package)
 // ---------------------------------------------------------------------------
 
 const VERTICAL_ICONS: Record<BusinessVertical, string> = {
-  tour: '✈️',
-  academy: '🎓',
-  hotel: '🏨',
-  restaurant: '🍽️',
-  clinic: '🏥',
-  gym: '💪',
-  manufacturing: '🏭',
-  parking: '🅿️',
-  auto_service: '🔧',
-  wholesale: '📦',
-  wedding_hall: '💍',
-  kindergarten: '🧸',
-  library: '📚',
-  cosmetics: '💄',
-  stadium: '🏟️',
-  pharmacy: '💊',
-  car_showroom: '🚗',
   consulting: '💼',
 };
 

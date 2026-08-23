@@ -23,18 +23,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSuperAdminStats, verticalLabel } from "@/hooks/useSuperAdminStats";
 import { tenantStatusLabel, tenantStatusBadgeClass } from "@/lib/tenantStatus";
-import PlatformActivityPulse from "@/components/superadmin/PlatformActivityPulse";
 import { verticalStyle, impersonateTenant } from "@/lib/verticalConfig";
-import { useTenantPulse } from "@/hooks/useTenantPulse";
 
 const fmt = (n: number) => n.toLocaleString("uz-UZ").replace(/,/g, " ");
 
 export default function SuperAdminOverview() {
   const { data, isLoading } = useSuperAdminStats();
-  const { byTenant: pulse } = useTenantPulse();
 
   const totals = data?.totals;
-  const verticalRows = Object.entries(data?.byVertical || {}).sort((a, b) => b[1] - a[1]);
+  const planRows = Object.entries(data?.byPlan || {}).sort((a, b) => b[1] - a[1]);
   const pendingTenants = (data?.tenants || []).filter((t) => t.status === "pending");
   const [search, setSearch] = useState("");
   const allTenants = data?.tenants || [];
@@ -129,9 +126,6 @@ export default function SuperAdminOverview() {
         </CardContent>
       </Card>
 
-      {/* Live cross-vertical operational pulse (restaurant / hotel / wedding) */}
-      <PlatformActivityPulse />
-
       {/* Quick-action tiles — control center */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-3">Boshqaruv markazi</h2>
@@ -153,20 +147,20 @@ export default function SuperAdminOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Vertical distribution */}
+        {/* Plan distribution */}
         <Card className="bg-muted/5 border-white/5">
           <CardHeader>
-            <CardTitle className="text-lg">Sohalar taqsimoti</CardTitle>
-            <CardDescription className="text-xs">Firmalar biznes turlari bo'yicha</CardDescription>
+            <CardTitle className="text-lg">Tariflar taqsimoti</CardTitle>
+            <CardDescription className="text-xs">Faol firmalar tarif rejalari bo'yicha</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {verticalRows.length === 0 && <p className="text-white/40 text-sm">Firmalar yo'q.</p>}
-            {verticalRows.map(([v, count]) => {
-              const pct = totals?.tenants ? Math.round((count / totals.tenants) * 100) : 0;
+            {planRows.length === 0 && <p className="text-white/40 text-sm">Firmalar yo'q.</p>}
+            {planRows.map(([v, count]) => {
+              const pct = totals?.live ? Math.round((count / totals.live) * 100) : 0;
               return (
                 <div key={v} className="space-y-1.5">
                   <div className="flex justify-between text-sm text-white/80">
-                    <span>{verticalLabel(v)}</span>
+                    <span>{v}</span>
                     <span className="font-semibold text-white">{count} ta</span>
                   </div>
                   <div className="w-full bg-white/5 rounded-full h-2">
@@ -282,13 +276,6 @@ export default function SuperAdminOverview() {
                       {t.plan || "—"}{t.monthlyPrice ? ` · ${fmt(t.monthlyPrice)} UZS/oy` : ""}
                     </span>
                   </div>
-
-                  {pulse[t.id] && (
-                    <div className="flex items-center justify-between mt-2 rounded-lg bg-white/[0.03] px-2.5 py-1.5">
-                      <span className="text-[11px] text-white/40">{pulse[t.id].label}</span>
-                      <span className={`text-xs font-bold ${s.text}`}>{pulse[t.id].value}</span>
-                    </div>
-                  )}
 
                   <div className="flex gap-2 mt-4">
                     <Button

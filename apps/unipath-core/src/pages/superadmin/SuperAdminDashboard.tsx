@@ -11,6 +11,7 @@ import {
   UserCheck,
   Coins,
   Hourglass,
+  Clock,
   Trash2,
   Plane,
   Bed,
@@ -51,115 +52,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { createClient } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 
-// Business vertical config
+// Only one vertical is served by this platform.
 const VERTICALS = [
   { id: 'consulting', name: 'Konsalting (Consulting)', icon: Building2, color: 'text-blue-400' },
-  { id: 'tour', name: 'Turistik Kompaniya (Tour)', icon: Plane, color: 'text-sky-400' },
-  { id: 'academy', name: 'Akademiya (NOVA)', icon: GraduationCap, color: 'text-emerald-400' },
-  { id: 'hotel', name: 'Mehmonxona (Hotel)', icon: Bed, color: 'text-purple-400' },
-  { id: 'restaurant', name: 'Restoran (Restaurant)', icon: ClipboardList, color: 'text-amber-400' },
-  { id: 'pharmacy', name: 'Dorixona (Pharmacy)', icon: Pill, color: 'text-blue-400' },
-  { id: 'gym', name: 'Sport Zali (Gym)', icon: TrendingUp, color: 'text-amber-400' },
-  { id: 'manufacturing', name: 'Ishlab Chiqarish (Manufacturing)', icon: Factory, color: 'text-blue-400' },
-  { id: 'auto_service', name: 'Avtoservis (Auto)', icon: Wrench, color: 'text-amber-400' },
-  { id: 'clinic', name: 'Klinika (Clinic)', icon: UserCheck, color: 'text-rose-400' },
-  { id: 'parking', name: 'Avtoturargoh (Parking)', icon: Car, color: 'text-blue-400' },
-  { id: 'wedding_hall', name: 'To\'yxona (Wedding Hall)', icon: Heart, color: 'text-rose-400' },
-  { id: 'kindergarten', name: 'Bog\'cha (Kindergarten)', icon: Baby, color: 'text-emerald-400' },
-  { id: 'library', name: 'Kutubxona (Library)', icon: BookOpen, color: 'text-purple-400' },
-  { id: 'cosmetics', name: 'Kosmetika (Cosmetics)', icon: Scissors, color: 'text-rose-400' },
-  { id: 'stadium', name: 'Stadion (Stadium)', icon: Trophy, color: 'text-emerald-400' },
-  { id: 'car_showroom', name: 'Avtosalon (Car Dealership)', icon: Car, color: 'text-blue-400' }
-];
-
-const VERTICAL_DEFAULT_THEME: Record<string, string> = {
-  consulting:    'blue',
-  tour:          'blue',
-  academy:       'emerald',
-  hotel:         'purple',
-  restaurant:    'amber',
-  clinic:        'rose',
-  gym:           'amber',
-  manufacturing: 'blue',
-  parking:       'blue',
-  auto_service:  'amber',
-  wholesale:     'blue',
-  wedding_hall:  'rose',
-  kindergarten:  'emerald',
-  library:       'purple',
-  stadium:       'emerald',
-  cosmetics:     'rose',
-  pharmacy:      'blue',
-  car_showroom:  'blue',
-};
-
-const ACADEMY_MODULES = [
-  { id: 'qr_attendance', label: 'QR davomat', desc: 'Sinfxonaga kirish uchun tezkor QR skaner' },
-  { id: 'telegram_bot', label: 'Telegram bot', desc: 'Avtomatik Telegram xabarnomalar integratsiyasi' },
-  { id: 'ai_tutor', label: 'Yordamchi (24/7)', desc: 'Sun\'iy intellektga asoslangan 24/7 assistent' },
-  { id: 'live_classes', label: 'Jonli darslar', desc: 'Onlayn video darslar moduli' },
-  { id: 'nova_store', label: 'Nova-Store', desc: 'NovaCoins loyallik do\'koni' },
-  { id: 'ai_presentation', label: 'Taqdimot generator', desc: 'AI yordamida tezkor taqdimotlar tayyorlash' },
-  { id: 'crm', label: 'CRM', desc: 'Mijozlar oqimi va pipeline boshqaruvi' },
-  { id: 'website_builder', label: 'Veb-sayt', desc: 'Brendlangan jamoat veb-sayti' },
-  { id: 'payments', label: 'To\'lovlar', desc: 'Kvitansiyalar, invoice va to\'lov hisobotlari' },
-  { id: 'homework', label: 'Uy vazifalar', desc: 'Uyga berilgan topshiriqlar nazorati' },
-  { id: 'parent_mirror', label: 'Ota-ona oynasi', desc: 'Ota-onalar uchun alohida kuzatuv oynasi' },
-  { id: 'biometric', label: 'Biometrik', desc: 'FaceID va biometrik tekshiruvlar' },
-  { id: 'ai_lesson_planner', label: 'Dars rejalashtirish', desc: 'AI yordamida darslar rejasini tuzish' },
-  { id: 'analytics', label: 'Keng analitika', desc: 'Kengaytirilgan chuqur moliya va ko\'rsatkichlar' }
-];
-
-const TOUR_MODULES = [
-  { id: 'tour_catalog', label: 'Turlar katalogi', desc: 'Sayohat paketlari va ekskursiyalar katalogi' },
-  { id: 'tour_bookings', label: 'Sayohatlarni bronlash', desc: 'Buyurtmalar va mijozlar bronlash tizimi' },
-  { id: 'visa_tracker', label: 'Viza kuzatuvchisi', desc: 'Mijozlar viza jarayonlarini bosqichma-bosqich kuzatish' },
-  { id: 'pdf_invoices', label: 'PDF Invoyslar', desc: 'Kvitansiya va sayohat shartnomalarini PDF yuklash' },
-  { id: 'telegram_bot', label: 'Telegram bot', desc: 'Sayohat xabarlari va integratsiyasi' },
-  { id: 'payments', label: 'To\'lovlar', desc: 'Sayohat to\'lovlari va hisob-kitoblari' },
-  { id: 'crm', label: 'CRM / Moliya', desc: 'Mijozlar oqimi va sotuv voronkasi' },
-  { id: 'website_builder', label: 'Veb-sayt', desc: 'Agentlik uchun ochiq veb-sayt va tur qidiruvi' },
-  { id: 'multi_branch', label: 'Ko\'p filialli tizim', desc: 'Filiallar o\'rtasida turoperatorlarni boshqarish' },
-  { id: 'analytics', label: 'Keng analitika', desc: 'Daromadlar va buyurtmalar tahlili' }
 ];
 
 const CONSULTING_MODULES = [
   { id: 'applications_pipeline', label: 'Arizalar voronkasi', desc: 'Mijozlar hujjatlari va arizalar holati pipelinei' },
   { id: 'document_control', label: 'Hujjatlar nazorati', desc: 'Hujjatlarni yuklash, tekshirish va tasdiqlash' },
-  { id: 'universities_api', label: 'Universitetlar API', desc: 'Xalqaro universitetlar ma\'lumotlar bazasi' },
+  { id: 'universities_api', label: 'Universitetlar API', desc: "Xalqaro universitetlar ma'lumotlar bazasi" },
   { id: 'telegram_bot', label: 'Telegram bot', desc: 'Abituriyent xabarnomalari va bot integratsiyasi' },
   { id: 'arrival_tracking', label: 'Kutib olish va transfer', desc: 'Xorijda talabalarni transfer va joylashuvini kuzatish' },
   { id: 'visa_service', label: 'Viza xizmati', desc: 'Viza va konsullik hujjatlarini tayyorlash yordamchisi' },
-  { id: 'payments', label: 'To\'lovlar', desc: 'Konsalting to\'lovlari va kvitansiyalar' },
+  { id: 'payments', label: "To'lovlar", desc: "Konsalting to'lovlari va kvitansiyalar" },
   { id: 'crm', label: 'CRM', desc: 'Mijozlar va abituriyentlar oqimi' },
   { id: 'website_builder', label: 'Veb-sayt', desc: 'Konsalting sayti va ariza yuborish' },
   { id: 'analytics', label: 'Keng analitika', desc: 'Ariza va arizachilar konversiyasi tahlili' }
 ];
 
-const DEFAULT_MODULES = [
-  { id: 'telegram_bot', label: 'Telegram bot', desc: 'Telegram bot integratsiyasi' },
-  { id: 'payments', label: 'To\'lovlar', desc: 'To\'lovlar va hisob-kitoblar' },
-  { id: 'crm', label: 'CRM', desc: 'Mijozlar oqimi boshqaruvi' },
-  { id: 'website_builder', label: 'Veb-sayt', desc: 'Tashqi veb-sayt sahifalari' },
-  { id: 'analytics', label: 'Keng analitika', desc: 'Kengaytirilgan hisobotlar' }
-];
-
-const CAR_SHOWROOM_MODULES = [
-  { id: 'car_inventory', label: 'Avtomobillar zaxirasi', desc: 'Sotuvdagi, buyurtmadagi va sotilgan avtomobillar katalogi' },
-  { id: 'test_drives', label: 'Test-drayvlar', desc: 'Mijozlar test-drayv darslari va taqvimi' },
-  { id: 'leasing_credit', label: 'Lizing va Kredit', desc: 'Kalkulyator va mijozlar to\'lov jadvallari' },
-  { id: 'crm', label: 'Savdo CRM', desc: 'Mijozlar qiziqish bosqichlari (leads) va voronkasi' },
-  { id: 'pdf_invoices', label: 'Shartnomalar & Invoys', desc: 'Kredit va oldi-sotdi shartnomalarini PDF yuklash' },
-  { id: 'telegram_bot', label: 'Telegram bot', desc: 'Mijozlar buyurtmalari va bot integratsiyasi' },
-  { id: 'payments', label: 'To\'lovlar', desc: 'Lizing shartnomasi bo\'yicha oylik to\'lovlar nazorati' },
-  { id: 'website_builder', label: 'Veb-sayt', desc: 'Showroom ommaviy avto-katalog sayti' },
-  { id: 'service_sync', label: 'Avtoservis integratsiyasi', desc: 'Sotilgan avtomobillar texnik tarixi bilan bog\'lanish' },
-  { id: 'analytics', label: 'Keng analitika', desc: 'Savdo hajmi, mashhurlar markalar va moliya tahlili' }
-];
-
-// Gradient theme presets for per-tenant branding (vertical-neutral —
-// works for any firma: tour, academy, hotel, restaurant, wedding hall...).
-// Same preset family as the NOVA theme customizer, tastefully re-built in CSS.
+// Gradient theme presets for per-tenant branding.
 const THEME_PRESETS = [
   { id: 'aurora',       name: 'Aurora',       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6ee7b7 100%)', primary: '262 83% 58%', accent: '160 70% 50%' },
   { id: 'nebula',       name: 'Nebula',       gradient: 'linear-gradient(135deg, #4c1d95 0%, #a855f7 55%, #ec4899 100%)', primary: '280 75% 60%', accent: '325 80% 60%' },
@@ -172,14 +83,7 @@ const THEME_PRESETS = [
   { id: 'minimal_mono', name: 'Minimal Mono', gradient: 'linear-gradient(135deg, #1f2937 0%, #6b7280 60%, #e5e7eb 100%)', primary: '220 10% 40%', accent: '220 12% 62%' },
 ];
 
-const getModulesForVertical = (vertical: string) => {
-  const v = String(vertical || 'consulting').toLowerCase().trim();
-  if (v === 'academy' || v === 'nova' || v === 'edu') return ACADEMY_MODULES;
-  if (v === 'tour' || v === 'unitour' || v === 'tour_farm' || v === 'travel') return TOUR_MODULES;
-  if (v === 'car_showroom' || v === 'showroom') return CAR_SHOWROOM_MODULES;
-  if (v === 'consulting') return CONSULTING_MODULES;
-  return DEFAULT_MODULES;
-};
+const getModulesForVertical = (_vertical?: string) => CONSULTING_MODULES;
 
 
 
@@ -189,7 +93,6 @@ export default function SuperAdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterVertical, setFilterVertical] = useState<string>("all");
 
   // Dialog state
   const [isDialogOpen] = useState(false); // Managed through parent routing or simple modal
@@ -221,7 +124,7 @@ export default function SuperAdminDashboard() {
   // Dynamic Pricing Plan states
   const [globalPlans, setGlobalPlans] = useState<any[]>([]);
   const [loadingGlobalPlans, setLoadingGlobalPlans] = useState(false);
-  const [selectedVerticalFilter, setSelectedVerticalFilter] = useState<string>("academy");
+  const selectedVerticalFilter = 'consulting';
   const [dialogPlans, setDialogPlans] = useState<any[]>([]);
   const [loadingDialogPlans, setLoadingDialogPlans] = useState(false);
   const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
@@ -284,7 +187,7 @@ export default function SuperAdminDashboard() {
         const { data, error } = await supabase
           .from('pricing_plans')
           .select('*')
-          .eq('vertical', newTenant.businessType);
+          .eq('vertical', 'consulting');
         
         if (error) throw error;
         if (data && data.length > 0) {
@@ -304,7 +207,7 @@ export default function SuperAdminDashboard() {
     }
     
     loadDialogPlans();
-  }, [newTenant.businessType, isNewDialogOpen]);
+  }, [isNewDialogOpen]);
 
 
   const fetchTenants = async () => {
@@ -424,32 +327,16 @@ export default function SuperAdminDashboard() {
           owner_name: newTenant.ownerName,
           owner_email: newTenant.ownerEmail,
           owner_phone: newTenant.ownerPhone || null,
-          vertical: newTenant.businessType,
+          vertical: 'consulting',
           config: {
-            business_type: newTenant.businessType,
+            business_type: 'consulting',
             branding: {
-              theme_color: VERTICAL_DEFAULT_THEME[newTenant.businessType] || 'blue',
+              theme_color: 'blue',
               currency: 'UZS',
               timezone: 'Asia/Tashkent'
             },
             modules: {
-              consulting:    newTenant.businessType === 'consulting',
-              tour:          newTenant.businessType === 'tour',
-              academy:       newTenant.businessType === 'academy',
-              hotel:         newTenant.businessType === 'hotel',
-              restaurant:    newTenant.businessType === 'restaurant',
-              pharmacy:      newTenant.businessType === 'pharmacy',
-              gym:           newTenant.businessType === 'gym',
-              manufacturing: newTenant.businessType === 'manufacturing',
-              auto_service:  newTenant.businessType === 'auto_service',
-              clinic:        newTenant.businessType === 'clinic',
-              parking:       newTenant.businessType === 'parking',
-              wedding_hall:  newTenant.businessType === 'wedding_hall',
-              kindergarten:  newTenant.businessType === 'kindergarten',
-              library:       newTenant.businessType === 'library',
-              cosmetics:     newTenant.businessType === 'cosmetics',
-              stadium:       newTenant.businessType === 'stadium',
-              car_showroom:  newTenant.businessType === 'car_showroom',
+              consulting:    true,
               ai_camera:     !newTenant.plan.toLowerCase().includes('starter'),
               billing:       true
             }
@@ -732,60 +619,7 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleUpdateBusinessType = async (tenantId: string, type: string) => {
-    const newTenants = tenants.map((t: any) => {
-      if (t.id === tenantId) {
-        return {
-          ...t,
-          business_type: type
-        };
-      }
-      return t;
-    });
-    
-    setTenants(newTenants);
-    localStorage.setItem('unipath_tenants', JSON.stringify(newTenants));
-    
-    if (selectedTenant && selectedTenant.id === tenantId) {
-      setSelectedTenant({
-        ...selectedTenant,
-        business_type: type
-      });
-    }
-
-    toast({ title: "Biznes Turi O'zgardi", description: `Firma tizimi ${type.toUpperCase()} rejimiga o'tkazildi.` });
-
-    if (tenantId && tenantId.length > 10 && !tenantId.startsWith('t-')) {
-      try {
-        const { data: existingTenant } = await supabase.from('tenants').select('config').eq('id', tenantId).single();
-        const config = existingTenant?.config || {};
-
-        // Write to `vertical` enum column (primary source of truth) + config for legacy
-        await supabase.from('tenants').update({
-          vertical: type,
-          config: {
-            ...config,
-            business_type: type,
-            modules: {
-              ...config.modules,
-              consulting: type === 'consulting',
-              academy: type === 'academy',
-              hotel: type === 'hotel',
-              tour: type === 'tour',
-              restaurant: type === 'restaurant',
-              clinic: type === 'clinic',
-              gym: type === 'gym',
-              car_showroom: type === 'car_showroom',
-            }
-          }
-        } as any).eq('id', tenantId);
-      } catch (err: any) {
-        console.error(err);
-      }
-    }
-  };
-
-  // Upgraded custom settings handler for verticals - persisted to database
+  // Custom settings handler — persisted to database
   const updateTenantConfig = async (tenantId: string, key: string, value: any) => {
     // 1. Get the current tenant to update
     const tenantToUpdate = tenants.find(t => t.id === tenantId);
@@ -865,189 +699,6 @@ export default function SuperAdminDashboard() {
   };
 
   // 1-Click Database Seeding implementation
-  const seedTourData = (tenantName: string) => {
-    const mockTours = [
-      {
-        id: 't-seeded-1',
-        title: 'Sehrli Registon & Samarqand Ziyorati',
-        destinations: 'Samarqand',
-        duration_days: 3,
-        price: 1800000,
-        currency: 'UZS',
-        total_spots: 25,
-        booked_spots: 12,
-        guide_name: 'Diyorbek Karimov',
-        itinerary: [
-          { day: 1, title: 'Kutib olish', desc: 'Samarqand vokzalida kutib olish va mehmonxonaga joylashtirish.' },
-          { day: 2, title: 'Tarixiy Obidalar', desc: 'Registon maydoni, Go\'ri Amir va Shoxi Zinda ziyoratlari.' },
-          { day: 3, title: 'Siyob Bozori', desc: 'Siyob bozoridan esdalik sovg\'alar xarid qilish va qaytish.' }
-        ]
-      },
-      {
-        id: 't-seeded-2',
-        title: 'Antaliya Ultra All-Inclusive Plyajlari',
-        destinations: 'Turkiya, Antaliya',
-        duration_days: 7,
-        price: 12500000,
-        currency: 'UZS',
-        total_spots: 20,
-        booked_spots: 18,
-        guide_name: 'Alisher Fayzullayev',
-        itinerary: [
-          { day: 1, title: 'Charter reys va Transfer', desc: 'Antaliya aeroportida hashamatli transfer orqali mehmonxonaga yetib borish.' },
-          { day: 2, title: 'O\'rta dengiz plyaji', desc: 'Dam olish va aqua-park o\'yinlari.' }
-        ]
-      }
-    ];
-
-    const mockBookings = [
-      {
-        id: 'b-seeded-1',
-        tour_id: 't-seeded-1',
-        tour_title: 'Sehrli Registon & Samarqand Ziyorati',
-        customer_name: 'Rustamov Jamshid',
-        customer_phone: '+998 90 990-11-22',
-        spots_booked: 4,
-        payment_status: 'paid',
-        total_amount: 7200000,
-        paid_amount: 7200000,
-        insurance_included: true,
-        booking_date: new Date().toISOString().split('T')[0]
-      }
-    ];
-
-    localStorage.setItem('unipath_tour_packages', JSON.stringify(mockTours));
-    localStorage.setItem('unipath_tour_bookings', JSON.stringify(mockBookings));
-    
-    toast({
-      title: "Demo Turlar Seed qilindi!",
-      description: `"${tenantName}" firmasi uchun 2 ta sayohat paketi va 1 ta bron muvaffaqiyatli saqlandi.`,
-      className: "border-sky-400 bg-sky-950/20 text-white"
-    });
-  };
-
-  const seedCarShowroomData = (tenantName: string) => {
-    const mockCars = [
-      {
-        id: 'c-seeded-1',
-        brand: 'BYD',
-        model: 'Song Plus EV Champion',
-        color: 'Oq (Pearl White)',
-        year: 2026,
-        price: 360000000,
-        engine: 'Electro',
-        battery_capacity: '71.7 kWh',
-        range_km: 505,
-        status: 'available',
-        image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=600'
-      },
-      {
-        id: 'c-seeded-2',
-        brand: 'Chevrolet',
-        model: 'Tahoe Premier',
-        color: 'Qora (Black Metallic)',
-        year: 2025,
-        price: 1150000000,
-        engine: 'Petrol',
-        status: 'reserved',
-        image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=600'
-      },
-      {
-        id: 'c-seeded-3',
-        brand: 'Tesla',
-        model: 'Model Y Long Range',
-        color: 'Kulrang (Midnight Silver)',
-        year: 2026,
-        price: 520000000,
-        engine: 'Electro',
-        status: 'sold',
-        image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&q=80&w=600'
-      }
-    ];
-
-    const mockTestDrives = [
-      {
-        id: 'td-seeded-1',
-        car_id: 'c-seeded-1',
-        car_name: 'BYD Song Plus EV Champion',
-        customer_name: 'Axmedov Bobur',
-        customer_phone: '+998 90 123-45-67',
-        status: 'pending',
-        date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        time: '11:00'
-      },
-      {
-        id: 'td-seeded-2',
-        car_id: 'c-seeded-2',
-        car_name: 'Chevrolet Tahoe Premier',
-        customer_name: 'Usmanov Sherzod',
-        customer_phone: '+998 97 999-88-77',
-        status: 'completed',
-        date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-        time: '15:30'
-      }
-    ];
-
-    const mockDeals = [
-      {
-        id: 'd-seeded-1',
-        customer_name: 'Samatov Sardor',
-        customer_phone: '+998 94 444-55-66',
-        car_model: 'BYD Song Plus EV Champion',
-        stage: 'finance_approval',
-        deal_amount: 360000000,
-        down_payment: 100000000,
-        monthly_payment: 9800000,
-        duration_months: 36
-      }
-    ];
-
-    localStorage.setItem('unipath_showroom_cars', JSON.stringify(mockCars));
-    localStorage.setItem('unipath_showroom_testdrives', JSON.stringify(mockTestDrives));
-    localStorage.setItem('unipath_showroom_deals', JSON.stringify(mockDeals));
-
-    toast({
-      title: "Avtosalon shablonlari seed qilindi!",
-      description: `"${tenantName}" firmasi uchun 3 ta avtomobil, 2 ta test-drive va 1 ta faol kredit shartnomasi muvaffaqiyatli yuklandi.`,
-      className: "border-blue-400 bg-blue-950/20 text-white"
-    });
-  };
-
-  const seedAcademyData = (tenantName: string) => {
-    const mockGroups = [
-      {
-        id: 'g-seeded-1',
-        name: 'NOVA IELTS Rocket (Ertablagi)',
-        teacher_id: 't-1',
-        teacher_name: 'Dostonbek Qodirov',
-        schedule: [{ day: 'Seshanba-Payshanba-Shanba', time: '09:00', room: 'Room 303' }],
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 'g-seeded-2',
-        name: 'Web Design UI/UX (Kunduzgi)',
-        teacher_id: 't-2',
-        teacher_name: 'Jasurbek Raximov',
-        schedule: [{ day: 'Dushanba-Chorshanba-Juma', time: '15:00', room: 'Lab 1' }],
-        created_at: new Date().toISOString()
-      }
-    ];
-
-    const mockStudents = [
-      { id: 's-seeded-1', full_name: 'Nazarov Farrux', email: 'farrux@unipath.me', phone: '+998 97 770-00-11', novacoins: 320, debt_amount: 0 },
-      { id: 's-seeded-2', full_name: 'Alimova Rayhon', email: 'rayhon@unipath.me', phone: '+998 90 333-44-55', novacoins: 750, debt_amount: 850000 }
-    ];
-
-    localStorage.setItem('unipath_academy_groups', JSON.stringify(mockGroups));
-    localStorage.setItem('unipath_academy_students', JSON.stringify(mockStudents));
-
-    toast({
-      title: "Demo darsliklar seed qilindi!",
-      description: `"${tenantName}" firmasi uchun 2 ta guruh va 2 ta o'quvchi (Loyalty ko'rsatkichlari bilan) muvaffaqiyatli seed qilindi.`,
-      className: "border-emerald-400 bg-emerald-950/20 text-white"
-    });
-  };
-
   const getVerticalIcon = (type: string) => {
     const found = VERTICALS.find(v => v.id === type);
     return found ? found.icon : Building2;
@@ -1161,14 +812,12 @@ export default function SuperAdminDashboard() {
                           t.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           t.business_type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "all" || t.status === filterStatus;
-    const matchesVertical = filterVertical === "all" || t.business_type === filterVertical;
-    return matchesSearch && matchesStatus && matchesVertical;
+    return matchesSearch && matchesStatus;
   });
 
   // Insights counts
-  const totalTourCompanies = tenants.filter(t => t.business_type === 'tour').length;
-  const totalAcademies = tenants.filter(t => t.business_type === 'academy').length;
-  const totalConsulting = tenants.filter(t => t.business_type === 'consulting').length;
+  const totalApproved = tenants.filter(t => t.status === 'approved').length;
+  const totalPending = tenants.filter(t => t.status === 'pending').length;
 
   return (
     <div className="text-foreground animate-fade-in pb-16 relative">
@@ -1228,19 +877,6 @@ export default function SuperAdminDashboard() {
                       </div>
                     </div>
                     
-                    <div className="space-y-1.5">
-                      <Label className="text-white/80 font-bold">Biznes turi (Vertical)</Label>
-                      <select
-                        className="w-full h-11 px-3 bg-[#171717] border border-white/10 rounded-xl text-white text-xs"
-                        value={newTenant.businessType}
-                        onChange={(e) => setNewTenant({ ...newTenant, businessType: e.target.value })}
-                      >
-                        {VERTICALS.map(v => (
-                          <option key={v.id} value={v.id} className="bg-[#111111]">{v.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
                     <div className="space-y-1.5">
                       <Label className="text-white/80 font-bold">Tarif rejasi</Label>
                       {loadingDialogPlans ? (
@@ -1359,35 +995,27 @@ export default function SuperAdminDashboard() {
                 <div className="text-3xl font-black text-primary">{tenants.length} ta</div>
               </div>
 
-              <button
-                onClick={() => setFilterVertical(filterVertical === 'tour' ? 'all' : 'tour')}
-                className={`bg-[#111111]/80 border p-5 rounded-2xl relative overflow-hidden group text-left w-full transition-all ${filterVertical === 'tour' ? 'border-sky-400/40 ring-1 ring-sky-400/20' : 'border-white/5 hover:border-sky-400/20'}`}
-              >
+              <div className="bg-[#111111]/80 border border-white/5 p-5 rounded-2xl relative overflow-hidden group">
                 <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Plane className="w-[100px] h-[100px] text-white" />
-                </div>
-                <div className="flex items-center gap-3 text-white/50 mb-2">
-                  <Plane className="w-5 h-5 text-sky-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Sayohat Kompaniyalari</span>
-                </div>
-                <div className="text-3xl font-black text-sky-400">{totalTourCompanies} ta</div>
-                {filterVertical === 'tour' && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-400 animate-pulse" />}
-              </button>
-
-              <button
-                onClick={() => setFilterVertical(filterVertical === 'academy' ? 'all' : 'academy')}
-                className={`bg-[#111111]/80 border p-5 rounded-2xl relative overflow-hidden group text-left w-full transition-all ${filterVertical === 'academy' ? 'border-emerald-400/40 ring-1 ring-emerald-400/20' : 'border-white/5 hover:border-emerald-400/20'}`}
-              >
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Users className="w-[100px] h-[100px] text-white" />
+                  <UserCheck className="w-[100px] h-[100px] text-white" />
                 </div>
                 <div className="flex items-center gap-3 text-white/50 mb-2">
                   <UserCheck className="w-5 h-5 text-emerald-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider">NOVA Akademiyalar</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Faol Agentliklar</span>
                 </div>
-                <div className="text-3xl font-black text-emerald-400">{totalAcademies} ta</div>
-                {filterVertical === 'academy' && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
-              </button>
+                <div className="text-3xl font-black text-emerald-400">{totalApproved} ta</div>
+              </div>
+
+              <div className="bg-[#111111]/80 border border-white/5 p-5 rounded-2xl relative overflow-hidden group">
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Clock className="w-[100px] h-[100px] text-white" />
+                </div>
+                <div className="flex items-center gap-3 text-white/50 mb-2">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Tasdiq Kutmoqda</span>
+                </div>
+                <div className="text-3xl font-black text-amber-400">{totalPending} ta</div>
+              </div>
 
               <div className="bg-[#111111]/80 border border-white/5 p-5 rounded-2xl relative overflow-hidden group">
                 <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -1435,22 +1063,6 @@ export default function SuperAdminDashboard() {
                         onClick={() => setFilterStatus(st)}
                       >
                         {st === 'all' ? 'Barchasi' : st === 'active' ? 'Faol' : 'Kutilmoqda'}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Vertical filter chips */}
-                  <div className="flex gap-1.5 flex-wrap mt-2">
-                    <button
-                      onClick={() => setFilterVertical('all')}
-                      className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all ${filterVertical === 'all' ? 'bg-white/20 text-white' : 'bg-white/5 text-white/40 hover:text-white/70'}`}
-                    >Hammasi</button>
-                    {VERTICALS.slice(0, 5).map(v => (
-                      <button
-                        key={v.id}
-                        onClick={() => setFilterVertical(filterVertical === v.id ? 'all' : v.id)}
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all ${filterVertical === v.id ? `${v.color} bg-white/15` : 'bg-white/5 text-white/40 hover:text-white/70'}`}
-                      >
-                        {v.id === 'consulting' ? '🎓 Konsalting' : v.id === 'tour' ? '✈️ Tour' : v.id === 'academy' ? '📚 Academy' : v.id === 'hotel' ? '🏨 Hotel' : '🍽 Restoran'}
                       </button>
                     ))}
                   </div>
@@ -1918,38 +1530,6 @@ export default function SuperAdminDashboard() {
                           </TabsList>
                           
                           <TabsContent value="modules" className="space-y-6">
-                            
-                            {/* Section I: Main Business Vertical */}
-                            <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">
-                              <div>
-                                <h4 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
-                                  <LayoutGrid className="w-4 h-4 text-primary" /> I. Biznes Turi (Vertical Engine)
-                                </h4>
-                                <p className="text-[10px] text-white/50 mt-1">Super admin har qanday mijoz sub-domenini boshqa biznes rejimiga (Vertical engine) o'tkazishi mumkin.</p>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                {VERTICALS.map(v => {
-                                  const isSelected = selectedTenant.business_type === v.id;
-                                  const VIcon = v.icon;
-                                  return (
-                                    <button
-                                      key={v.id}
-                                      type="button"
-                                      onClick={() => handleUpdateBusinessType(selectedTenant.id, v.id)}
-                                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
-                                        isSelected 
-                                          ? 'border-primary bg-primary/10 text-white font-bold' 
-                                          : 'border-white/5 bg-white/[0.01] text-white/60 hover:border-white/10 hover:text-white'
-                                      }`}
-                                    >
-                                      <VIcon className={`w-4.5 h-4.5 shrink-0 ${isSelected ? 'text-primary' : 'text-white/40'}`} />
-                                      <span>{v.name}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
 
                             {/* Section II: Sorted Vertical Specific Custom Controls */}
                             <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">
@@ -2124,7 +1704,7 @@ export default function SuperAdminDashboard() {
                                         onCheckedChange={() => toggleFeature(selectedTenant.id, 'accountant')}
                                       />
                                     </div>
-                                    <p className="text-[9px] text-white/45 leading-relaxed">Oylik tushumlar, o'quv markazi guruh to'lovlari yoki sayohat paket to'lov hisobotlari.</p>
+                                    <p className="text-[9px] text-white/45 leading-relaxed">Oylik tushumlar va konsalting xizmat to'lovlari hisobotlari.</p>
                                   </div>
                                 </div>
                               </div>
@@ -2140,34 +1720,7 @@ export default function SuperAdminDashboard() {
                               </div>
 
                               <div className="flex gap-2">
-                                {selectedTenant.business_type === 'tour' && (
-                                  <Button
-                                    className="w-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold h-10 rounded-xl gap-1.5"
-                                    onClick={() => seedTourData(selectedTenant.name)}
-                                  >
-                                    <Database className="w-4 h-4" /> Sayohat Tizimi Demo Shablonlarini Yuklash
-                                  </Button>
-                                )}
-
-                                {selectedTenant.business_type === 'academy' && (
-                                  <Button
-                                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold h-10 rounded-xl gap-1.5"
-                                    onClick={() => seedAcademyData(selectedTenant.name)}
-                                  >
-                                    <Database className="w-4 h-4" /> Akademiya CRM Demo Shablonlarini Yuklash
-                                  </Button>
-                                )}
-
-                                {selectedTenant.business_type === 'car_showroom' && (
-                                  <Button
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-10 rounded-xl gap-1.5"
-                                    onClick={() => seedCarShowroomData(selectedTenant.name)}
-                                  >
-                                    <Database className="w-4 h-4" /> Avtosalon Boshqaruvi Demo Shablonlarini Yuklash
-                                  </Button>
-                                )}
-
-                                {selectedTenant.business_type !== 'tour' && selectedTenant.business_type !== 'academy' && selectedTenant.business_type !== 'car_showroom' && (
+                                {(
                                   <Button
                                     className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-bold h-10 rounded-xl gap-1.5"
                                     onClick={() => {
@@ -2354,21 +1907,11 @@ export default function SuperAdminDashboard() {
                 <div>
                   <h2 className="text-lg font-bold text-white">Global Tarif Rejalari</h2>
                   <p className="text-white/50 text-xs mt-1">
-                    Barcha biznes yo'nalishlari (verticals) bo'yicha dynamic tarif rejalarini boshqaring.
+                    Konsalting agentliklari uchun dinamik tarif rejalarini boshqaring.
                   </p>
                 </div>
                 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <select
-                    className="h-10 px-3 bg-[#171717] border border-white/10 rounded-xl text-white text-xs"
-                    value={selectedVerticalFilter}
-                    onChange={(e) => setSelectedVerticalFilter(e.target.value)}
-                  >
-                    {VERTICALS.map(v => (
-                      <option key={v.id} value={v.id} className="bg-[#111111]">{v.name}</option>
-                    ))}
-                  </select>
-
                   <Button
                     onClick={() => {
                       setEditingPlan(null);
@@ -2492,21 +2035,7 @@ export default function SuperAdminDashboard() {
             </DialogHeader>
 
             <div className="space-y-4 py-3 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-white/80 font-bold">Biznes turi (Vertical)</Label>
-                  <select
-                    className="w-full h-10 px-3 bg-[#171717] border border-white/10 rounded-xl text-white text-xs"
-                    value={planForm.vertical}
-                    onChange={(e) => setPlanForm({ ...planForm, vertical: e.target.value })}
-                    disabled={!!editingPlan}
-                  >
-                    {VERTICALS.map(v => (
-                      <option key={v.id} value={v.id} className="bg-[#111111]">{v.name}</option>
-                    ))}
-                  </select>
-                </div>
-
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-white/80 font-bold">Reja nomi (Plan Name)</Label>
                   <Input

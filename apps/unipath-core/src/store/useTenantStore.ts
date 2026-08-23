@@ -1,25 +1,6 @@
 import { create } from 'zustand';
 
-export type BusinessVertical = 
-  | 'consulting' 
-  | 'academy' 
-  | 'hotel' 
-  | 'wedding' 
-  | 'kindergarten' 
-  | 'pharmacy' 
-  | 'wholesale' 
-  | 'restaurant' 
-  | 'gym' 
-  | 'cosmetics' 
-  | 'library' 
-  | 'auto_service' 
-  | 'manufacturing' 
-  | 'stadium' 
-  | 'clinic' 
-  | 'perfume' 
-  | 'parking' 
-  | 'online_shop'
-  | 'tour_farm';
+export type BusinessVertical = 'consulting';
 
 export interface TenantConfig { 
   id: string; 

@@ -7,16 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
  * These mirror the `features` JSONB column on `subscription_plans`.
  */
 export type FeatureKey =
-  | "ai_tutor"
-  | "homework"
   | "payments"
-  | "biometric"
-  | "nova_store"
-  | "live_classes"
-  | "parent_mirror"
-  | "qr_attendance"
-  | "ai_presentation"
-  | "ai_lesson_planner"
   | "crm"
   | "website_builder"
   | "telegram_bot"

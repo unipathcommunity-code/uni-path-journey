@@ -17,27 +17,8 @@ export interface TenantConfig {
     mentor?: boolean;
     unicoin?: boolean;
     accountant?: boolean;
-    // Business verticals — exactly one flag should be true
+    // Business vertical
     consulting?: boolean;
-    academy?: boolean;
-    tour?: boolean;
-    hotel?: boolean;
-    restaurant?: boolean;
-    clinic?: boolean;
-    gym?: boolean;
-    manufacturing?: boolean;
-    parking?: boolean;
-    auto_service?: boolean;
-    wholesale?: boolean;
-    wedding_hall?: boolean;
-    kindergarten?: boolean;
-    library?: boolean;
-    cosmetics?: boolean;
-    stadium?: boolean;
-    pharmacy?: boolean;
-    // Legacy aliases
-    nova?: boolean;
-    unitour?: boolean;
   };
   features?: {
     mentor?: boolean;

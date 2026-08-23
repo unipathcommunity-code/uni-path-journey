@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
-import NovaStudentDashboard from '../StudentDashboard';
-import TravelPlannerPage from '../TravelPlannerPage';
 import { useCredits } from '@/contexts/CreditContext';
 import { useTranslation } from '@/lib/i18n';
 import { useStudentJourney } from '@/hooks/useStudentJourney';
@@ -167,30 +165,7 @@ const STEP_LABELS: Record<string, Record<string, Record<string, string>>> = {
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const { language, activeTenant } = useApp();
-
-  const impersonatedTenantRaw = localStorage.getItem('active_tenant');
-  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
-  const effectiveTenant = impersonatedTenant || activeTenant;
-  const activeModules = (effectiveTenant?.config?.modules ?? {}) as Record<string, boolean>;
-
-  const detectVertical = (modules: Record<string, boolean> = {}): string => {
-    const VERTICALS = [
-      'consulting', 'academy', 'hotel', 'pharmacy', 'restaurant', 'clinic',
-      'gym', 'manufacturing', 'parking', 'auto_service', 'wholesale',
-      'wedding_hall', 'kindergarten', 'library', 'cosmetics', 'stadium', 'tour',
-    ];
-    return VERTICALS.find(v => !!modules[v]) ?? 'consulting';
-  };
-
-  let vertical = effectiveTenant?.business_type || effectiveTenant?.config?.business_type || effectiveTenant?.vertical || detectVertical(activeModules) || 'consulting';
-  if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
-  if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
-
-  // NOTE: vertical routing is handled app-wide by EcosystemRouter (academy →
-  // NovaRoutes, tour → TourRoutes) inside the single unipath.me build. The old
-  // hard redirects to the separate /nova/ and /unitour/ hosted builds were
-  // removed during the ecosystem consolidation — those apps no longer exist.
+  const { language } = useApp();
 
   const { balance } = useCredits();
   const { isUniCoin } = useBusinessMode();

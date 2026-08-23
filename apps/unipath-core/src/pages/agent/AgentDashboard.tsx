@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useApp } from "@/contexts/AppContext";
-import TeacherDashboard from "../TeacherDashboard";
 import { 
   Users, 
   MapPin, 
@@ -16,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageTransition from "@/components/common/PageTransition";
 import AnimatedCard from "@/components/common/AnimatedCard";
-import UniTourLoader from "@/components/common/UniTourLoader";
+import PageLoader from "@/components/common/PageLoader";
 import { motion } from "framer-motion";
 
 interface Agent {
@@ -36,35 +34,13 @@ interface Referral {
   commission_amount: number;
   status: string;
   created_at: string;
-  booking?: {
-    tour?: {
-      title: string;
-      image: string | null;
-    };
+  student?: {
+    full_name: string | null;
   };
 }
 
 const AgentDashboard = () => {
   const { user } = useAuth();
-  const { activeTenant } = useApp();
-
-  const impersonatedTenantRaw = localStorage.getItem('active_tenant');
-  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
-  const effectiveTenant = impersonatedTenant || activeTenant;
-  const activeModules = (effectiveTenant?.config?.modules ?? {}) as Record<string, boolean>;
-
-  const detectVertical = (modules: Record<string, boolean> = {}): string => {
-    const VERTICALS = [
-      'consulting', 'academy', 'hotel', 'pharmacy', 'restaurant', 'clinic',
-      'gym', 'manufacturing', 'parking', 'auto_service', 'wholesale',
-      'wedding_hall', 'kindergarten', 'library', 'cosmetics', 'stadium', 'tour',
-    ];
-    return VERTICALS.find(v => !!modules[v]) ?? 'consulting';
-  };
-
-  let vertical = effectiveTenant?.business_type || effectiveTenant?.config?.business_type || effectiveTenant?.vertical || detectVertical(activeModules) || 'consulting';
-  if (vertical === 'nova' || vertical === 'edu') vertical = 'academy';
-  if (vertical === 'unitour' || vertical === 'tour_farm' || vertical === 'travel') vertical = 'tour';
 
   const { data: agent, isLoading: agentLoading } = useQuery({
     queryKey: ["agent-profile", user?.id],
@@ -87,10 +63,7 @@ const AgentDashboard = () => {
         .from("agent_referrals")
         .select(`
           *,
-          booking:bookings(
-            *,
-            tour:tours(title, image)
-          )
+          student:profiles(full_name)
         `)
         .eq("agent_id", agent?.id)
         .order("created_at", { ascending: false })
@@ -123,12 +96,6 @@ const AgentDashboard = () => {
     },
     enabled: !!agent?.id,
   });
-
-  // Academy tenants use the teacher dashboard. This check MUST stay below all hooks
-  // above — an early return before them broke the Rules of Hooks and crashed the page.
-  if (vertical === 'academy') {
-    return <TeacherDashboard />;
-  }
 
   const statsCards = [
     {
@@ -170,7 +137,7 @@ const AgentDashboard = () => {
   ];
 
   if (agentLoading) {
-    return <UniTourLoader size="lg" text="Agent paneli yuklanmoqda..." />;
+    return <PageLoader size="lg" text="Agent paneli yuklanmoqda..." />;
   }
 
   if (!agent) {
@@ -248,13 +215,11 @@ const AgentDashboard = () => {
                   className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
                 >
                   <div className="flex items-center gap-4">
-                    <img
-                      src={referral.booking?.tour?.image || "/placeholder.svg"}
-                      alt={referral.booking?.tour?.title || "Tour"}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium">{referral.booking?.tour?.title || "Noma'lum tur"}</p>
+                      <p className="font-medium">{referral.student?.full_name || "Noma'lum talaba"}</p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(referral.created_at).toLocaleDateString("uz-UZ")}
                       </p>

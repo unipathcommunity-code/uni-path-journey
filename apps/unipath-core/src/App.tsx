@@ -1,4 +1,4 @@
-import { Suspense, lazy, type ReactNode } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -51,17 +51,9 @@ import SuperAdminSettings from "./pages/superadmin/SuperAdminSettings";
 import Systematize from "./pages/Systematize";
 import PendingApproval from "./pages/PendingApproval";
 
-// Vertical route trees — lazy-loaded, mounted by tenant business_type so every
-// vertical (tour=UniTour, academy=NOVA, consulting=UniPath) runs INSIDE the one
-// unipath.me app. No separate sites/builds, no splitting.
-const TourRoutes = lazy(() => import("@/tour/TourRoutes"));
-const NovaRoutes = lazy(() => import("@/academy/NovaRoutes"));
-
-
 
 // Student Pages
 const StudentDashboard = lazy(() => import("./pages/student/StudentDashboard"));
-const MemberDashboard = lazy(() => import("./pages/member/MemberDashboard"));
 const StudentApplications = lazy(() => import("./pages/student/StudentApplications"));
 const StudentDocuments = lazy(() => import("./pages/student/StudentDocuments"));
 const StudentVisa = lazy(() => import("./pages/student/StudentVisa"));
@@ -73,16 +65,13 @@ const StudentHousing = lazy(() => import("./pages/student/StudentHousing"));
 const StudentArrival = lazy(() => import("./pages/student/StudentArrival"));
 
 // Added Role Pages
-const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AccountantDashboard = lazy(() => import("./pages/AccountantDashboard"));
-const ParentMirror = lazy(() => import("./pages/ParentMirror"));
 
 // Website Builder & Public Sites
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const PublicPricing = lazy(() => import("./pages/PublicPricing"));
 const PublicSite = lazy(() => import("./pages/PublicSite"));
 const PublicPage = lazy(() => import("./pages/PublicPage"));
-const QrMenu = lazy(() => import("./pages/QrMenu"));
 const SiteLogin = lazy(() => import("./pages/SiteLogin"));
 
 // Agent Pages
@@ -93,7 +82,7 @@ const AgentNotes = lazy(() => import("./pages/agent/AgentNotes"));
 const AgentTasks = lazy(() => import("./pages/agent/AgentTasks"));
 
 // Admin Pages
-const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminConsulting = lazy(() => import("./pages/admin/AdminConsulting"));
 const AdminApplications = lazy(() => import("./pages/admin/AdminApplications"));
 const AdminStudents = lazy(() => import("./pages/admin/AdminStudents"));
 const AdminDocuments = lazy(() => import("./pages/admin/AdminDocuments"));
@@ -114,26 +103,6 @@ const AdminArrival = lazy(() => import("./pages/admin/AdminArrival"));
 const AdminContactRequests = lazy(() => import("./pages/admin/AdminContactRequests"));
 const AdminCRM = lazy(() => import("./pages/admin/AdminCRM"));
 const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
-
-// Modular Business Units Pages
-const AdminAcademy = lazy(() => import("./pages/admin/AdminAcademy"));
-const AdminTour = lazy(() => import("./pages/admin/AdminTour"));
-const AdminHotel = lazy(() => import("./pages/admin/AdminHotel"));
-const AdminInventory = lazy(() => import("./pages/admin/AdminInventory"));
-const AdminRestaurant = lazy(() => import("./pages/admin/AdminRestaurant"));
-const AdminGym = lazy(() => import("./pages/admin/AdminGym"));
-const AdminManufacturing = lazy(() => import("./pages/admin/AdminManufacturing"));
-const AdminCameras = lazy(() => import("./pages/admin/AdminCameras"));
-const AdminWholesale = lazy(() => import("./pages/admin/AdminWholesale"));
-const AdminClinic = lazy(() => import("./pages/admin/AdminClinic"));
-const AdminParking = lazy(() => import("./pages/admin/AdminParking"));
-const AdminAutoService = lazy(() => import("./pages/admin/AdminAutoService"));
-const AdminWeddingHall = lazy(() => import("./pages/admin/AdminWeddingHall"));
-const AdminKindergarten = lazy(() => import("./pages/admin/AdminKindergarten"));
-const AdminLibrary = lazy(() => import("./pages/admin/AdminLibrary"));
-const AdminCosmetics = lazy(() => import("./pages/admin/AdminCosmetics"));
-const AdminStadium = lazy(() => import("./pages/admin/AdminStadium"));
-const AdminCarShowroom = lazy(() => import("./pages/admin/AdminCarShowroom"));
 
 // Owner Hub
 const OwnerHub = lazy(() => import("./pages/owner/OwnerHub"));
@@ -218,54 +187,6 @@ function TenantRootRoute() {
 
 
 
-/** Normalize the active tenant's vertical to a canonical key. */
-function resolveVertical(t: any): string {
-  let v = t?.business_type || t?.config?.business_type || t?.vertical || 'consulting';
-  v = String(v).toLowerCase().trim();
-  if (v === 'nova' || v === 'edu') v = 'academy';
-  if (v === 'unitour' || v === 'tour_farm' || v === 'travel') v = 'tour';
-  return v;
-}
-
-/**
- * Single ecosystem router: mounts the matching vertical route tree by the
- * active tenant's business_type — all inside the one unipath.me app. When an
- * owner switches business (tenant), the vertical experience switches with it.
- */
-function EcosystemRouter({ consultingRoutes }: { consultingRoutes: ReactNode }) {
-  const { activeTenant } = useApp();
-
-  // If the path is a platform-wide global route, we must bypass the vertical-specific
-  // routers and return consultingRoutes (which contains the main app pages like /super-admin, /hub, /auth, etc.).
-  const path = window.location.pathname;
-  const platformPrefixes = [
-    '/super-admin',
-    '/superadmin',
-    '/hub',
-    '/auth',
-    '/tizimlashtirish',
-    '/onboarding',
-    '/pending-approval',
-    '/select-country',
-    '/login',
-    '/register',
-    '/about',
-    '/pricing',
-    '/plans',
-    '/search',
-  ];
-  const isPlatformRoute = path === '/' || platformPrefixes.some(p => path.startsWith(p));
-
-  if (isPlatformRoute) {
-    return <>{consultingRoutes}</>;
-  }
-
-  const vertical = resolveVertical(activeTenant);
-  if (vertical === 'tour') return <TourRoutes />;
-  if (vertical === 'academy') return <NovaRoutes />;
-  return <>{consultingRoutes}</>;
-}
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
@@ -294,7 +215,6 @@ const App = () => (
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 }>
-                  <EcosystemRouter consultingRoutes={(
                   <Routes>
               {/* Public Routes */}
               <Route path="/" element={<TenantRootRoute />} />
@@ -313,7 +233,6 @@ const App = () => (
               <Route path="/pricing" element={<PublicPricing />} />
               <Route path="/plans" element={<PublicPricing />} />
               <Route path="/search" element={<UniversitySearch />} />
-              <Route path="/qr/:token" element={<QrMenu />} />
 
               {/* Public Sites generated by Website Builder */}
               <Route path="/c/:slug" element={<PublicSite />} />
@@ -395,15 +314,6 @@ const App = () => (
               <Route path="/documents" element={<Navigate to="/student/documents" replace />} />
               <Route path="/applications" element={<Navigate to="/student/applications" replace />} />
 
-              {/* Member portal — non-education verticals (gym, hotel, restaurant, ...) */}
-              <Route
-                path="/member/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary><MemberDashboard /></ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
 
               {/* Student Routes (Protected) */}
               <Route
@@ -509,26 +419,10 @@ const App = () => (
 
               {/* Specific Roles */}
               <Route
-                path="/teacher"
-                element={
-                  <ProtectedRoute>
-                    <TeacherDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
                 path="/accountant"
                 element={
                   <ProtectedRoute>
                     <AccountantDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/parent"
-                element={
-                  <ProtectedRoute>
-                    <ParentMirror />
                   </ProtectedRoute>
                 }
               />
@@ -552,7 +446,7 @@ const App = () => (
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminLayout>
-                      <AdminDashboardPage />
+                      <AdminConsulting />
                     </AdminLayout>
                   </ProtectedRoute>
                 }
@@ -721,29 +615,8 @@ const App = () => (
               <Route path="/admin/accounting" element={<ProtectedRoute requireAdmin><AdminLayout><AdminAccounting /></AdminLayout></ProtectedRoute>} />
               <Route path="/website-builder" element={<ProtectedRoute><WebsiteBuilder /></ProtectedRoute>} />
               
-              {/* Modular Business Units Routes */}
-              <Route path="/admin/academy" element={<ProtectedRoute requireAdmin><AdminLayout><AdminAcademy /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/tour" element={<ProtectedRoute requireAdmin><AdminLayout><AdminTour /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/hotel" element={<ProtectedRoute requireAdmin><AdminLayout><AdminHotel /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/inventory" element={<ProtectedRoute requireAdmin><AdminLayout><AdminInventory /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/restaurant" element={<ProtectedRoute requireAdmin><AdminLayout><AdminRestaurant /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/gym" element={<ProtectedRoute requireAdmin><AdminLayout><AdminGym /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/manufacturing" element={<ProtectedRoute requireAdmin><AdminLayout><AdminManufacturing /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/cameras" element={<ProtectedRoute requireAdmin><AdminLayout><AdminCameras /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/wholesale" element={<ProtectedRoute requireAdmin><AdminLayout><AdminWholesale /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/clinic" element={<ProtectedRoute requireAdmin><AdminLayout><AdminClinic /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/parking" element={<ProtectedRoute requireAdmin><AdminLayout><AdminParking /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/auto-service" element={<ProtectedRoute requireAdmin><AdminLayout><AdminAutoService /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/wedding-hall" element={<ProtectedRoute requireAdmin><AdminLayout><AdminWeddingHall /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/kindergarten" element={<ProtectedRoute requireAdmin><AdminLayout><AdminKindergarten /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/library" element={<ProtectedRoute requireAdmin><AdminLayout><AdminLibrary /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/cosmetics" element={<ProtectedRoute requireAdmin><AdminLayout><AdminCosmetics /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/stadium" element={<ProtectedRoute requireAdmin><AdminLayout><AdminStadium /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/car-showroom" element={<ProtectedRoute requireAdmin><AdminLayout><AdminCarShowroom /></AdminLayout></ProtectedRoute>} />
-
               <Route path="*" element={<NotFound />} />
               </Routes>
-                  )} />
             </Suspense>
           </BrowserRouter>
           </TooltipProvider>

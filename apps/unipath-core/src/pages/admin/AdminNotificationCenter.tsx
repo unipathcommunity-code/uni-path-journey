@@ -1,7 +1,7 @@
 /**
  * AdminNotificationCenter — Yagona bildirishnomalar markazi
  * Barcha vertikal uchun ishlaydi: Tour, Academy, Clinic, Restaurant va boshqalar.
- * Manbalar: contact_requests, notification_queue, tour_bookings (yangi)
+ * Manbalar: contact_requests, notification_queue
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +22,7 @@ import PageTransition from '@/components/common/PageTransition';
 
 interface Notification {
   id: string;
-  type: 'contact' | 'booking' | 'system' | 'telegram';
+  type: 'contact' | 'system' | 'telegram';
   title: string;
   body: string;
   from_name?: string;
@@ -30,28 +30,16 @@ interface Notification {
   source?: string;
   created_at: string;
   read: boolean;
-  vertical?: string;
 }
-
-const VERTICAL_ICONS: Record<string, React.ElementType> = {
-  tour: Plane,
-  academy: GraduationCap,
-  consulting: Building,
-  clinic: Stethoscope,
-  restaurant: UtensilsCrossed,
-  gym: Dumbbell,
-};
 
 const TYPE_COLORS: Record<string, string> = {
   contact: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  booking: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   system: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   telegram: 'bg-[#229ED9]/10 text-[#229ED9] border-[#229ED9]/20',
 };
 
 const TYPE_LABELS: Record<string, string> = {
   contact: 'Murojaat',
-  booking: 'Bron',
   system: 'Tizim',
   telegram: 'Telegram',
   all: 'Barchasi',
@@ -73,13 +61,12 @@ const READ_KEY = (tenantId: string) => `notif_read_${tenantId}`;
 export default function AdminNotificationCenter() {
   const { activeTenant } = useApp();
   const tid = activeTenant?.id;
-  const vertical = activeTenant?.business_type || 'consulting';
-  const VertIcon = VERTICAL_ICONS[vertical] || Building;
+  const VertIcon = Building;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'contact' | 'booking' | 'system' | 'telegram'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'contact' | 'system' | 'telegram'>('all');
   const [filterRead, setFilterRead] = useState<'all' | 'unread'>('all');
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
@@ -122,7 +109,6 @@ export default function AdminNotificationCenter() {
           source: c.source || 'sayt',
           created_at: c.created_at,
           read: false,
-          vertical,
         });
       });
 
@@ -143,36 +129,8 @@ export default function AdminNotificationCenter() {
           body: msg,
           created_at: q.created_at,
           read: false,
-          vertical,
         });
       });
-
-      // 3. Tour bookings (yangi)
-      if (vertical === 'tour') {
-        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-        const { data: bkgs } = await supabase
-          .from('tour_bookings')
-          .select('id, customer_name, customer_phone, tour_title, spots_booked, created_at')
-          .eq('tenant_id', tid)
-          .gte('created_at', weekAgo)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        (bkgs || []).forEach((b: any) => {
-          all.push({
-            id: `booking_${b.id}`,
-            type: 'booking',
-            title: `✈️ Yangi bron — ${b.customer_name || 'Mijoz'}`,
-            body: `${b.tour_title || 'Sayohat'} · ${b.spots_booked || 1} nafar`,
-            from_name: b.customer_name,
-            from_phone: b.customer_phone,
-            source: 'tour_bookings',
-            created_at: b.created_at,
-            read: false,
-            vertical: 'tour',
-          });
-        });
-      }
 
       // Sort by date, apply read state
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -182,7 +140,7 @@ export default function AdminNotificationCenter() {
     } finally {
       setLoading(false);
     }
-  }, [tid, vertical, readIds]);
+  }, [tid, readIds]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
@@ -262,7 +220,7 @@ export default function AdminNotificationCenter() {
                 />
               </div>
               <div className="flex gap-2 flex-wrap">
-                {(['all', 'contact', 'booking', 'system', 'telegram'] as const).map(t => (
+                {(['all', 'contact', 'system', 'telegram'] as const).map(t => (
                   <Button
                     key={t}
                     size="sm"

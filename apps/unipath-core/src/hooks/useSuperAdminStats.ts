@@ -27,29 +27,7 @@ export interface SaTenant {
   config: any; // full tenant config — needed to preserve branding on impersonation
 }
 
-/** Human label per vertical id (kept here so all pages share one source). */
-export const VERTICAL_LABELS: Record<string, string> = {
-  consulting: "Konsalting",
-  tour: "Turizm",
-  academy: "Akademiya",
-  hotel: "Mehmonxona",
-  restaurant: "Restoran",
-  pharmacy: "Dorixona",
-  gym: "Sport zali",
-  manufacturing: "Ishlab chiqarish",
-  auto_service: "Avtoservis",
-  clinic: "Klinika",
-  parking: "Avtoturargoh",
-  wedding_hall: "To'yxona",
-  kindergarten: "Bog'cha",
-  library: "Kutubxona",
-  cosmetics: "Kosmetika",
-  stadium: "Stadion",
-  car_showroom: "Avtosalon",
-};
-
-export const verticalLabel = (v?: string | null): string =>
-  (v && VERTICAL_LABELS[v]) || v || "Konsalting";
+export const verticalLabel = (_v?: string | null): string => "Konsalting";
 
 /** pricing_plans.price is free-text like "199 000" — turn it into a number. */
 const parsePrice = (raw: unknown): number => {
@@ -108,10 +86,6 @@ export const useSuperAdminStats = () => {
 
       const liveTenants = tenants.filter((t) => isLiveStatus(t.status));
 
-      // Vertical distribution (all tenants)
-      const byVertical: Record<string, number> = {};
-      for (const t of tenants) byVertical[t.vertical] = (byVertical[t.vertical] || 0) + 1;
-
       // Plan distribution (live tenants only — that is what is billable)
       const byPlan: Record<string, number> = {};
       for (const t of liveTenants) {
@@ -151,7 +125,6 @@ export const useSuperAdminStats = () => {
           owners: byRole["owner"] || 0,
           mrr,
         },
-        byVertical,
         byPlan,
         byRole,
         trend,

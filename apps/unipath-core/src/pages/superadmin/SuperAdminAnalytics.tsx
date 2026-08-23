@@ -19,7 +19,7 @@ export default function SuperAdminAnalytics() {
   const { data, isLoading } = useSuperAdminStats();
   const totals = data?.totals;
 
-  const verticalRows = Object.entries(data?.byVertical || {}).sort((a, b) => b[1] - a[1]);
+  const planRows = Object.entries(data?.byPlan || {}).sort((a, b) => b[1] - a[1]);
   const trend = data?.trend || [];
   const maxTrend = Math.max(1, ...trend.map((t) => t.count));
 
@@ -59,25 +59,25 @@ export default function SuperAdminAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Vertical distribution (real) */}
+        {/* Plan distribution (real) */}
         <Card className="lg:col-span-1 bg-muted/5 border-white/5">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Layers className="w-5 h-5 text-amber-500" />
-              Sohalar bo'yicha taqsimot
+              Tariflar bo'yicha taqsimot
             </CardTitle>
-            <CardDescription className="text-xs">Firmalar biznes turlari ulushi</CardDescription>
+            <CardDescription className="text-xs">Faol firmalar tarif rejalari ulushi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {verticalRows.length === 0 && (
+            {planRows.length === 0 && (
               <p className="text-white/40 text-sm">{isLoading ? "Yuklanmoqda..." : "Ma'lumot yo'q."}</p>
             )}
-            {verticalRows.map(([v, count]) => {
-              const pct = totals?.tenants ? Math.round((count / totals.tenants) * 100) : 0;
+            {planRows.map(([v, count]) => {
+              const pct = totals?.live ? Math.round((count / totals.live) * 100) : 0;
               return (
                 <div key={v} className="space-y-2">
                   <div className="flex justify-between text-sm text-white/80">
-                    <span>{verticalLabel(v)}</span>
+                    <span>{v}</span>
                     <span className="font-semibold text-white">{count} ta ({pct}%)</span>
                   </div>
                   <Progress value={pct} className="h-2 bg-white/5" />

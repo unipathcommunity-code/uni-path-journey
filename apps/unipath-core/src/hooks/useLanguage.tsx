@@ -397,13 +397,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem("nova-lang");
+    const saved = localStorage.getItem("unipath-lang");
     return (saved as Language) || "en";
   });
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("nova-lang", lang);
+    localStorage.setItem("unipath-lang", lang);
   }, []);
 
   const t = useCallback((key: string, params?: Record<string, string>): string => {

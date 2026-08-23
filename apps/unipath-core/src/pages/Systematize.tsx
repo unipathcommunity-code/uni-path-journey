@@ -49,590 +49,9 @@ import {
 } from 'lucide-react';
 import { THEME_PRESETS, injectTheme } from '@/lib/themes';
 
-/** Default theme per vertical — auto-selected when business type is clicked */
-const VERTICAL_DEFAULT_THEME: Record<string, string> = {
-  consulting:    'blue',
-  tour:          'blue',
-  academy:       'emerald',
-  hotel:         'purple',
-  restaurant:    'amber',
-  clinic:        'rose',
-  gym:           'amber',
-  manufacturing: 'blue',
-  parking:       'blue',
-  auto_service:  'amber',
-  wholesale:     'blue',
-  wedding_hall:  'rose',
-  kindergarten:  'emerald',
-  library:       'purple',
-  stadium:       'emerald',
-  cosmetics:     'rose',
-  pharmacy:      'blue',
-  car_showroom:  'blue',
-};
-
-const BUSINESS_TYPES = [
-  { id: 'consulting', name: 'Konsalting (Consulting)', icon: Building, desc: 'Arizalar, hujjatlar va mijozlar oqimi boshqaruvi.' },
-  { id: 'tour', name: 'Turistik Kompaniya (Tour)', icon: Plane, desc: 'Turlar boshqaruvi, bron qilishlar, va hamkorlar oqimi boshqaruvi.' },
-  { id: 'academy', name: 'Akademiya (NOVA)', icon: GraduationCap, desc: 'Guruhlar, animated QR davomat, va NovaCoins loyallik tizimi boshqaruvi.' },
-  { id: 'hotel', name: 'Mehmonxona (Hotel)', icon: Bed, desc: 'Xonalar jadvali, bron qilish va mijozlar hisob-kitoblari.' },
-  { id: 'restaurant', name: 'Restoran (Restaurant)', icon: UtensilsCrossed, desc: 'Stollar xaritasi, taomlar menyusi va buyurtmalar navbati.' },
-  { id: 'pharmacy', name: 'Dorixona (Pharmacy)', icon: Pill, desc: 'Dori-darmonlar inventari, yaroqlilik muddati va savdo.' },
-  { id: 'gym', name: 'Sport Zali (Gym)', icon: Dumbbell, desc: 'A\'zolik paketlari, FaceID kirish va murabbiylar jadvali.' },
-  { id: 'manufacturing', name: 'Ishlab Chiqarish (Manufacturing)', icon: Factory, desc: 'BOM (xomashyo), ishlab chiqarish bosqichlari va ishbay oyliklar.' },
-  { id: 'auto_service', name: 'Avtoservis (Auto)', icon: Wrench, desc: 'Avtomobillar ta\'mirlash navbati va usta ish taqsimoti.' },
-  { id: 'clinic', name: 'Klinika (Clinic)', icon: HeartPulse, desc: 'Bemorlar qabuli, shifokorlar va navbatlarni boshqarish.' },
-  { id: 'parking', name: 'Avtoturargoh (Parking)', icon: Car, desc: 'Avtoturargoh sessiyalari va band joylarni nazorat qilish.' },
-  { id: 'wedding_hall', name: 'To\'yxona (Wedding Hall)', icon: Heart, desc: 'Tadbirlar, to\'ylar, bandliklar jadvali va menyu hisobi.' },
-  { id: 'kindergarten', name: 'Bog\'cha (Kindergarten)', icon: Baby, desc: 'Bolalar ro\'yxati, davomomat, guruhlar va to\'lovlar.' },
-  { id: 'library', name: 'Kutubxona (Library)', icon: BookOpen, desc: 'Kitoblar fondi, a\'zolar, berilgan va qaytarilgan kitoblar.' },
-  { id: 'cosmetics', name: 'Kosmetika (Cosmetics)', icon: Scissors, desc: 'Mahsulotlar zaxirasi, sotuvlar, yaroqlilik muddati va ogohlantirishlar.' },
-  { id: 'stadium', name: 'Stadion (Stadium)', icon: Trophy, desc: 'Sport maydonlari bandligi va soatlik ijara nazorati.' },
-  { id: 'car_showroom', name: 'Avtosalon (Car Dealership)', icon: Car, desc: 'Avtomobillar zaxirasi, lizing va shartnomalar, test-drayv boshqaruvi.' }
-];
-
 import { PRICING_PLANS } from '@/core/constants/pricing';
 
-const getPlansForVertical = (vertical: string) => {
-  const v = String(vertical || 'consulting').toLowerCase().trim();
-
-  if (v === 'academy') {
-    return [
-      {
-        id: 'Repetitor Starter',
-        name: 'Repetitor Starter',
-        price: '99 000',
-        currency: 'UZS',
-        desc: 'Yakka repetitor va individual o\'qituvchilar uchun',
-        features: ['30 o\'quvchi', '1 ustoz', '5/18 faol modul', 'Guruhlar boshqaruvi', 'QR davomat']
-      },
-      {
-        id: 'Repetitor Pro',
-        name: 'Repetitor Pro',
-        price: '199 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional repetitorlar va kichik guruhlar uchun',
-        features: ['80 o\'quvchi', '1 ustoz', '12/18 faol modul', 'Ota-ona oynasi', 'To\'lovlar nazorati']
-      },
-      {
-        id: 'Kurs Xona',
-        name: 'Kurs Xona',
-        price: '299 000',
-        currency: 'UZS',
-        desc: 'Kichik kurs xonalari va maxsus to\'garaklar uchun',
-        features: ['100 o\'quvchi', '3 ta dars xonasi', '6/18 faol modul', 'Moliya va hisobot', 'Telegram Bot']
-      },
-      {
-        id: 'Center Starter',
-        name: 'Center Starter',
-        price: '499 000',
-        currency: 'UZS',
-        desc: 'Kichik o\'quv markazlari va o\'quv kurslari uchun',
-        features: ['200 o\'quvchi', '5 ustoz', '8/18 faol modul', 'Telegram xabarnomalar', 'Moliya nazorati']
-      },
-      {
-        id: 'Center Pro',
-        name: 'Center Pro',
-        price: '799 000',
-        currency: 'UZS',
-        desc: 'Rivojlanayotgan o\'quv markazlari uchun eng yaxshi tanlov',
-        features: ['500 o\'quvchi', '15 ustoz', '16/18 faol modul', 'Biometrik FaceID', 'Keng analitika']
-      },
-      {
-        id: 'Center Premium',
-        name: 'Center Premium',
-        price: '1 299 000',
-        currency: 'UZS',
-        desc: 'Katta o\'quv markazlari va ko\'p filialli tarmoqlar uchun',
-        features: ['1000 o\'quvchi', '40 ustoz', 'Barcha modullar yoqilgan', 'Custom Domain', '24/7 VIP ko\'mak']
-      },
-      {
-        id: 'Academy Enterprise',
-        name: 'Academy Enterprise',
-        price: '1 990 000',
-        currency: 'UZS',
-        desc: 'Yirik ta\'lim akademiyalari va o\'quv muassasalari uchun',
-        features: ['2000 o\'quvchi', 'Cheksiz ustozlar', 'NovaCoins loyallik do\'koni', 'Custom SMS Gateway', 'SLA kafolati']
-      },
-      {
-        id: 'School Basic',
-        name: 'School Basic',
-        price: '2 990 000',
-        currency: 'UZS',
-        desc: 'Xususiy maktablar va litseylar uchun maxsus boshqaruv tizimi',
-        features: ['3000 o\'quvchi', '100 ustoz', 'Dars jadvali generatori', 'SMS debt gateway', 'Dedicated server']
-      }
-    ];
-  }
-
-  if (v === 'tour') {
-    return [
-      {
-        id: 'Tour Starter',
-        name: 'Tour Starter',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Yangi boshlayotgan turistik agentliklar uchun',
-        features: ['50 ta faol buyurtma', '2 ta xodim boshqaruvi', 'Turlar katalogi', 'Invoys PDF yaratish', 'Mijozlar bazasi (CRM)']
-      },
-      {
-        id: 'Tour Pro',
-        name: 'Tour Pro',
-        price: '349 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Tez o\'sayotgan turizm agentliklari uchun',
-        features: ['250 ta faol buyurtma', '10 ta xodim boshqaruvi', 'Komissiya & Markup nazorati', 'Telegram Bot va veb-sayt ulanishi', 'Buxgalteriya va hisobotlar']
-      },
-      {
-        id: 'Tour Premium',
-        name: 'Tour Premium',
-        price: '799 000',
-        currency: 'UZS',
-        desc: 'Katta va faol turistik kompaniyalar uchun',
-        features: ['1000 ta faol buyurtma', '30 ta xodim boshqaruvi', 'GDS Flight & Hotel integratsiyasi', 'API va xalqaro hamkorlik tizimi', 'SMS debt gateway integratsiyasi']
-      },
-      {
-        id: 'Tour Enterprise',
-        name: 'Tour Enterprise',
-        price: '1 499 000',
-        currency: 'UZS',
-        desc: 'Cheksiz filiallar va yirik turistik tarmoqlar uchun',
-        features: ['Cheksiz buyurtmalar', 'Cheksiz xodimlar boshqaruvi', '100% Ma\'lumotlar izolyatsiyasi', 'Custom Domain ulanishi', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'car_showroom') {
-    return [
-      {
-        id: 'Showroom Starter',
-        name: 'Showroom Starter',
-        price: '249 000',
-        currency: 'UZS',
-        desc: 'Kichik avtosalonlar yoki dilerlik do\'konlari uchun',
-        features: ['50 ta avtomobil limiti', '2 ta xodim boshqaruvi', 'Test-drive taqvimi', 'Standard CRM', 'Shartnomalar PDF']
-      },
-      {
-        id: 'Showroom Pro',
-        name: 'Showroom Pro',
-        price: '549 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional avtosalonlar va dilerlik tarmoqlari uchun',
-        features: ['250 ta avtomobil limiti', '10 ta xodim boshqaruvi', 'Lizing & Kredit kalkulyatori', 'Batafsil savdo tahlili', 'Telegram Bot xabarnomalari']
-      },
-      {
-        id: 'Showroom Enterprise',
-        name: 'Showroom Enterprise',
-        price: '1 299 000',
-        currency: 'UZS',
-        desc: 'Yirik dilerlik markazlari va ko\'p filialli tarmoqlar uchun',
-        features: ['Cheksiz avtomobillar', 'Cheksiz xodimlar boshqaruvi', 'Custom domain', 'Avtoservis tizimi integratsiyasi', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'hotel') {
-    return [
-      {
-        id: 'Hotel Starter',
-        name: 'Hostel / Kichik Mehmonxona',
-        price: '199 000',
-        currency: 'UZS',
-        desc: 'Hostellar, mehmon uylari va kichik mehmonxonalar uchun',
-        features: ['15 ta xona limiti', '3 ta xodim boshqaruvi', 'Xonalar jadvali & Bron', 'Standard CRM', 'Invoys PDF yaratish']
-      },
-      {
-        id: 'Hotel Pro',
-        name: 'Boutique Hotel',
-        price: '499 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'O\'rta kattalikdagi butik mehmonxonalar uchun',
-        features: ['50 ta xona limiti', '15 ta xodim boshqaruvi', 'Xonalarni tozalash jadvali', 'Restoran & POS integratsiyasi', 'Telegram Bot ogohlantirishlari']
-      },
-      {
-        id: 'Hotel Premium',
-        name: 'Premium Hotel',
-        price: '999 000',
-        currency: 'UZS',
-        desc: 'Katta mehmonxonalar va dam olish maskanlari uchun',
-        features: ['150 ta xona limiti', '40 ta xodim boshqaruvi', 'Channel Manager integratsiyasi', 'Batafsil moliya va audit', 'Custom domain & brendlash']
-      },
-      {
-        id: 'Hotel Enterprise',
-        name: 'Resort Enterprise',
-        price: '1 990 000',
-        currency: 'UZS',
-        desc: 'Ko\'p filialli yirik mehmonxona tarmoqlari uchun',
-        features: ['Cheksiz xonalar', 'Cheksiz xodimlar', '100% Ma\'lumotlar izolyatsiyasi', 'API va hamkorlar tizimi', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'restaurant') {
-    return [
-      {
-        id: 'Restaurant Starter',
-        name: 'Kafe / Qahvaxona',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Kichik kafelar, qahvaxonalar va fast-food shoxobchalari uchun',
-        features: ['1 ta kassa (POS)', 'Stollar xaritasi', 'Raqamli menyu (QR)', 'Buyurtmalar navbati', 'Standard hisobotlar']
-      },
-      {
-        id: 'Restaurant Pro',
-        name: 'Restoran Pro',
-        price: '399 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional restoran va kafe-barlar uchun',
-        features: ['3 ta kassa (POS)', 'Oshpaz ekrani (Kitchen Display)', 'Ofitsiantlar mobil ilovasi', 'Omborxona va kalkulyatsiya', 'Telegram Bot integratsiyasi']
-      },
-      {
-        id: 'Restaurant Enterprise',
-        name: 'Restoran Tarmog\'i',
-        price: '899 000',
-        currency: 'UZS',
-        desc: 'Yirik restoran tarmoqlari va umumiy ovqatlanish markazlari uchun',
-        features: ['Cheksiz kassalar', 'Filiallararo ombor integratsiyasi', 'Yetkazib berish boshqaruvi', 'Keng moliyaviy tahlil', 'Custom domain & 24/7 VIP yordam']
-      }
-    ];
-  }
-
-  if (v === 'pharmacy') {
-    return [
-      {
-        id: 'Pharmacy Starter',
-        name: 'Yakka Dorixona',
-        price: '199 000',
-        currency: 'UZS',
-        desc: 'Kichik yakka tartibdagi dorixonalar uchun',
-        features: ['10 000 ta dori limiti', '2 ta kassir boshqaruvi', 'Standard savdo oynasi', 'Yaroqlilik muddati nazorati', 'Barcode scanner integratsiyasi']
-      },
-      {
-        id: 'Pharmacy Pro',
-        name: 'Dorixona Pro',
-        price: '499 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional dorixonalar uchun to\'liq boshqaruv',
-        features: ['50 000 ta dori limiti', '10 ta kassir boshqaruvi', 'Yetkazib beruvchilar bazasi', 'Avtomatik buyurtma tizimi', 'Soliq & Chek integratsiyasi']
-      },
-      {
-        id: 'Pharmacy Enterprise',
-        name: 'Dorixona Tarmog\'i',
-        price: '1 199 000',
-        currency: 'UZS',
-        desc: 'Yirik dorixona tarmoqlari va markaziy omborxonalar uchun',
-        features: ['Cheksiz dori limiti', 'Cheksiz filiallar & kassirlar', 'Markaziy ombor nazorati', 'Keng dorixona analitikasi', 'Custom domain & SLA kafolati']
-      }
-    ];
-  }
-
-  if (v === 'gym') {
-    return [
-      {
-        id: 'Gym Starter',
-        name: 'Fitness Studiya',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Kichik fitness studiyalar va yoga markazlari uchun',
-        features: ['150 ta faol a\'zo', '3 ta murabbiy boshqaruvi', 'A\'zolik paketlari', 'Standard CRM', 'Darslar jadvali']
-      },
-      {
-        id: 'Gym Pro',
-        name: 'Fitness Club Pro',
-        price: '399 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Kattaroq fitness klublari va sport zallari uchun',
-        features: ['500 ta faol a\'zo', '15 ta murabbiy boshqaruvi', 'QR / FaceID kirish nazorati', 'Shkafchalar nazorati', 'Telegram bildirishnomalar']
-      },
-      {
-        id: 'Gym Enterprise',
-        name: 'Sport Kompleks Premium',
-        price: '899 000',
-        currency: 'UZS',
-        desc: 'Yirik sport majmualari va ko\'p tarmoqli fitness zanjirlari uchun',
-        features: ['Cheksiz faol a\'zolar', 'Cheksiz murabbiylar', 'Hovuz/Spa band qilish modullari', 'Batafsil moliya va HR', 'Custom Domain & VIP yordam']
-      }
-    ];
-  }
-
-  if (v === 'manufacturing') {
-    return [
-      {
-        id: 'Mfg Starter',
-        name: 'Kichik Sex / Ustaxona',
-        price: '299 000',
-        currency: 'UZS',
-        desc: 'Kichik ishlab chiqarish sexlari va xususiy ustaxonalar uchun',
-        features: ['Xomashyo ombori', 'BOM (Mahsulot tarkibi)', 'Oddiy ishlab chiqarish bosqichlari', 'Tayyor mahsulot hisobi', 'Invoyslar PDF']
-      },
-      {
-        id: 'Mfg Pro',
-        name: 'Zavod Pro',
-        price: '799 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional zavodlar va ishlab chiqarish korxonalari uchun',
-        features: ['Ko\'p bosqichli ishlab chiqarish', 'Ishbay oylik hisobi', 'Mahsulot tannarxi kalkulyatori', 'Omborlararo transfer', 'Sifat nazorati (QA) moduli']
-      },
-      {
-        id: 'Mfg Enterprise',
-        name: 'Sanoat Enterprise',
-        price: '1 699 000',
-        currency: 'UZS',
-        desc: 'Yirik sanoat korxonalari va ko\'p sexli kombinatlar uchun',
-        features: ['Cheksiz xomashyo va mahsulotlar', 'Ta\'minot zanjiri boshqaruvi', 'Barcode/RFID nazorati', 'Dastgohlar yuklama tahlili', 'SLA kafolati & VIP yordam']
-      }
-    ];
-  }
-
-  if (v === 'auto_service') {
-    return [
-      {
-        id: 'Auto Starter',
-        name: 'Kichik Avtoservis',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Kichik ustaxonalar va shinalar montaji nuqtalari uchun',
-        features: ['3 ta ta\'mirlash boksi', 'Navbatlar boshqaruvi', 'Mijozlar bazasi', 'Ehtiyot qismlar hisobi', 'Cheklar PDF']
-      },
-      {
-        id: 'Auto Pro',
-        name: 'Auto Kompleks Pro',
-        price: '399 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Katta avtoservislar va texnik xizmat ko\'rsatish markazlari uchun',
-        features: ['10 ta ta\'mirlash boksi', 'Usta ish taqsimoti', 'Ehtiyot qismlar ombori (Kalkulyatsiya)', 'Telegram Bot bildirishnomalar', 'Standard CRM Pipeline']
-      },
-      {
-        id: 'Auto Enterprise',
-        name: 'Dilerlik Servisi',
-        price: '899 000',
-        currency: 'UZS',
-        desc: 'Yirik servis markazlari va dilerlik texnik tarmoqlari uchun',
-        features: ['Cheksiz ta\'mirlash bokslari', 'Avtomatlashtirilgan hisob-kitoblar', 'SMS debt gateway integratsiyasi', 'Moliya va to\'liq audit', 'Custom domain & SLA kafolati']
-      }
-    ];
-  }
-
-  if (v === 'clinic') {
-    return [
-      {
-        id: 'Clinic Starter',
-        name: 'Shifokorlik Kabineti',
-        price: '199 000',
-        currency: 'UZS',
-        desc: 'Yakka shifokorlar va xususiy kichik kabinetlar uchun',
-        features: ['3 ta shifokor limiti', 'Bemorlar navbati taqvimi', 'Elektron tibbiy kartalar', 'Kassir & To\'lovlar', 'Invoys PDF']
-      },
-      {
-        id: 'Clinic Pro',
-        name: 'Klinika Pro',
-        price: '599 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional xususiy klinikalar va tashxis markazlari uchun',
-        features: ['15 ta shifokor limiti', 'Bemorlarni qabul qilish navbati', 'Retsept va yo\'llanmalar', 'Laboratoriya integratsiyasi', 'Telegram Bot ogohlantirishlari']
-      },
-      {
-        id: 'Clinic Enterprise',
-        name: 'Klinika Markazi',
-        price: '1 299 000',
-        currency: 'UZS',
-        desc: 'Ko\'p tarmoqli yirik klinikalar va kasalxonalar uchun',
-        features: ['Cheksiz shifokorlar', 'Dorixona moduli integratsiyasi', 'Batafsil shifokorlar analitikasi', 'Custom domain & RLS ma\'lumotlar himoyasi', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'parking') {
-    return [
-      {
-        id: 'Parking Starter',
-        name: 'Kichik Parking',
-        price: '99 000',
-        currency: 'UZS',
-        desc: 'Kichik ochiq avtoturargohlar uchun',
-        features: ['1 ta kirish to\'sig\'i (shlagbaum)', 'Soatbay to\'lov hisoblagichi', 'Band joylar nazorati', 'Mijozlar ro\'yxati', 'Standard hisobotlar']
-      },
-      {
-        id: 'Parking Pro',
-        name: 'Parking Pro',
-        price: '249 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional yopiq va ko\'p qavatli parkinglar uchun',
-        features: ['3 ta kirish to\'sig\'i', 'Kamera (ANPR) integratsiyasi', 'Abonementlar nazorati', 'SMS debt gateway integratsiyasi', 'Telegram Bot boshqaruvi']
-      },
-      {
-        id: 'Parking Enterprise',
-        name: 'Smart Parking Enterprise',
-        price: '599 000',
-        currency: 'UZS',
-        desc: 'Aeroportlar, savdo markazlari va yirik parking tarmoqlari uchun',
-        features: ['Cheksiz kirish to\'siqlari', 'Smart datchiklar xaritasi', 'Avtomatik to\'lov terminallari', 'Batafsil moliyaviy tahlil', 'SLA kafolati & VIP yordam']
-      }
-    ];
-  }
-
-  if (v === 'wedding_hall') {
-    return [
-      {
-        id: 'Wedding Starter',
-        name: 'Kichik To\'yxona',
-        price: '299 000',
-        currency: 'UZS',
-        desc: 'Kichik tadbirlar zallari va kafelar uchun',
-        features: ['Tadbirlar bandlik taqvimi', 'Menyu konstruktori', 'Mijozlar bazasi', 'Avans to\'lovlari hisobi', 'Hisobotlar PDF']
-      },
-      {
-        id: 'Wedding Pro',
-        name: 'To\'yxona Pro',
-        price: '699 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional tantanalar zallari va to\'yxonalar uchun',
-        features: ['Ko\'p zalli taqvim boshqaruvi', 'Xomashyo & Mahsulotlar ombori', 'Taomlar kalkulyatsiyasi', 'Hamkorlar (musiqachilar/boshlovchilar) bazasi', 'Telegram Bot ogohlantirishlari']
-      },
-      {
-        id: 'Wedding Enterprise',
-        name: 'Tantanalar Saroyi',
-        price: '1 399 000',
-        currency: 'UZS',
-        desc: 'Hashamatli tantanalar saroylari va restoran majmualari uchun',
-        features: ['Cheksiz tadbirlar & zallar', '3D stollar joylashuv xaritasi', 'Batafsil HR va moliya nazorati', 'Custom domain & VIP yordam', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'kindergarten') {
-    return [
-      {
-        id: 'Kdg Starter',
-        name: 'Oilaviy Bog\'cha',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Oilaviy bog\'chalar va kichik guruhlar uchun',
-        features: ['30 ta bola limiti', '2 ta tarbiyachi boshqaruvi', 'Davomat tizimi', 'Ota-onalar bilan bog\'lanish', 'To\'lovlar hisobi']
-      },
-      {
-        id: 'Kdg Pro',
-        name: 'Bog\'cha Pro',
-        price: '399 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Xususiy bog\'chalar va bolalar markazlari uchun',
-        features: ['100 ta bola limiti', '10 ta tarbiyachi boshqaruvi', 'Guruhlar va dars jadvallari', 'Taomnoma (ovqatlanish) hisobi', 'Telegram Bot xabarnomalari']
-      },
-      {
-        id: 'Kdg Enterprise',
-        name: 'Bog\'cha Tarmog\'i',
-        price: '899 000',
-        currency: 'UZS',
-        desc: 'Yirik bog\'cha tarmoqlari va xususiy maktabgacha ta\'lim muassasalari uchun',
-        features: ['Cheksiz bolalar & tarbiyachilar', 'Avtomatik oylik billing to\'lovlari', 'Bolalar rivojlanish hisobotlari', 'Custom domain & brending', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'library') {
-    return [
-      {
-        id: 'Lib Starter',
-        name: 'Book Cafe / Kutubxona',
-        price: '99 000',
-        currency: 'UZS',
-        desc: 'Kitob kafelari va kichik xususiy kutubxonalar uchun',
-        features: ['1000 ta kitob limiti', 'Kitobxon a\'zolik kartalari', 'Kitob berish va qaytarish', 'Muddati o\'tganlik ogohlantirishlari', 'Standard hisobotlar']
-      },
-      {
-        id: 'Lib Pro',
-        name: 'Kutubxona Pro',
-        price: '249 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional kutubxonalar va maktab kutubxonalari uchun',
-        features: ['10 000 ta kitob limiti', 'Barcode/QR tizimi', 'Kutubxona navbatlar taqvimi', 'Kitobxonlar jarimalari hisobi', 'Telegram Bot integratsiyasi']
-      },
-      {
-        id: 'Lib Enterprise',
-        name: 'Kutubxonalar Tarmog\'i',
-        price: '599 000',
-        currency: 'UZS',
-        desc: 'Yirik davlat va xususiy kutubxona tarmoqlari uchun',
-        features: ['Cheksiz kitoblar', 'Raqamli kutubxona (E-book) moduli', 'Filiallararo kitob qidiruv tizimi', 'Custom domain ulanishi', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'cosmetics') {
-    return [
-      {
-        id: 'Cosmetics Starter',
-        name: 'Kichik Do\'kon',
-        price: '149 000',
-        currency: 'UZS',
-        desc: 'Kichik kosmetika do\'konlari va orollar uchun',
-        features: ['1 ta kassa (POS)', 'Mahsulotlar ombori', 'Standard CRM', 'Yaroqlilik muddati nazorati', 'Barcode scanner integratsiyasi']
-      },
-      {
-        id: 'Cosmetics Pro',
-        name: 'Kosmetika Pro',
-        price: '349 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Professional kosmetika do\'konlari uchun to\'liq boshqaruv',
-        features: ['3 ta kassa (POS)', 'Mijozlar loyallik tizimi (Bonuslar)', 'Brendlar bo\'yicha zaxira tahlili', 'Telegram Bot integratsiyasi', 'Buxgalteriya va hisobotlar']
-      },
-      {
-        id: 'Cosmetics Enterprise',
-        name: 'Do\'konlar Tarmog\'i',
-        price: '799 000',
-        currency: 'UZS',
-        desc: 'Yirik kosmetika do\'konlari zanjirlari va tarqatuvchilar uchun',
-        features: ['Cheksiz kassalar & do\'konlar', 'Markaziy ulgurji ombor', 'Avtomatik buyurtmalar va yetkazib berish', 'Custom domain & 24/7 VIP yordam', 'SLA barqarorlik kafolati']
-      }
-    ];
-  }
-
-  if (v === 'stadium') {
-    return [
-      {
-        id: 'Stadium Starter',
-        name: 'Yakka Stadion',
-        price: '129 000',
-        currency: 'UZS',
-        desc: 'Kichik yakka tartibdagi sun\'iy qoplamali stadionlar uchun',
-        features: ['1 ta maydon limiti', 'Soatbay bandlik taqvimi', 'Mijozlar ro\'yxati', 'Yoritish & Dush xizmatlari hisobi', 'Invoyslar PDF']
-      },
-      {
-        id: 'Stadium Pro',
-        name: 'Sport Majmuasi Pro',
-        price: '299 000',
-        currency: 'UZS',
-        popular: true,
-        desc: 'Kattaroq sport majmualari va ko\'p maydonli stadionlar uchun',
-        features: ['5 ta maydon limiti', 'Kiyinish xonalari taqsimoti', 'Mijozlar avans to\'lovlari nazorati', 'Telegram Bot integratsiyasi', 'Standard CRM Pipeline']
-      },
-      {
-        id: 'Stadium Enterprise',
-        name: 'Stadiumlar Zanjiri',
-        price: '699 000',
-        currency: 'UZS',
-        desc: 'Yirik sport arenalari va stadionlar zanjirlari uchun',
-        features: ['Cheksiz maydonlar', 'Onlayn band qilish vidjeti', 'Mijozlar loyallik tizimi', 'SMS debt gateway integratsiyasi', 'Custom domain & SLA kafolati']
-      }
-    ];
-  }
-
-  // Default / Consulting / UniPath
+const getConsultingPlans = () => {
   return [
     {
       id: 'Consulting Starter',
@@ -738,7 +157,7 @@ export default function Systematize() {
         const { data, error } = await (supabase as any)
           .from('pricing_plans')
           .select('*')
-          .eq('vertical', formData.businessType);
+          .eq('vertical', 'consulting');
         
         let activePlans = [];
         if (error) throw error;
@@ -754,7 +173,7 @@ export default function Systematize() {
           }));
           setDbPlans(activePlans);
         } else {
-          activePlans = getPlansForVertical(formData.businessType);
+          activePlans = getConsultingPlans();
           setDbPlans(activePlans);
         }
 
@@ -764,7 +183,7 @@ export default function Systematize() {
           setFormData(prev => ({ ...prev, plan: popularPlan.id }));
         }
       } catch (err) {
-        const fallbackPlans = getPlansForVertical(formData.businessType);
+        const fallbackPlans = getConsultingPlans();
         setDbPlans(fallbackPlans);
         const planExists = fallbackPlans.some(p => p.id === formData.plan);
         if (!planExists && fallbackPlans.length > 0) {
@@ -776,7 +195,7 @@ export default function Systematize() {
       }
     }
     loadPlans();
-  }, [formData.businessType]);
+  }, []);
 
   // Check subdomain availability
   useEffect(() => {
@@ -835,9 +254,9 @@ export default function Systematize() {
           owner_name: formData.ownerName,
           owner_email: formData.email,
           owner_phone: formData.phone,
-          vertical: formData.businessType,
+          vertical: 'consulting',
           config: {
-            business_type: formData.businessType,
+            business_type: 'consulting',
             branding: {
               theme_color: formData.themeColor,
               logo_url: formData.logoUrl || '',
@@ -845,24 +264,7 @@ export default function Systematize() {
               timezone: formData.timezone
             },
             modules: {
-              // Exactly one vertical is true — matches formData.businessType
-              consulting:    formData.businessType === 'consulting',
-              tour:          formData.businessType === 'tour',
-              academy:       formData.businessType === 'academy',
-              hotel:         formData.businessType === 'hotel',
-              restaurant:    formData.businessType === 'restaurant',
-              pharmacy:      formData.businessType === 'pharmacy',
-              gym:           formData.businessType === 'gym',
-              manufacturing: formData.businessType === 'manufacturing',
-              auto_service:  formData.businessType === 'auto_service',
-              clinic:        formData.businessType === 'clinic',
-              parking:       formData.businessType === 'parking',
-              wedding_hall:  formData.businessType === 'wedding_hall',
-              kindergarten:  formData.businessType === 'kindergarten',
-              library:       formData.businessType === 'library',
-              cosmetics:     formData.businessType === 'cosmetics',
-              stadium:       formData.businessType === 'stadium',
-              car_showroom:  formData.businessType === 'car_showroom',
+              consulting:    true,
               ai_camera:     formData.plan !== 'Starter',
               billing:       true
             }
@@ -1008,50 +410,23 @@ export default function Systematize() {
               >
                 <div className="text-center">
                   <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">Biznes turini tanlang</h1>
-                  <p className="text-white/60 max-w-lg mx-auto">UNI platformasi orqali boshqarmoqchi bo‘lgan biznes modelingizni belgilang.</p>
+                  <p className="text-white/60 max-w-lg mx-auto">Platforma konsalting agentliklari uchun mo‘ljallangan.</p>
                 </div>
 
-                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {BUSINESS_TYPES.map((type) => {
-                    const Icon = type.icon;
-                    return (
-                      <div
-                        key={type.id}
-                        onClick={() => {
-                          const defaultTheme = VERTICAL_DEFAULT_THEME[type.id] || 'emerald';
-                          let defaultPlan = 'Consulting Pro';
-                          if (type.id === 'academy') defaultPlan = 'Tutor Pro';
-                          else if (type.id === 'tour') defaultPlan = 'Tour Pro';
-                          else if (type.id === 'car_showroom') defaultPlan = 'Showroom Pro';
-                          
-                          setFormData({ 
-                            ...formData, 
-                            businessType: type.id, 
-                            themeColor: defaultTheme,
-                            plan: defaultPlan
-                          });
-                          injectTheme(defaultTheme);
-                        }}
-                        className={`cursor-pointer border p-6 rounded-2xl transition-all duration-300 flex flex-col justify-between hover:bg-[#151515] ${
-                          formData.businessType === type.id
-                            ? 'border-primary bg-primary/5 shadow-[0_0_25px_rgba(var(--primary),0.15)]'
-                            : 'border-white/5 bg-[#111111]/80 hover:border-white/10'
-                        }`}
-                      >
-                        <div className="space-y-4">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            formData.businessType === type.id ? 'bg-primary text-primary-foreground' : 'bg-white/5 text-white'
-                          }`}>
-                            <Icon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-white text-sm">{type.name}</h3>
-                            <p className="text-white/50 text-xs mt-1 leading-relaxed">{type.desc}</p>
-                          </div>
-                        </div>
+                <div className="max-w-md mx-auto">
+                  <div className="border border-primary bg-primary/5 p-6 rounded-2xl shadow-[0_0_25px_rgba(var(--primary),0.15)]">
+                    <div className="space-y-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary text-primary-foreground">
+                        <Building className="w-6 h-6" />
                       </div>
-                    );
-                  })}
+                      <div>
+                        <h3 className="font-bold text-white text-sm">Konsalting (Consulting)</h3>
+                        <p className="text-white/50 text-xs mt-1 leading-relaxed">
+                          Arizalar, hujjatlar va mijozlar oqimi boshqaruvi.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end pt-4">

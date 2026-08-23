@@ -1,12 +1,13 @@
-# UniPath — Multi-Tenant Operating System
+# UniPath — Study-Abroad Consulting SaaS
 
-UniPath is a high-performance, modern, and beautiful multi-tenant operating system designed for educational consulting, CRM, ERP, and workspace management.
+UniPath is a multi-tenant SaaS platform for **study-abroad consulting agencies**. Every agency gets its own subdomain (`myagency.unipath.me`), a branded public site, and an admin workspace for applicants, documents, visas and payments.
 
 ## 🚀 Key Features
 
-- **Multi-Tenant Domain Routing**: Isolated subdomains (e.g. `tenant.unipath.me`) and custom domains.
+- **Multi-Tenant Domain Routing**: Isolated subdomains (e.g. `agency.unipath.me`) and custom domains.
 - **Enterprise-Grade Identity Isolation**: Strict domain verification and cookie gating to prevent workspace bleed.
-- **Student Dashboard**: Advanced profile tracking, application steps, and mentor communication.
+- **Applications Pipeline**: Lead → contact → documents → visa → enrolment, in one CRM board.
+- **Student Dashboard**: Profile tracking, application steps, grants, housing and mentor communication.
 - **UniAI Copilot**: Integrated AI assistant tailored to guide students in global university applications.
 - **Rich Theme Engine**: Real-time injected HSL brand themes based on tenant preferences.
 
@@ -14,31 +15,31 @@ UniPath is a high-performance, modern, and beautiful multi-tenant operating syst
 
 ### Prerequisites
 
-Ensure you have Node.js and npm installed.
+Node.js and pnpm.
 
 ### Local Development
 
 1. **Clone & Install Dependencies**
    ```sh
    git clone <YOUR_GIT_URL>
-   cd uni-path-journey-main
-   npm install
+   cd uni-path-journey
+   pnpm install
    ```
 
 2. **Start Dev Server**
    ```sh
-   npm run dev
+   pnpm dev
    ```
 
 3. **Build & Preview**
    ```sh
-   npm run build
-   npm run preview
+   pnpm build
+   pnpm preview
    ```
 
 ## 🛠 Tech Stack
 
-- **Framework**: React 19 & Vite
+- **Framework**: React & Vite (pnpm monorepo — `apps/unipath-core` + shared `packages/*`)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS & shadcn/ui
 - **Database / Auth**: Supabase

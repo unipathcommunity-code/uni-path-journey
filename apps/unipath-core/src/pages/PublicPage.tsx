@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Loader2, ArrowLeft, LogIn, CheckCircle2, Clock, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { siteHomePath, siteLoginPath, sitePagePath } from "@/lib/siteRoutes";
-import { NovaLogo } from "@/components/brand/NovaLogo";
+import { Logo } from "@/components/Logo";
 
 interface SiteHeader {
   id: string;
@@ -130,7 +130,7 @@ const PublicPage = () => {
                 className="w-9 h-9 rounded-lg object-contain bg-white/80 p-1 shadow-sm flex-shrink-0"
               />
             ) : (
-              <NovaLogo size="md" showWordmark={false} />
+              <Logo size="sm" showText={false} forcePlatform />
             )}
             <div className="font-heading font-bold text-base sm:text-lg truncate">{displayName}</div>
           </Link>

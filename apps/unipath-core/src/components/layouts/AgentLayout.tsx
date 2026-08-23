@@ -47,36 +47,15 @@ export function AgentLayout({ children }: AgentLayoutProps) {
     }
   };
 
-  const { language, activeTenant } = useApp();
-  const vertical = activeTenant?.business_type || 'consulting';
-  const isTour = vertical === 'tour';
-  const isAcademy = vertical === 'academy';
+  const { language } = useApp();
 
-  let navItems = [
+  const navItems = [
     { icon: LayoutDashboard, label: language === 'uz' ? 'Boshqaruv paneli' : 'Dashboard', href: '/agent/dashboard' },
     { icon: Users, label: language === 'uz' ? 'Talabalarim' : 'My Students', href: '/agent/students' },
     { icon: FileText, label: language === 'uz' ? 'Arizalar' : 'Applications', href: '/agent/applications' },
     { icon: StickyNote, label: language === 'uz' ? 'Eslatmalar' : 'Notes', href: '/agent/notes' },
     { icon: ClipboardList, label: language === 'uz' ? 'Vazifalar' : 'Tasks', href: '/agent/tasks' },
   ];
-
-  if (isTour) {
-    navItems = [
-      { icon: LayoutDashboard, label: language === 'uz' ? 'Boshqaruv paneli' : 'Dashboard', href: '/agent/dashboard' },
-      { icon: Users, label: language === 'uz' ? 'Mijozlarim / Lidlar' : 'My Clients / Leads', href: '/agent/students' },
-      { icon: FileText, label: language === 'uz' ? 'Bronlar' : 'Bookings', href: '/agent/applications' },
-      { icon: StickyNote, label: language === 'uz' ? 'Eslatmalar' : 'Notes', href: '/agent/notes' },
-      { icon: ClipboardList, label: language === 'uz' ? 'Vazifalar' : 'Tasks', href: '/agent/tasks' },
-    ];
-  } else if (isAcademy) {
-    navItems = [
-      { icon: LayoutDashboard, label: language === 'uz' ? 'Boshqaruv paneli' : 'Dashboard', href: '/agent/dashboard' },
-      { icon: Users, label: language === 'uz' ? "O'quvchilarim" : 'My Students', href: '/agent/students' },
-      { icon: FileText, label: language === 'uz' ? 'Hujjatlar' : 'Documents', href: '/agent/applications' },
-      { icon: StickyNote, label: language === 'uz' ? 'Eslatmalar' : 'Notes', href: '/agent/notes' },
-      { icon: ClipboardList, label: language === 'uz' ? 'Vazifalar' : 'Tasks', href: '/agent/tasks' },
-    ];
-  }
 
   return (
     <div className="min-h-screen bg-muted/30 flex">

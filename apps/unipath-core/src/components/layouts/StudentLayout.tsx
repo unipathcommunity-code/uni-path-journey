@@ -199,44 +199,19 @@ export function StudentLayout({ children }: StudentLayoutProps) {
   const arrivalLabel = language === 'uz' ? 'Kutib olish' : language === 'ru' ? 'Встреча' : 'Arrival';
   const mentorsLabel = language === 'uz' ? 'Mentorlar' : language === 'ru' ? 'Менторы' : 'Mentors';
 
-  const vertical = activeTenant?.business_type || 'consulting';
-  const isAcademy = vertical === 'academy';
-  const isTour = vertical === 'tour';
-
-  let allNavItems: any[] = [];
-
-  if (isAcademy) {
-    allNavItems = [
-      { icon: Home, label: language === 'uz' ? 'Boshqaruv' : language === 'ru' ? 'Панель' : 'Dashboard', href: '/student/dashboard', key: 'dashboard' },
-      { icon: GraduationCap, label: language === 'uz' ? 'Guruhlarim' : language === 'ru' ? 'Мои группы' : 'My Classes', href: '/student/academy', key: 'academy' },
-      { icon: Award, label: language === 'uz' ? 'Natijalar' : language === 'ru' ? 'Результаты' : 'Results', href: '/student/evolution', key: 'evolution' },
-      { icon: FolderOpen, label: t.documents, href: '/student/documents', key: 'documents' },
-      { icon: User, label: t.profile, href: '/student/profile', key: 'profile' },
-      ...(isAdmin ? [{ icon: Shield, label: adminLabel, href: '/admin/dashboard', key: 'admin' }] : []),
-    ];
-  } else if (isTour) {
-    allNavItems = [
-      { icon: Home, label: language === 'uz' ? 'Boshqaruv' : language === 'ru' ? 'Панель' : 'Dashboard', href: '/student/dashboard', key: 'dashboard' },
-      { icon: Plane, label: language === 'uz' ? 'Sayohatlarim' : language === 'ru' ? 'Мои туры' : 'My Tours', href: '/student/tours', key: 'tours' },
-      { icon: FolderOpen, label: language === 'uz' ? 'Hujjatlar' : language === 'ru' ? 'Документы' : 'Documents', href: '/student/documents', key: 'documents' },
-      { icon: User, label: t.profile, href: '/student/profile', key: 'profile' },
-      ...(isAdmin ? [{ icon: Shield, label: adminLabel, href: '/admin/dashboard', key: 'admin' }] : []),
-    ];
-  } else {
-    allNavItems = [
-      { icon: Home, label: t.dashboard, href: '/student/dashboard', key: 'dashboard' },
-      { icon: GraduationCap, label: t.myApplications, href: '/student/applications', key: 'applications' },
-      { icon: Users, label: mentorsLabel, href: '/student/mentors', key: 'mentors' },
-      { icon: Award, label: grantsLabel, href: '/student/grants', key: 'grants' },
-      { icon: FolderOpen, label: t.documents, href: '/student/documents', key: 'documents' },
-      { icon: Plane, label: t.visa, href: '/student/visa', key: 'visa' },
-      { icon: Briefcase, label: jobsLabel, href: '/student/jobs', key: 'jobs' },
-      { icon: Building, label: housingLabel, href: '/student/housing', key: 'housing' },
-      { icon: Plane, label: arrivalLabel, href: '/student/arrival', key: 'arrival' },
-      { icon: User, label: t.profile, href: '/student/profile', key: 'profile' },
-      ...(isAdmin ? [{ icon: Shield, label: adminLabel, href: '/admin/dashboard', key: 'admin' }] : []),
-    ];
-  }
+  const allNavItems: any[] = [
+    { icon: Home, label: t.dashboard, href: '/student/dashboard', key: 'dashboard' },
+    { icon: GraduationCap, label: t.myApplications, href: '/student/applications', key: 'applications' },
+    { icon: Users, label: mentorsLabel, href: '/student/mentors', key: 'mentors' },
+    { icon: Award, label: grantsLabel, href: '/student/grants', key: 'grants' },
+    { icon: FolderOpen, label: t.documents, href: '/student/documents', key: 'documents' },
+    { icon: Plane, label: t.visa, href: '/student/visa', key: 'visa' },
+    { icon: Briefcase, label: jobsLabel, href: '/student/jobs', key: 'jobs' },
+    { icon: Building, label: housingLabel, href: '/student/housing', key: 'housing' },
+    { icon: Plane, label: arrivalLabel, href: '/student/arrival', key: 'arrival' },
+    { icon: User, label: t.profile, href: '/student/profile', key: 'profile' },
+    ...(isAdmin ? [{ icon: Shield, label: adminLabel, href: '/admin/dashboard', key: 'admin' }] : []),
+  ];
 
   // Filter out admin-hidden tabs
   const navItems = allNavItems.filter(item => {
@@ -252,7 +227,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
   const userInitials = userName.slice(0, 2).toUpperCase();
 
   return (
-    <div className={`min-h-screen flex ${isAcademy || isTour ? 'bg-[#020202] text-white dark' : 'bg-muted/30 text-foreground'}`}>
+    <div className={`min-h-screen flex bg-muted/30 text-foreground`}>
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
@@ -269,7 +244,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
           bg-card border-r border-border
           transform transition-transform duration-300 ease-in-out lg:transform-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${isAcademy || isTour ? 'bg-[#09090b] text-white border-white/10' : 'bg-card border-border'}
+          bg-card border-border
         `}
       >
         <div className="flex flex-col h-full">
@@ -299,11 +274,9 @@ export function StudentLayout({ children }: StudentLayoutProps) {
           </div>
 
           {/* ── Country Switcher (Desktop only — mobile is cleaner without it) ── */}
-          {!isAcademy && !isTour && (
-            <div className="hidden lg:block">
-              <CountrySwitcher />
-            </div>
-          )}
+          <div className="hidden lg:block">
+            <CountrySwitcher />
+          </div>
 
           {/* ── Navigation ── */}
           <nav className="flex-1 p-3 overflow-y-auto">

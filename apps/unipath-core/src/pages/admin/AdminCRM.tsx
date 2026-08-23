@@ -53,44 +53,15 @@ export default function AdminCRM() {
 
   const tid = activeTenant?.id ?? tenantId;
 
-  // Resolve current tenant vertical
-  const impersonatedTenantRaw = localStorage.getItem('active_tenant');
-  const impersonatedTenant = impersonatedTenantRaw ? JSON.parse(impersonatedTenantRaw) : null;
-  const effectiveTenant = impersonatedTenant || activeTenant;
-  let vertical = effectiveTenant?.business_type || effectiveTenant?.config?.business_type || effectiveTenant?.vertical || 'consulting';
-  if (vertical === 'tour_farm') vertical = 'tour';
-  if (vertical === 'nova') vertical = 'academy';
-
-  // Dynamic Stages based on Vertical
-  const STAGES = (() => {
-    if (vertical === 'tour') {
-      return [
-        { key: 'new',       labelUz: 'Yangi',          labelRu: 'Новый',         labelEn: 'New',          icon: Star,          color: 'bg-sky-500/10 border-sky-500/30 text-sky-400' },
-        { key: 'contacted', labelUz: 'Bog\'lanildi',    labelRu: 'Связались',     labelEn: 'Contacted',    icon: Phone,         color: 'bg-violet-500/10 border-violet-500/30 text-violet-400' },
-        { key: 'converted', labelUz: 'Mijoz',          labelRu: 'Клиент',        labelEn: 'Converted',    icon: UserCheck,     color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' },
-        { key: 'closed',    labelUz: 'Yopildi',         labelRu: 'Закрыт',        labelEn: 'Closed',       icon: UserCheck,     color: 'bg-rose-500/10 border-rose-500/30 text-rose-400' },
-      ];
-    }
-    if (vertical === 'academy') {
-      return [
-        { key: 'new',       labelUz: 'Yangi',          labelRu: 'Новый',         labelEn: 'New',          icon: Star,          color: 'bg-sky-500/10 border-sky-500/30 text-sky-400' },
-        { key: 'contacted', labelUz: 'Aloqa qilingan',  labelRu: 'Связались',     labelEn: 'Contacted',    icon: Phone,         color: 'bg-violet-500/10 border-violet-500/30 text-violet-400' },
-        { key: 'demo',      labelUz: 'Demo dars',      labelRu: 'Демо-урок',     labelEn: 'Demo Class',   icon: Clock,         color: 'bg-amber-500/10 border-amber-500/30 text-amber-400' },
-        { key: 'contract',  labelUz: 'Shartnoma',      labelRu: 'Договор',       labelEn: 'Contract',     icon: FileText,      color: 'bg-orange-500/10 border-orange-500/30 text-orange-400' },
-        { key: 'won',       labelUz: 'Yutilgan',       labelRu: 'Выигран',       labelEn: 'Won',          icon: GraduationCap, color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' },
-        { key: 'lost',      labelUz: 'Yo\'qotilgan',    labelRu: 'Проигран',      labelEn: 'Lost',         icon: XCircle,       color: 'bg-rose-500/10 border-rose-500/30 text-rose-400' },
-      ];
-    }
-    // Default: consulting
-    return [
-      { key: 'lead',      labelUz: 'Yangi Lead',       labelRu: 'Новый лид',       labelEn: 'New Lead',       icon: Star,          color: 'bg-sky-500/10 border-sky-500/30 text-sky-400' },
-      { key: 'contacted', labelUz: 'Aloqa O\'rnatildi', labelRu: 'Контакт',         labelEn: 'Contacted',      icon: Phone,         color: 'bg-violet-500/10 border-violet-500/30 text-violet-400' },
-      { key: 'documents', labelUz: 'Hujjatlar',         labelRu: 'Документы',       labelEn: 'Documents',      icon: FileText,      color: 'bg-amber-500/10 border-amber-500/30 text-amber-400' },
-      { key: 'visa',      labelUz: 'Viza',              labelRu: 'Виза',            labelEn: 'Visa',           icon: Plane,         color: 'bg-orange-500/10 border-orange-500/30 text-orange-400' },
-      { key: 'enrolled',  labelUz: 'O\'qishga Kirdi',   labelRu: 'Поступил',        labelEn: 'Enrolled',       icon: GraduationCap, color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' },
-      { key: 'alumni',    labelUz: 'Bitiruvchi',         labelRu: 'Выпускник',       labelEn: 'Alumni',         icon: UserCheck,     color: 'bg-pink-500/10 border-pink-500/30 text-pink-400' },
-    ];
-  })();
+  // Consulting pipeline stages
+  const STAGES = [
+    { key: 'lead',      labelUz: 'Yangi Lead',       labelRu: 'Новый лид',       labelEn: 'New Lead',       icon: Star,          color: 'bg-sky-500/10 border-sky-500/30 text-sky-400' },
+    { key: 'contacted', labelUz: "Aloqa O'rnatildi",  labelRu: 'Контакт',         labelEn: 'Contacted',      icon: Phone,         color: 'bg-violet-500/10 border-violet-500/30 text-violet-400' },
+    { key: 'documents', labelUz: 'Hujjatlar',         labelRu: 'Документы',       labelEn: 'Documents',      icon: FileText,      color: 'bg-amber-500/10 border-amber-500/30 text-amber-400' },
+    { key: 'visa',      labelUz: 'Viza',              labelRu: 'Виза',            labelEn: 'Visa',           icon: Plane,         color: 'bg-orange-500/10 border-orange-500/30 text-orange-400' },
+    { key: 'enrolled',  labelUz: "O'qishga Kirdi",   labelRu: 'Поступил',        labelEn: 'Enrolled',       icon: GraduationCap, color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' },
+    { key: 'alumni',    labelUz: 'Bitiruvchi',         labelRu: 'Выпускник',       labelEn: 'Alumni',         icon: UserCheck,     color: 'bg-pink-500/10 border-pink-500/30 text-pink-400' },
+  ];
 
   const stageLabel = (key: CrmStage) => {
     const s = STAGES.find(s => s.key === key);
@@ -137,7 +108,7 @@ export default function AdminCRM() {
         });
       });
 
-      const defaultStage = vertical === 'consulting' ? 'lead' : 'new';
+      const defaultStage = 'lead';
 
       const mapped: CrmClient[] = (profiles ?? []).map(p => {
         const as = stageMap.get(p.user_id);
@@ -163,7 +134,7 @@ export default function AdminCRM() {
     } finally {
       setLoading(false);
     }
-  }, [tid, vertical]);
+  }, [tid]);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 

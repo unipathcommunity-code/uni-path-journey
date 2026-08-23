@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Users, Clock, MapPin, TrendingUp, Loader2, Eye, MousePointer } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { formatPrice } from "@/data/tours";
 import PageTransition from "@/components/common/PageTransition";
 import { motion } from "framer-motion";
 
@@ -24,13 +23,13 @@ const AdminAnalytics = () => {
     },
   });
 
-  // Bookings analytics
-  const { data: bookingStats } = useQuery({
-    queryKey: ["admin-booking-analytics"],
+  // Applications analytics
+  const { data: applicationStats } = useQuery({
+    queryKey: ["admin-application-analytics"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("bookings")
-        .select("created_at, total_price, status, payment_status")
+        .from("applications")
+        .select("created_at, status")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -54,38 +53,40 @@ const AdminAnalytics = () => {
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
 
-  // Booking funnel
+  // Application funnel
   const totalVisits = uniqueSessions;
-  const tourViews = pageViews.filter((p) => p.page_path.startsWith("/tours/")).length;
-  const bookingStarts = pageViews.filter((p) => p.page_path.startsWith("/booking/")).length;
-  const completedBookings = bookingStats?.filter((b) => b.status !== "cancelled").length || 0;
-  const conversionRate = totalVisits > 0 ? ((completedBookings / totalVisits) * 100).toFixed(1) : "0";
+  const searchViews = pageViews.filter((p) => p.page_path.startsWith("/search")).length;
+  const applicationStarts = pageViews.filter((p) => p.page_path.startsWith("/student/applications")).length;
+  const submittedApplications = applicationStats?.filter((a) => a.status !== "cancelled").length || 0;
+  const acceptedApplications = applicationStats?.filter((a) => a.status === "accepted").length || 0;
+  const conversionRate = totalVisits > 0 ? ((submittedApplications / totalVisits) * 100).toFixed(1) : "0";
 
   const funnelData = [
     { name: "Sayt tashrifi", value: totalVisits },
-    { name: "Tur ko'rish", value: tourViews },
-    { name: "Booking boshlash", value: bookingStarts },
-    { name: "Buyurtma", value: completedBookings },
+    { name: "Universitet qidiruvi", value: searchViews },
+    { name: "Ariza boshlash", value: applicationStarts },
+    { name: "Yuborilgan ariza", value: submittedApplications },
+    { name: "Qabul qilingan", value: acceptedApplications },
   ];
 
-  // Daily bookings chart (last 7 days)
+  // Daily applications chart (last 7 days)
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     return d.toISOString().split("T")[0];
   });
 
-  const dailyBookings = last7Days.map((date) => ({
+  const dailyApplications = last7Days.map((date) => ({
     date: new Date(date).toLocaleDateString("uz-UZ", { day: "numeric", month: "short" }),
-    bookings: bookingStats?.filter((b) => b.created_at.startsWith(date)).length || 0,
-    revenue: bookingStats?.filter((b) => b.created_at.startsWith(date)).reduce((sum, b) => sum + b.total_price, 0) || 0,
+    applications: applicationStats?.filter((a) => a.created_at.startsWith(date)).length || 0,
   }));
 
-  // Payment status distribution
-  const paymentDistribution = [
-    { name: "To'lanmagan", value: bookingStats?.filter((b) => b.payment_status === "unpaid").length || 0 },
-    { name: "Deposit", value: bookingStats?.filter((b) => b.payment_status === "deposit_paid").length || 0 },
-    { name: "To'liq", value: bookingStats?.filter((b) => b.payment_status === "fully_paid").length || 0 },
+  // Application status distribution
+  const statusDistribution = [
+    { name: "Kutilmoqda", value: applicationStats?.filter((a) => a.status === "pending").length || 0 },
+    { name: "Ko'rib chiqilmoqda", value: applicationStats?.filter((a) => a.status === "reviewing").length || 0 },
+    { name: "Qabul qilingan", value: applicationStats?.filter((a) => a.status === "accepted").length || 0 },
+    { name: "Rad etilgan", value: applicationStats?.filter((a) => a.status === "rejected").length || 0 },
   ].filter((d) => d.value > 0);
 
   if (isLoading) {
@@ -134,14 +135,14 @@ const AdminAnalytics = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Daily Bookings */}
+          {/* Daily Applications */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Kunlik buyurtmalar (7 kun)</CardTitle>
+              <CardTitle className="text-base">Kunlik arizalar (7 kun)</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={dailyBookings}>
+                <BarChart data={dailyApplications}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="date" className="text-xs" />
                   <YAxis className="text-xs" />
@@ -152,7 +153,7 @@ const AdminAnalytics = () => {
                       borderRadius: "8px",
                     }}
                   />
-                  <Bar dataKey="bookings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="applications" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -215,20 +216,20 @@ const AdminAnalytics = () => {
             </CardContent>
           </Card>
 
-          {/* Payment Distribution */}
+          {/* Application Status Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">To'lov holatlari</CardTitle>
+              <CardTitle className="text-base">Ariza holatlari</CardTitle>
             </CardHeader>
             <CardContent>
-              {paymentDistribution.length === 0 ? (
+              {statusDistribution.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">Ma'lumotlar yo'q</p>
               ) : (
                 <>
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
-                      <Pie data={paymentDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
-                        {paymentDistribution.map((_, i) => (
+                      <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
+                        {statusDistribution.map((_, i) => (
                           <Cell key={i} fill={COLORS[i % COLORS.length]} />
                         ))}
                       </Pie>
@@ -236,7 +237,7 @@ const AdminAnalytics = () => {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="flex justify-center gap-4 mt-2">
-                    {paymentDistribution.map((d, i) => (
+                    {statusDistribution.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                         <span className="text-muted-foreground">{d.name}: {d.value}</span>
