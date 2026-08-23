@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 const getSessionId = () => {
-  let sid = sessionStorage.getItem("unitour_session_id");
+  let sid = sessionStorage.getItem("unipath_session_id");
   if (!sid) {
     sid = crypto.randomUUID();
-    sessionStorage.setItem("unitour_session_id", sid);
+    sessionStorage.setItem("unipath_session_id", sid);
   }
   return sid;
 };

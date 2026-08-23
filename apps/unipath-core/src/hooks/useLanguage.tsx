@@ -1,11 +1,13 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, ReactNode, useCallback } from "react";
+import i18n from "@/i18n";
+import { useApp } from "@/contexts/AppContext";
 
 export type Language = "uz" | "ru" | "en";
 
 const translations = {
   // Auth
   "auth.welcome_back": { uz: "Xush kelibsiz, tizimga kiring", ru: "С возвращением, войдите в систему", en: "Welcome back, sign in to continue" },
-  "auth.create_account": { uz: "NOVA hisobingizni yarating", ru: "Создайте аккаунт NOVA", en: "Create your NOVA account" },
+  "auth.create_account": { uz: "UniPath hisobingizni yarating", ru: "Создайте аккаунт UniPath", en: "Create your UniPath account" },
   "auth.sign_in": { uz: "Kirish", ru: "Войти", en: "Sign In" },
   "auth.sign_up": { uz: "Ro'yxatdan o'tish", ru: "Регистрация", en: "Sign Up" },
   "auth.email": { uz: "Elektron pochta", ru: "Электронная почта", en: "Email" },
@@ -135,7 +137,6 @@ const translations = {
   "admin.teachers": { uz: "O'qituvchilar", ru: "Учителя", en: "Teachers" },
   "admin.live_now": { uz: "Hozir jonli", ru: "Сейчас в эфире", en: "Live Now" },
   "admin.upcoming": { uz: "kelayotgan", ru: "предстоящих", en: "upcoming" },
-  "admin.novacoins": { uz: "NovaCoins", ru: "NovaCoins", en: "NovaCoins" },
   "admin.attendance_rate": { uz: "Davomat foizi", ru: "Процент посещаемости", en: "Attendance Rate" },
   "admin.overall_checkin": { uz: "Umumiy check-in", ru: "Общая регистрация", en: "Overall check-in rate" },
   "admin.rooms": { uz: "Xonalar", ru: "Комнаты", en: "Rooms" },
@@ -261,7 +262,6 @@ const translations = {
   "evolution.traffic_light": { uz: "Svetofor ko'rinishi", ru: "Светофорный обзор", en: "Traffic Light Overview" },
 
   // Store
-  "store.title": { uz: "Nova-Do'kon", ru: "Nova-Магазин", en: "Nova-Store" },
   "store.earn_spend": { uz: "Ishlab topish, sarflash, rivojlanish", ru: "Зарабатывай, трать, развивайся", en: "Earn, spend, evolve" },
   "store.wallet": { uz: "💰 Hamyon", ru: "💰 Кошелёк", en: "💰 Wallet" },
   "store.store": { uz: "🛍️ Do'kon", ru: "🛍️ Магазин", en: "🛍️ Store" },
@@ -396,15 +396,15 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem("unipath-lang");
-    return (saved as Language) || "en";
-  });
+  // Single source of truth: AppContext owns the language (localStorage
+  // `unipath_language` + profiles.preferred_language). This provider only
+  // exposes the legacy `t()` dictionary on top of it.
+  const { language, setLanguage } = useApp();
 
-  const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem("unipath-lang", lang);
-  }, []);
+  // Keep react-i18next (used by the admin pages) on the same language.
+  useEffect(() => {
+    if (i18n.language !== language) i18n.changeLanguage(language);
+  }, [language]);
 
   const t = useCallback((key: string, params?: Record<string, string>): string => {
     const entry = translations[key as TranslationKey];
@@ -418,8 +418,10 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     return result;
   }, [language]);
 
+  const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

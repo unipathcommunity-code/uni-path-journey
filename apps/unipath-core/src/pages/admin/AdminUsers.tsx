@@ -309,7 +309,7 @@ const AdminUsers = () => {
                   <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.user")}</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.phone")}</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.role")}</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.orders")}</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.applications")}</th>
                   <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">{t("admin.actions")}</th>
                 </tr>
               </thead>

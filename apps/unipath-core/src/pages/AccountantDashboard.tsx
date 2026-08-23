@@ -50,7 +50,7 @@ const AccountantDashboard = () => {
 
   return (
     <FeatureGate feature="payments">
-      <div className="min-h-screen bg-background nova-grid-bg pb-20">
+      <div className="min-h-screen bg-background pb-20">
         <AccountantHeader />
 
         <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">

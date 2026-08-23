@@ -11,7 +11,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem("nova-theme") as Theme) || "dark";
+    return (localStorage.getItem("unipath-theme") as Theme) || "dark";
   });
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     } else {
       root.classList.remove("light");
     }
-    localStorage.setItem("nova-theme", theme);
+    localStorage.setItem("unipath-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));

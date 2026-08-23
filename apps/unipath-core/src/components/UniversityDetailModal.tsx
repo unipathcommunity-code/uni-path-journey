@@ -94,6 +94,7 @@ export function UniversityDetailModal({
       certificates: "Sertifikatlar",
       languageTests: "Til testlari",
       minGPA: "Minimal GPA",
+      notSpecified: "Ma'lumot kiritilmagan",
       applicationDeadline: "Ariza topshirish muddati",
       applicationFee: "Ariza to'lovi",
       languageOfInstruction: "O'qitish tili",
@@ -118,6 +119,7 @@ export function UniversityDetailModal({
       certificates: "Сертификаты",
       languageTests: "Языковые тесты",
       minGPA: "Минимальный GPA",
+      notSpecified: "Информация не указана",
       applicationDeadline: "Срок подачи заявки",
       applicationFee: "Регистрационный взнос",
       languageOfInstruction: "Язык обучения",
@@ -142,6 +144,7 @@ export function UniversityDetailModal({
       certificates: "Certificates",
       languageTests: "Language Tests",
       minGPA: "Minimum GPA",
+      notSpecified: "Not specified",
       applicationDeadline: "Application Deadline",
       applicationFee: "Application Fee",
       languageOfInstruction: "Language of Instruction",
@@ -319,11 +322,15 @@ export function UniversityDetailModal({
                     {l.languageOfInstruction}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {(university.languageOfInstruction || ['English', 'Korean']).map((lang) => (
-                      <Badge key={lang} variant="secondary">
-                        {lang}
-                      </Badge>
-                    ))}
+                    {university.languageOfInstruction?.length ? (
+                      university.languageOfInstruction.map((lang) => (
+                        <Badge key={lang} variant="secondary">
+                          {lang}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground/70">{l.notSpecified}</span>
+                    )}
                   </div>
                 </div>
 
@@ -384,16 +391,10 @@ export function UniversityDetailModal({
                     {l.documents}
                   </p>
                   <div className="space-y-2">
-                    {(university.requirements?.documents || [
-                      'Passport Copy',
-                      'High School Diploma',
-                      'Transcript',
-                      'CV/Resume',
-                      'Statement of Purpose (SOP)',
-                      'Recommendation Letters (2)',
-                      'Passport-size Photo',
-                      'Bank Statement',
-                    ]).map((doc) => (
+                    {!university.requirements?.documents?.length && (
+                      <span className="text-sm text-muted-foreground/70">{l.notSpecified}</span>
+                    )}
+                    {(university.requirements?.documents ?? []).map((doc) => (
                       <div key={doc} className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-primary" />
                         <span className="text-foreground">{doc}</span>
@@ -408,10 +409,10 @@ export function UniversityDetailModal({
                     {l.certificates}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {(university.requirements?.certificates || [
-                      'High School Certificate',
-                      'University Entrance Exam',
-                    ]).map((cert) => (
+                    {!university.requirements?.certificates?.length && (
+                      <span className="text-sm text-muted-foreground/70">{l.notSpecified}</span>
+                    )}
+                    {(university.requirements?.certificates ?? []).map((cert) => (
                       <Badge key={cert} variant="secondary" className="gap-1">
                         <Award className="w-3 h-3" />
                         {cert}
@@ -426,11 +427,10 @@ export function UniversityDetailModal({
                     {l.languageTests}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {(university.requirements?.languageTests || [
-                      'TOPIK Level 3+',
-                      'IELTS 5.5+',
-                      'TOEFL 70+',
-                    ]).map((test) => (
+                    {!university.requirements?.languageTests?.length && (
+                      <span className="text-sm text-muted-foreground/70">{l.notSpecified}</span>
+                    )}
+                    {(university.requirements?.languageTests ?? []).map((test) => (
                       <Badge key={test} className="bg-primary/10 text-primary border-primary/20">
                         {test}
                       </Badge>
@@ -439,12 +439,12 @@ export function UniversityDetailModal({
                 </div>
 
                 {/* Min GPA */}
-                {(university.requirements?.minGPA || 2.5) && (
+                {typeof university.requirements?.minGPA === 'number' && (
                   <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                     <Trophy className="w-5 h-5 text-primary" />
                     <span className="text-sm text-muted-foreground">{l.minGPA}:</span>
                     <span className="font-semibold text-foreground">
-                      {university.requirements?.minGPA || 2.5} / 4.0
+                      {university.requirements.minGPA} / 4.0
                     </span>
                   </div>
                 )}

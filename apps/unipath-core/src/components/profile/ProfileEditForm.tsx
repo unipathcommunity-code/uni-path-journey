@@ -38,7 +38,7 @@ const ProfileEditForm = () => {
       if (error) throw error;
       toast.success(t("profile.name_updated"));
       refresh?.();
-      window.dispatchEvent(new Event("nova:profile-updated"));
+      window.dispatchEvent(new Event("unipath:profile-updated"));
     } catch (e: any) {
       toast.error(e.message);
     } finally {

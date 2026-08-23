@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider as RoleAuthProvider } from "@/hooks/useAuth";
 import { TenantProvider } from "@unipath/tenant";
 import { SUPER_ADMIN_EMAILS } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -195,12 +196,13 @@ const App = () => (
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <TenantProvider client={supabase as any} superAdminEmails={SUPER_ADMIN_EMAILS}>
         <AuthProvider>
+        <RoleAuthProvider>
         <WishlistProvider>
         <OrganizationProvider>
           <BranchProvider>
             <FeatureFlagProvider>
-              <LanguageProvider>
-                <AppProvider>
+              <AppProvider>
+                <LanguageProvider>
                   <TenantRouter>
                     <CreditProvider>
             <TooltipProvider>
@@ -622,12 +624,13 @@ const App = () => (
           </TooltipProvider>
                   </CreditProvider>
                 </TenantRouter>
-              </AppProvider>
-            </LanguageProvider>
+              </LanguageProvider>
+            </AppProvider>
           </FeatureFlagProvider>
         </BranchProvider>
       </OrganizationProvider>
       </WishlistProvider>
+      </RoleAuthProvider>
       </AuthProvider>
       </TenantProvider>
     </ThemeProvider>

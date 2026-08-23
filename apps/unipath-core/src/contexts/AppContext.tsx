@@ -150,8 +150,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── UI preferences ────────────────────────────────────────────────────────
 
   const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return 'en';
-    return safeParseLanguage(window.localStorage.getItem(STORAGE_KEYS.language)) || 'en';
+    if (typeof window === 'undefined') return 'uz';
+    return safeParseLanguage(window.localStorage.getItem(STORAGE_KEYS.language)) || 'uz';
   });
 
   const [selectedCountry, setSelectedCountryState] = useState<SelectedCountry | null>(() => {

@@ -174,7 +174,7 @@ const ProtectedRoute = ({
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-background nova-grid-bg flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="glass-strong p-8 text-center max-w-sm">
           <h2 className="text-xl font-heading font-bold text-foreground mb-2">{t("common.access_denied")}</h2>
           <p className="text-sm text-muted-foreground">

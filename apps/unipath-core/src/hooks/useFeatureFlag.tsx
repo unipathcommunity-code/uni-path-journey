@@ -83,11 +83,11 @@ export const FeatureFlagProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetchFromServer();
     const onUpdate = () => fetchFromServer();
-    window.addEventListener("nova:org-updated", onUpdate);
-    window.addEventListener("nova:plan-updated", onUpdate);
+    window.addEventListener("unipath:org-updated", onUpdate);
+    window.addEventListener("unipath:plan-updated", onUpdate);
     return () => {
-      window.removeEventListener("nova:org-updated", onUpdate);
-      window.removeEventListener("nova:plan-updated", onUpdate);
+      window.removeEventListener("unipath:org-updated", onUpdate);
+      window.removeEventListener("unipath:plan-updated", onUpdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

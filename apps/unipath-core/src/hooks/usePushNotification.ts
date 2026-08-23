@@ -47,7 +47,7 @@ export function showBrowserNotification(title: string, body: string, icon?: stri
     body,
     icon: icon || "/favicon.png",
     badge: "/favicon.png",
-    tag: "unitour-notification",
+    tag: "unipath-notification",
   });
 
   notification.onclick = () => {

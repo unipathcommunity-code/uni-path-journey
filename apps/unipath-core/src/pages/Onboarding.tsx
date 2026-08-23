@@ -81,7 +81,7 @@ export default function Onboarding() {
           <div className="text-center max-w-3xl mx-auto mb-12 animate-slide-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
               <Globe className="w-4 h-4" />
-              <span>Your gateway to global education</span>
+              <span>{t.joinPlatform}</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 leading-tight">

@@ -25,10 +25,10 @@ interface Branding {
  * SiteLogin — branded sign-in for ONE education-center.
  *
  * Why this page exists:
- *   The main NOVA portal (/auth) is reserved for platform roles
+ *   The main UniPath portal (/auth) is reserved for platform roles
  *   (superadmin / owner / admin). Teachers, students, parents and
  *   accountants enter through their own center's site, which is fully
- *   branded with that center's logo, name and color palette — no NOVA
+ *   branded with that agency's logo, name and color palette — no UniPath
  *   chrome, no Lovable badges, no cross-tenant noise.
  *
  * Behavior:
@@ -82,7 +82,7 @@ const SiteLogin = () => {
     if (brand.primary_color) root.style.setProperty("--primary", brand.primary_color);
     if (brand.accent_color) root.style.setProperty("--accent", brand.accent_color);
     return () => {
-      // Restore so the rest of the app (other tenants / NOVA portal) is unaffected
+      // Restore so the rest of the app (other tenants / UniPath portal) is unaffected
       if (prevP) root.style.setProperty("--primary", prevP);
       else root.style.removeProperty("--primary");
       if (prevA) root.style.setProperty("--accent", prevA);

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,11 +22,12 @@ const OrgContext = createContext<OrgContextType | undefined>(undefined);
 
 export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrg = async () => {
-    if (!user) {
+  const fetchOrg = useCallback(async () => {
+    if (!userId) {
       setOrg(null);
       setLoading(false);
       return;
@@ -34,8 +35,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("organization_id")
-      .eq("user_id", user.id)
-      .single();
+      .eq("user_id", userId)
+      .maybeSingle();
     if (!profile?.organization_id) {
       setLoading(false);
       return;
@@ -47,15 +48,14 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       .single();
     if (orgRow) setOrg(orgRow);
     setLoading(false);
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchOrg();
     const onUpdate = () => fetchOrg();
-    window.addEventListener("nova:org-updated", onUpdate);
-    return () => window.removeEventListener("nova:org-updated", onUpdate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    window.addEventListener("unipath:org-updated", onUpdate);
+    return () => window.removeEventListener("unipath:org-updated", onUpdate);
+  }, [fetchOrg]);
 
   // Apply org branding as CSS variables (HSL strings stored in DB)
   useEffect(() => {
@@ -65,8 +65,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     root.style.setProperty("--accent", org.accent_color);
   }, [org]);
 
+  const orgValue = useMemo(() => ({ org, loading, refresh: fetchOrg }), [org, loading, fetchOrg]);
+
   return (
-    <OrgContext.Provider value={{ org, loading, refresh: fetchOrg }}>
+    <OrgContext.Provider value={orgValue}>
       {children}
     </OrgContext.Provider>
   );

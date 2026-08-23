@@ -7,7 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 
 const PRESETS = [
-  { name: "NOVA Purple", primary: "262 83% 58%", accent: "180 70% 50%" },
+  { name: "UniPath Purple", primary: "262 83% 58%", accent: "180 70% 50%" },
   { name: "Ocean", primary: "210 90% 55%", accent: "190 85% 50%" },
   { name: "Forest", primary: "150 60% 45%", accent: "120 50% 50%" },
   { name: "Sunset", primary: "20 90% 55%", accent: "340 80% 60%" },
@@ -67,7 +67,7 @@ const BrandingSettings = () => {
         .update({ name, primary_color: primary, accent_color: accent, logo_url: logoUrl })
         .eq("id", org.id);
       if (error) throw error;
-      window.dispatchEvent(new CustomEvent("nova:org-updated"));
+      window.dispatchEvent(new CustomEvent("unipath:org-updated"));
       await refresh();
       toast.success(t("admin.branding_saved") || "Branding saved");
     } catch (e: any) {

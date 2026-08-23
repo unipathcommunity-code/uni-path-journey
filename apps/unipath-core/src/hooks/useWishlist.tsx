@@ -20,7 +20,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   // Load wishlist from localStorage for non-logged users
   useEffect(() => {
     if (!user) {
-      const stored = localStorage.getItem("unitour_wishlist");
+      const stored = localStorage.getItem("unipath_wishlist");
       if (stored) {
         setWishlist(JSON.parse(stored));
       }
@@ -30,7 +30,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   // Save to localStorage when wishlist changes (for non-logged users)
   useEffect(() => {
     if (!user && wishlist.length >= 0) {
-      localStorage.setItem("unitour_wishlist", JSON.stringify(wishlist));
+      localStorage.setItem("unipath_wishlist", JSON.stringify(wishlist));
     }
   }, [wishlist, user]);
 

@@ -251,7 +251,7 @@ const WebsiteBuilder = () => {
 
   return (
     <FeatureGate feature="website_builder">
-      <div className="min-h-screen bg-background nova-grid-bg pb-20">
+      <div className="min-h-screen bg-background pb-20">
         <header className="sticky top-0 z-30 glass-strong border-b border-border/50">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">

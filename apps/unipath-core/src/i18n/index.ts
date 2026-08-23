@@ -4,7 +4,8 @@ import uz from "./locales/uz.json";
 import en from "./locales/en.json";
 import ru from "./locales/ru.json";
 
-const savedLang = localStorage.getItem("lang") || "uz";
+// AppContext owns the language; this is only the first-paint default.
+const savedLang = localStorage.getItem("unipath_language") || "uz";
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -18,7 +19,7 @@ i18n.use(initReactI18next).init({
 });
 
 i18n.on("languageChanged", (lng) => {
-  localStorage.setItem("lang", lng);
+  localStorage.setItem("unipath_language", lng);
 });
 
 export default i18n;

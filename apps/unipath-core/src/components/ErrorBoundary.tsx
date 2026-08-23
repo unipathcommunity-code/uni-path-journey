@@ -64,7 +64,7 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background nova-grid-bg p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

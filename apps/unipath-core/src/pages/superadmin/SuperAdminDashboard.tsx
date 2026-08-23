@@ -859,7 +859,7 @@ export default function SuperAdminDashboard() {
                       <Input
                         value={newTenant.name}
                         onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
-                        placeholder="Masalan: UniTour Agency, NOVA IT"
+                        placeholder="Masalan: Bright Future Education"
                         className="bg-white/5 border-white/10 text-white rounded-xl h-11 text-xs"
                       />
                     </div>
@@ -870,7 +870,7 @@ export default function SuperAdminDashboard() {
                         <Input
                           value={newTenant.subdomain}
                           onChange={(e) => setNewTenant({ ...newTenant, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                          placeholder="unitour"
+                          placeholder="brightfuture"
                           className="bg-white/5 border-white/10 text-white pr-24 rounded-xl h-11 text-xs font-mono"
                         />
                         <span className="absolute right-3 top-3 text-[10px] text-white/40 font-bold font-sans">.unipath.me</span>
@@ -1575,7 +1575,7 @@ export default function SuperAdminDashboard() {
                                   <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl space-y-3">
                                     <div className="flex justify-between items-center">
                                       <span className="font-semibold text-white/80 flex items-center gap-2">
-                                        <Coins className="w-4 h-4 text-emerald-400" /> NovaCoins Multiplikatori
+                                        <Coins className="w-4 h-4 text-emerald-400" /> UniCoin Multiplikatori
                                       </span>
                                       <span className="font-bold text-emerald-400">{(selectedTenant.config?.settings as any)?.coinMultiplier ?? tenantConfigs[selectedTenant.id]?.coinMultiplier ?? 1.5}x rate</span>
                                     </div>

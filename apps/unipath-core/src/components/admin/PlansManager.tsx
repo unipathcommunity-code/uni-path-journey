@@ -6,16 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const ALL_FEATURES: { key: string; label: string }[] = [
-  { key: "ai_tutor", label: "Yordamchi (24/7)" },
-  { key: "homework", label: "Uy vazifalari" },
   { key: "payments", label: "To'lovlar" },
-  { key: "biometric", label: "Biometrik" },
-  { key: "nova_store", label: "Nova Store" },
-  { key: "live_classes", label: "Jonli darslar" },
-  { key: "parent_mirror", label: "Ota-ona oynasi" },
-  { key: "qr_attendance", label: "QR davomat" },
-  { key: "ai_presentation", label: "Taqdimot generator" },
-  { key: "ai_lesson_planner", label: "Dars rejalashtiruvchi" },
   { key: "crm", label: "CRM" },
   { key: "website_builder", label: "Veb-sayt builder" },
   { key: "telegram_bot", label: "Telegram bot" },
@@ -71,7 +62,7 @@ const PlansManager = () => {
       toast.success("Tarif yangilandi");
       setEditing(null);
       refresh();
-      window.dispatchEvent(new Event("nova:plan-updated"));
+      window.dispatchEvent(new Event("unipath:plan-updated"));
     }
   };
 

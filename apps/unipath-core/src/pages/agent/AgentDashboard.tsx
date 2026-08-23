@@ -79,19 +79,28 @@ const AgentDashboard = () => {
     queryFn: async () => {
       const { data: allReferrals } = await (supabase as any)
         .from("agent_referrals")
-        .select("commission_amount, status")
+        .select("commission_amount, status, created_at")
         .eq("agent_id", agent?.id);
 
-      const refs = (allReferrals || []) as { commission_amount: number; status: string }[];
+      const refs = (allReferrals || []) as { commission_amount: number; status: string; created_at: string }[];
       const totalEarnings = refs.reduce((sum, r) => sum + (r.commission_amount || 0), 0);
       const pendingEarnings = refs.filter(r => r.status === "pending").reduce((sum, r) => sum + (r.commission_amount || 0), 0);
       const completedReferrals = refs.filter(r => r.status === "completed").length;
+
+      // Real month-to-date counters — no invented growth percentages.
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      const inThisMonth = refs.filter(r => r.created_at && new Date(r.created_at).getTime() >= monthStart);
+      const pendingCount = refs.filter(r => r.status === "pending").length;
 
       return {
         totalEarnings,
         pendingEarnings,
         totalReferrals: refs.length,
         completedReferrals,
+        thisMonthReferrals: inThisMonth.length,
+        thisMonthEarnings: inThisMonth.reduce((sum, r) => sum + (r.commission_amount || 0), 0),
+        pendingCount,
       };
     },
     enabled: !!agent?.id,
@@ -102,8 +111,8 @@ const AgentDashboard = () => {
       title: "Jami yo'naltirishlar",
       value: stats?.totalReferrals || 0,
       icon: Users,
-      trend: "+12%",
-      trendUp: true,
+      trend: `${stats?.thisMonthReferrals || 0} ta shu oy`,
+      trendUp: (stats?.thisMonthReferrals || 0) > 0,
       color: "text-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
     },
@@ -111,8 +120,10 @@ const AgentDashboard = () => {
       title: "Muvaffaqiyatli",
       value: stats?.completedReferrals || 0,
       icon: MapPin,
-      trend: "+8%",
-      trendUp: true,
+      trend: stats?.totalReferrals
+        ? `${Math.round(((stats.completedReferrals || 0) / stats.totalReferrals) * 100)}%`
+        : "—",
+      trendUp: (stats?.completedReferrals || 0) > 0,
       color: "text-green-600",
       bgColor: "bg-green-50 dark:bg-green-950/30",
     },
@@ -120,8 +131,8 @@ const AgentDashboard = () => {
       title: "Jami daromad",
       value: `${(stats?.totalEarnings || 0).toLocaleString()} so'm`,
       icon: Wallet,
-      trend: "+23%",
-      trendUp: true,
+      trend: `${(stats?.thisMonthEarnings || 0).toLocaleString()} shu oy`,
+      trendUp: (stats?.thisMonthEarnings || 0) > 0,
       color: "text-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",
     },
@@ -129,7 +140,7 @@ const AgentDashboard = () => {
       title: "Kutilayotgan",
       value: `${(stats?.pendingEarnings || 0).toLocaleString()} so'm`,
       icon: TrendingUp,
-      trend: "3 ta",
+      trend: `${stats?.pendingCount || 0} ta`,
       trendUp: false,
       color: "text-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-950/30",

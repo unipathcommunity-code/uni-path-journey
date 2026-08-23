@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="UniPath">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background so the icon survives maskable safe-zone cropping -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Graduation cap: the path from school to a university abroad -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 150 L392 210 L256 270 L120 210 Z" fill="#FFFFFF" stroke="none"/>
+    <path d="M164 236 v66 c0 30 41 52 92 52 s92 -22 92 -52 v-66"/>
+    <path d="M392 210 v92"/>
+  </g>
+  <circle cx="392" cy="316" r="18" fill="#FFFFFF"/>
+</svg>

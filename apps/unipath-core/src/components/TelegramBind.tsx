@@ -14,7 +14,7 @@ interface Binding {
   bound_at: string;
 }
 
-const BOT_USERNAME = "nova_education_bot"; // change if your bot has a different handle
+const BOT_USERNAME = "unipath_bot"; // fallback; agencies set their own in Admin → Sozlamalar
 const BOT_LINK = `https://t.me/${BOT_USERNAME}`;
 
 /**

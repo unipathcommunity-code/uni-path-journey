@@ -42,13 +42,6 @@ const WHY_POINTS = [
   'Hujjatlar bilan yordam',
 ];
 
-// Shown when the agency has not filled its own list yet.
-const MOCK_ITEMS = [
-  { id: 'm1', name: 'Germaniya universitetlari', country: 'Germaniya' },
-  { id: 'm2', name: 'Polsha davlat universitetlari', country: 'Polsha' },
-  { id: 'm3', name: 'Rossiya texnik universitetlari', country: 'Rossiya' },
-];
-
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function TenantPublicPage() {
   const { activeTenant } = useApp();
@@ -161,7 +154,7 @@ export default function TenantPublicPage() {
     </div>
   );
 
-  const displayItems = items.length > 0 ? items : MOCK_ITEMS;
+  const displayItems = items;
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (

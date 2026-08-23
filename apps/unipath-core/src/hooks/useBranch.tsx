@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -22,7 +22,7 @@ interface BranchContextType {
 
 const BranchContext = createContext<BranchContextType | undefined>(undefined);
 
-const STORAGE_PREFIX = "nova:active-branch-id";
+const STORAGE_PREFIX = "unipath:active-branch-id";
 const keyFor = (userId?: string | null) =>
   userId ? `${STORAGE_PREFIX}:${userId}` : STORAGE_PREFIX;
 
@@ -41,8 +41,16 @@ export const BranchProvider = ({ children }: { children: ReactNode }) => {
     setActiveBranchIdState(stored);
   }, [user?.id]);
 
+  const userId = user?.id ?? null;
+  const orgId = org?.id ?? null;
+
+  // hasRole is read through a ref so a re-created callback identity can never
+  // retrigger this effect (that was the source of the infinite update loop).
+  const hasRoleRef = useRef(hasRole);
+  hasRoleRef.current = hasRole;
+
   const refresh = useCallback(async () => {
-    if (!user || !org?.id) {
+    if (!userId || !orgId) {
       setBranches([]);
       setLoading(false);
       return;
@@ -51,17 +59,17 @@ export const BranchProvider = ({ children }: { children: ReactNode }) => {
     let query = supabase
       .from("branches")
       .select("id, name, city, is_main, is_active")
-      .eq("organization_id", org.id)
+      .eq("organization_id", orgId)
       .eq("is_active", true)
       .order("is_main", { ascending: false })
       .order("name");
 
     // For non-owner/superadmin, restrict to assigned branches
-    if (!hasRole("owner") && !hasRole("superadmin")) {
+    if (!hasRoleRef.current("owner") && !hasRoleRef.current("superadmin")) {
       const { data: assignments } = await supabase
         .from("branch_assignments")
         .select("branch_id")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
       const ids = (assignments || []).map((a: any) => a.branch_id);
       if (ids.length === 0) {
         setBranches([]);
@@ -80,36 +88,40 @@ export const BranchProvider = ({ children }: { children: ReactNode }) => {
       if (current && list.some((b) => b.id === current)) return current;
       const main = list.find((b) => b.is_main);
       const next = main?.id || list[0]?.id || null;
-      if (next && typeof window !== "undefined") localStorage.setItem(keyFor(user?.id), next);
+      if (next && typeof window !== "undefined") localStorage.setItem(keyFor(userId), next);
       return next;
     });
 
     setLoading(false);
-  }, [user, org?.id, hasRole]);
+  }, [userId, orgId]);
 
-  const setActiveBranchId = (id: string | null) => {
+  const setActiveBranchId = useCallback((id: string | null) => {
     setActiveBranchIdState(id);
     if (typeof window !== "undefined") {
-      const k = keyFor(user?.id);
+      const k = keyFor(userId);
       if (id) localStorage.setItem(k, id);
       else localStorage.removeItem(k);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     refresh();
     const onUpdate = () => refresh();
-    window.addEventListener("nova:branches-updated", onUpdate);
-    return () => window.removeEventListener("nova:branches-updated", onUpdate);
+    window.addEventListener("unipath:branches-updated", onUpdate);
+    return () => window.removeEventListener("unipath:branches-updated", onUpdate);
   }, [refresh]);
 
-  const activeBranch = branches.find((b) => b.id === activeBranchId) || null;
-
-  return (
-    <BranchContext.Provider value={{ branches, activeBranchId, activeBranch, setActiveBranchId, loading, refresh }}>
-      {children}
-    </BranchContext.Provider>
+  const activeBranch = useMemo(
+    () => branches.find((b) => b.id === activeBranchId) || null,
+    [branches, activeBranchId],
   );
+
+  const value = useMemo(
+    () => ({ branches, activeBranchId, activeBranch, setActiveBranchId, loading, refresh }),
+    [branches, activeBranchId, activeBranch, setActiveBranchId, loading, refresh],
+  );
+
+  return <BranchContext.Provider value={value}>{children}</BranchContext.Provider>;
 };
 
 export const useBranch = () => {

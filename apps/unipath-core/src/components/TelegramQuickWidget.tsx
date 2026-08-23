@@ -3,11 +3,13 @@ import { Send, CheckCircle2, AlertCircle, X, Wand2, Copy, ExternalLink, Loader2,
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const BOT_USERNAME = "nova_education_bot";
-const BOT_LINK = `https://t.me/${BOT_USERNAME}`;
+// Each agency configures its own bot in Admin → Sozlamalar; this is the
+// platform-wide fallback used until they do.
+const DEFAULT_BOT_USERNAME = "unipath_bot";
 
 interface BindingRow {
   id: string;
@@ -30,6 +32,10 @@ interface BindingRow {
  */
 const TelegramQuickWidget = () => {
   const { user } = useAuth();
+  const { activeTenant } = useApp();
+  const botUsername =
+    (activeTenant?.config?.branding?.telegram_bot_username || DEFAULT_BOT_USERNAME).replace(/^@/, "");
+  const botLink = `https://t.me/${botUsername}`;
   const navigate = useNavigate();
   const [latest, setLatest] = useState<BindingRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -177,9 +183,9 @@ const TelegramQuickWidget = () => {
                   <ol className="space-y-2.5">
                     <Step n={1}>
                       <strong>Botni oching</strong>
-                      <a href={BOT_LINK} target="_blank" rel="noreferrer"
+                      <a href={botLink} target="_blank" rel="noreferrer"
                         className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 rounded bg-[#229ED9]/15 text-[#229ED9] text-xs font-mono font-semibold hover:bg-[#229ED9]/25">
-                        <ExternalLink className="w-3 h-3" /> @{BOT_USERNAME}
+                        <ExternalLink className="w-3 h-3" /> @{botUsername}
                       </a>
                     </Step>
                     <Step n={2}>Pastdagi tugmadan 6 raqamli kod oling.</Step>
@@ -214,7 +220,7 @@ const TelegramQuickWidget = () => {
                       </button>
                     </div>
                   </div>
-                  <a href={BOT_LINK} target="_blank" rel="noreferrer"
+                  <a href={botLink} target="_blank" rel="noreferrer"
                     className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#229ED9] text-white text-sm font-semibold">
                     <ExternalLink className="w-4 h-4" /> Botni ochish va kodni yuborish
                   </a>

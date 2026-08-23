@@ -56,13 +56,28 @@ const AdminAccounting = () => {
   });
   const thisMonthRevenue = thisMonth.filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed").reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
 
+  // Real month-over-month change — shown only when last month had revenue.
+  const lastMonth = transactions.filter((b: any) => {
+    const date = new Date(b.created_at || b.payment_date);
+    const ref = new Date();
+    ref.setMonth(ref.getMonth() - 1);
+    return date.getMonth() === ref.getMonth() && date.getFullYear() === ref.getFullYear();
+  });
+  const lastMonthRevenue = lastMonth
+    .filter((b: any) => b.status === "confirmed" || b.status === "paid" || b.status === "completed")
+    .reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
+  const momChange = lastMonthRevenue > 0
+    ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
+    : null;
+  const momLabel = momChange === null ? "—" : `${momChange > 0 ? "+" : ""}${momChange}%`;
+
   const formatPrice = (price: number) => new Intl.NumberFormat("uz-UZ").format(price) + " UZS";
 
   const stats = [
-    { title: "Umumiy Tushumlar", value: formatPrice(totalRevenue), icon: Wallet, color: "text-green-600", bgColor: "bg-green-50 dark:bg-green-950/30", trend: "+18%", trendUp: true },
+    { title: "Umumiy Tushumlar", value: formatPrice(totalRevenue), icon: Wallet, color: "text-green-600", bgColor: "bg-green-50 dark:bg-green-950/30", trend: momLabel, trendUp: (momChange ?? 0) >= 0 },
     { title: "Shu Oy (Kirim)", value: formatPrice(thisMonthRevenue), icon: Calendar, color: "text-blue-600", bgColor: "bg-blue-50 dark:bg-blue-950/30", trend: `${thisMonth.length} ta`, trendUp: true },
     { title: "Agent Komissiyalari", value: formatPrice(totalCommissions), icon: Users, color: "text-purple-600", bgColor: "bg-purple-50 dark:bg-purple-950/30", trend: `${referrals.length} ta`, trendUp: false },
-    { title: "Sof Foyda (Net)", value: formatPrice(netRevenue), icon: TrendingUp, color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-950/30", trend: "+15%", trendUp: true },
+    { title: "Sof Foyda (Net)", value: formatPrice(netRevenue), icon: TrendingUp, color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-950/30", trend: momLabel, trendUp: (momChange ?? 0) >= 0 },
   ];
 
   if (transLoading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;

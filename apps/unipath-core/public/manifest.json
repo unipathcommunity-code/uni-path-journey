@@ -1,49 +1,48 @@
 {
-  "name": "UniPath — Business Management Platform",
+  "name": "UniPath — Xorijda ta'lim konsalting platformasi",
   "short_name": "UniPath",
-  "description": "Multi-vertical business management SaaS — tour agencies, academies, consulting firms and 15+ business types in one platform.",
+  "description": "Konsalting agentliklari uchun SaaS: arizalar voronkasi, hujjatlar nazorati, viza va to'lovlar — bitta tizimda.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "theme_color": "#4F46E5",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "uz",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon.png",
-      "sizes": "64x64",
-      "type": "image/png"
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Open admin dashboard",
-      "url": "/admin/dashboard",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "name": "Boshqaruv paneli",
+      "short_name": "Panel",
+      "description": "Admin panelni ochish",
+      "url": "/admin/dashboard"
+    },
+    {
+      "name": "Arizalar",
+      "short_name": "Arizalar",
+      "description": "Arizalar ro'yxatini ochish",
+      "url": "/admin/applications"
     },
     {
       "name": "Bildirishnomalar",
-      "short_name": "Notifications",
-      "description": "Open notifications",
-      "url": "/admin/notifications",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "short_name": "Xabarlar",
+      "description": "Bildirishnomalarni ochish",
+      "url": "/admin/notifications"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": ["business", "productivity", "education"],
   "screenshots": []
 }

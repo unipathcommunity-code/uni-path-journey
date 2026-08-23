@@ -55,7 +55,7 @@ const AvatarUpload = ({ onUpdated, size = "sm" }: AvatarUploadProps) => {
       setLocalUrl(publicUrl);
       onUpdated?.(publicUrl);
       setShowModal(false);
-      window.dispatchEvent(new CustomEvent("nova:profile-updated", { detail: { avatar_url: publicUrl } }));
+      window.dispatchEvent(new CustomEvent("unipath:profile-updated", { detail: { avatar_url: publicUrl } }));
     } catch (err: any) {
       toast.error(err.message);
     } finally {
