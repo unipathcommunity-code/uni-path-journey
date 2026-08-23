@@ -89,6 +89,32 @@ const getConsultingPlans = () => {
   ];
 };
 
+/** Turn a Supabase/Postgres failure into something an agency owner can act on. */
+function registrationErrorMessage(error: unknown): string {
+  const raw = String((error as { message?: string })?.message ?? error ?? '');
+  const code = String((error as { code?: string })?.code ?? '');
+
+  if (code === '23505' || raw.includes('tenants_subdomain_key') || raw.includes('duplicate key')) {
+    return 'Bu subdomen allaqachon band. Yuqoriga qaytib boshqa nom tanlang.';
+  }
+  if (raw.includes('User already registered') || raw.includes('already been registered')) {
+    return 'Bu email allaqachon ro\'yxatdan o\'tgan. Kirish sahifasidan hisobingizga kiring yoki boshqa email kiriting.';
+  }
+  if (raw.includes('Password should be at least')) {
+    return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak.';
+  }
+  if (raw.includes('Unable to validate email') || raw.includes('invalid format')) {
+    return 'Email manzili noto\'g\'ri kiritilgan. Tekshirib qaytadan yozing.';
+  }
+  if (raw.includes('rate limit') || raw.includes('Too many requests')) {
+    return 'Juda ko\'p urinish bo\'ldi. Bir necha daqiqadan keyin qayta urinib ko\'ring.';
+  }
+  if (raw.includes('Failed to fetch') || raw.includes('NetworkError')) {
+    return 'Internet aloqasi uzildi. Ulanishni tekshirib, qaytadan urinib ko\'ring.';
+  }
+  return raw || 'Nomaʼlum xatolik. Iltimos, qaytadan urinib ko\'ring.';
+}
+
 export default function Systematize() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
@@ -242,7 +268,27 @@ export default function Systematize() {
     }
 
     setIsSubmitting(true);
+    let createdTenantId: string | null = null;
+
     try {
+      // The debounced availability check can be stale by the time the form is
+      // submitted, so confirm once more against the database.
+      const { data: clash } = await (supabase as any)
+        .from('tenants')
+        .select('id')
+        .eq('subdomain', formData.subdomain.toLowerCase())
+        .maybeSingle();
+
+      if (clash) {
+        toast({
+          title: 'Subdomen band',
+          description: 'Bu subdomen allaqachon olingan. Yuqoriga qaytib boshqa nom tanlang.',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // 1. Create the tenant first with status Pending to allow superadmin approval
       const { data: tenant, error: tenantError } = await (supabase as any)
         .from('tenants')
@@ -274,6 +320,7 @@ export default function Systematize() {
         .single();
 
       if (tenantError) throw tenantError;
+      createdTenantId = tenant.id;
 
       // 2. Register Owner User first (this creates the auth session)
       const { data: signUpData, error: signUpError } = await signUp(
@@ -286,7 +333,19 @@ export default function Systematize() {
         }
       );
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        // Roll the tenant back — otherwise it lingers with no owner and the
+        // subdomain is burned for the retry.
+        if (createdTenantId) {
+          try {
+            await (supabase as any).rpc('delete_tenant_cascade', { target_tenant_id: createdTenantId });
+          } catch (rollbackErr) {
+            console.warn('Tenant rollback failed:', rollbackErr);
+          }
+          createdTenantId = null;
+        }
+        throw signUpError;
+      }
 
       // 3. Insert the initial Branch AFTER signup so RLS sees authenticated user
       // Wait a moment for session to propagate
@@ -330,9 +389,18 @@ export default function Systematize() {
 
     } catch (error: any) {
       console.error('Registration error:', error);
+      // If we got as far as creating the tenant but failed afterwards, do not
+      // leave it behind.
+      if (createdTenantId) {
+        try {
+          await (supabase as any).rpc('delete_tenant_cascade', { target_tenant_id: createdTenantId });
+        } catch (rollbackErr) {
+          console.warn('Tenant rollback failed:', rollbackErr);
+        }
+      }
       toast({
-        title: 'Xatolik yuz berdi',
-        description: error.message || 'Iltimos, qaytadan urinib ko\'ring',
+        title: 'Ro\'yxatdan o\'tib bo\'lmadi',
+        description: registrationErrorMessage(error),
         variant: 'destructive'
       });
     } finally {
@@ -373,7 +441,7 @@ export default function Systematize() {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${step >= 1 ? 'bg-primary text-primary-foreground shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-white/5 text-white/40'}`}>
                 1
               </div>
-              <span className={`text-sm font-medium ${step >= 1 ? 'text-white' : 'text-white/40'}`}>Biznes</span>
+              <span className={`text-sm font-medium ${step >= 1 ? 'text-white' : 'text-white/40'}`}>Agentlik</span>
             </div>
             <div className="flex-1 h-[2px] bg-white/5 mx-4" />
             <div className="flex items-center gap-3">
