@@ -58,7 +58,15 @@ export const TenantRouter = ({ children }: { children: React.ReactNode }) => {
     }
   }, [activeTenant, isCoreRoot]);
 
-  // 1. Prevent race conditions: show high-end glassmorphic spinner while loading
+  // 1. The platform's own root domain has no tenant to wait for. Render the
+  //    SaaS site straight away — waiting here was showing several seconds of
+  //    spinner on the landing page and /auth for no reason.
+  if (isCoreRoot && !hasTenantOverride) {
+    return <>{children}</>;
+  }
+
+  // 2. On an agency subdomain the tenant gates everything — hold the UI
+  //    behind the spinner until it resolves.
   if (isTenantLoading) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#030712] text-white">
@@ -96,12 +104,7 @@ export const TenantRouter = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // 2. If it is the SaaS landing page (core root) and there's no tenant override, it is valid to render the main SaaS site.
-  if (isCoreRoot && !hasTenantOverride) {
-    return <>{children}</>;
-  }
-
-  // 3. If a tenant is resolved, let it load the main React tree.
+  // 3. Tenant resolved — load the main React tree.
   if (activeTenant) {
     return <>{children}</>;
   }
