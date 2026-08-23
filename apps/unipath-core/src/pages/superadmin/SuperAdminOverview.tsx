@@ -55,7 +55,7 @@ export default function SuperAdminOverview() {
   ];
 
   const tiles = [
-    { label: "Firmalar",   desc: "Barcha bizneslar", href: "/super-admin/tenants",       icon: Building2,  grad: "from-blue-500/20 to-blue-500/5",       text: "text-blue-400" },
+    { label: "Agentliklar", desc: "Ro'yxatdan o'tganlar", href: "/super-admin/tenants",       icon: Building2,  grad: "from-blue-500/20 to-blue-500/5",       text: "text-blue-400" },
     { label: "To'lovlar",  desc: "Buxgalteriya",     href: "/super-admin/billing",        icon: CreditCard, grad: "from-emerald-500/20 to-emerald-500/5", text: "text-emerald-400" },
     { label: "Tariflar",   desc: "Rejalar & narx",   href: "/super-admin/tenants",        icon: Coins,      grad: "from-amber-500/20 to-amber-500/5",     text: "text-amber-400" },
     { label: "Domenlar",   desc: "Sub-domenlar",     href: "/super-admin/domains",        icon: Globe,      grad: "from-sky-500/20 to-sky-500/5",         text: "text-sky-400" },
@@ -79,7 +79,7 @@ export default function SuperAdminOverview() {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">Bosh panel</h1>
           <p className="text-white/50 mt-1 text-sm">
-            Barcha biznes turlarini (Tur, Akademiya, Mehmonxona, Restoran, Konsalting va boshqalar) bitta joydan boshqaring.
+            Platformadagi barcha konsalting agentliklarini bitta joydan boshqaring.
           </p>
         </div>
         <Link to="/super-admin/tenants">
@@ -212,7 +212,7 @@ export default function SuperAdminOverview() {
 
       </div>
 
-      {/* Tenants — vertical-aware cards (each business type looks like itself) */}
+      {/* Registered consulting agencies */}
       <div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
           <div>

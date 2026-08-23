@@ -7,7 +7,7 @@ import { Navbar } from "./navbar"
 import { Hero } from "./hero"
 import { StatsSection } from "./stats-section"
 import { ModulesSection } from "./modules-section"
-import { AiVisionSection } from "./ai-vision-section"
+import { ApplicantPortalSection } from "./applicant-portal-section"
 import { TeamsSection } from "./teams-section"
 import { FeaturesSection } from "./features-section"
 import { CtaSection } from "./cta-section"
@@ -55,7 +55,7 @@ export function LandingPage({ onLogin, onGetStarted }: LandingPageProps) {
         <Hero t={t} onGetStarted={onGetStarted} />
         <StatsSection t={t} />
         <ModulesSection t={t} onGetStarted={onGetStarted} />
-        <AiVisionSection t={t} />
+        <ApplicantPortalSection t={t} />
         <TeamsSection t={t} />
         <FeaturesSection t={t} />
         <CtaSection t={t} onGetStarted={onGetStarted} onBookDemo={openDemo} />

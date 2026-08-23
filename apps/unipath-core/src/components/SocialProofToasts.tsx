@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -28,8 +28,17 @@ export function SocialProofToasts() {
   const configSettings = activeTenant?.config?.settings;
   const enabled = configSettings?.socialProofToasts !== false;
   const frequency = (configSettings?.socialProofFrequency ?? 60) * 1000;
-  const customMessages = configSettings?.socialProofMessages || [];
-  const customUniversities = configSettings?.socialProofUniversities || [];
+  // `|| []` built a fresh array on every render, and both are in the effect's
+  // dependency array — so the toast interval was torn down and re-armed
+  // constantly and the timer never got to fire.
+  const customMessages = useMemo(
+    () => configSettings?.socialProofMessages || [],
+    [configSettings?.socialProofMessages],
+  );
+  const customUniversities = useMemo(
+    () => configSettings?.socialProofUniversities || [],
+    [configSettings?.socialProofUniversities],
+  );
 
   useEffect(() => {
     const isSystemPath = 

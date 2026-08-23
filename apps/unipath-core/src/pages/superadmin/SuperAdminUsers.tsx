@@ -210,7 +210,7 @@ export default function SuperAdminUsers() {
       <div>
         <h1 className="text-2xl font-bold text-white">Firma Egalari (Adminlar) Boshqaruvi</h1>
         <p className="text-white/50 mt-1 text-sm">
-          Platformaga ulangan barcha vertikal firma egalarini va ularning tariflarini boshqarish
+          Platformadagi barcha agentlik egalarini va ularning tariflarini boshqarish
         </p>
       </div>
 

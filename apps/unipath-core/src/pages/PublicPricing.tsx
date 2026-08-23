@@ -25,8 +25,8 @@ export default function PublicPricing() {
 
   const t = {
     badge: isUz ? 'Premium Tariflar' : isRu ? 'Премиум Тарифы' : 'Premium Pricing',
-    title: isUz ? 'Biznesingiz uchun mukammal reja'
-      : isRu ? 'Идеальный тариф для вашего бизнеса'
+    title: isUz ? 'Agentligingiz uchun mukammal reja'
+      : isRu ? 'Идеальный тариф для вашего агентства'
       : 'The perfect plan for your business',
     subtitle: isUz ? "Yashirin to'lovlar yo'q. Istalgan vaqtda tarifingizni o'zgartiring yoki bekor qiling."
       : isRu ? 'Без скрытых комиссий. Меняйте или отменяйте тариф в любое время.'
@@ -68,12 +68,12 @@ export default function PublicPricing() {
         : "Yes, you get a 14-day free trial to explore all features. No credit card is required to sign up."
     },
     {
-      q: isUz ? "AI Kamera nazorati nima va u qanday ishlaydi?" : isRu ? "Что такое AI-контроль камер и как это работает?" : "What is AI Camera control and how does it work?",
+      q: isUz ? "Talabalar o'z arizasini ko'ra oladimi?" : isRu ? "Могут ли абитуриенты видеть свою заявку?" : "Can applicants see their own application?",
       a: isUz
-        ? "AI Kamera xizmati sizning xavfsizlik kameralaringizni tizimimizga ulab, xodimlar va mijozlar davomatini, faolligini hamda xavfsizlikni avtomatlashtirishga yordam beradi."
+        ? "Ha. Har bir talaba o'z kabinetiga kiradi va arizasi qaysi bosqichda ekanini ko'radi, yetishmayotgan hujjatni telefondan yuklaydi. O'zgarish bo'lganda agentligingizning Telegram boti avtomatik xabar beradi."
         : isRu
-        ? "AI-контроль подключает ваши камеры безопасности к нашей системе ИИ для автоматического отслеживания посещаемости, активности и безопасности."
-        : "AI Camera operational control integrates your security cameras with our AI engine to track attendance, detect occupancy, and monitor security automatically."
+        ? "Да. У каждого абитуриента свой кабинет: он видит этап заявки и загружает недостающие документы с телефона. При изменении статуса Telegram-бот вашего агентства уведомляет автоматически."
+        : "Yes. Every applicant gets their own portal showing the stage their application is at, and can upload missing documents from a phone. Your agency's Telegram bot notifies them whenever the status changes."
     },
     {
       q: isUz ? "Shaxsiy domen ulanishi qanday amalga oshiriladi?" : isRu ? "Как работает подключение собственного домена?" : "How does custom domain connection work?",

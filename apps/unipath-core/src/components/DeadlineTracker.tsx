@@ -251,7 +251,9 @@ export function DeadlineTracker({ language }: { language: string }) {
     }
 
     buildDeadlines();
-  }, [user]);
+    // profile and documents arrive from the shared queries after `user` does,
+    // so they must retrigger the build or the list is computed against nulls.
+  }, [user, language, profile, documents]);
 
   if (loading || deadlines.length === 0) {
     if (!loading && deadlines.length === 0) {

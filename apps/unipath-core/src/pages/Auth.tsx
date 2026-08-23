@@ -35,7 +35,7 @@ const Auth = () => {
   // Consulting end-users follow the study-abroad "student" flow.
   const defaultRole = 'student';
 
-  // One account, many businesses: after a successful login/signup on a tenant
+  // One account, many agencies: after a successful login/signup on a tenant
   // subdomain, ensure the user has a membership row for THIS tenant (idempotent,
   // low-privilege roles only — see join_tenant RPC).
   const ensureMembership = async () => {

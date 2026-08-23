@@ -296,7 +296,7 @@ const AdminSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Biznesingiz logosi — saytingiz sarlavhasida, kabinet panelida va hujjatlarda avtomatik ko'rinadi.
+                Agentligingiz logosi — saytingiz sarlavhasida, kabinet panelida va hujjatlarda avtomatik ko'rinadi.
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 rounded-2xl border border-border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
@@ -548,7 +548,7 @@ const AdminSettings = () => {
               </div>
               <Separator />
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Biznes turi</span>
+                <span className="text-muted-foreground">Yo‘nalish</span>
                 <span className="font-medium capitalize">{activeTenant?.business_type || '—'}</span>
               </div>
               <Separator />

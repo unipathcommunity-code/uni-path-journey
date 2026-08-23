@@ -263,7 +263,7 @@ const WebsiteBuilder = () => {
                 <p className="text-xs text-muted-foreground truncate">
                   {isSuperAdmin
                     ? "Har bir biznes uchun alohida sayt"
-                    : "Biznesingiz sahifasi — bir necha soniyada"}
+                    : "Agentligingiz sahifasi — bir necha soniyada"}
                 </p>
               </div>
             </div>

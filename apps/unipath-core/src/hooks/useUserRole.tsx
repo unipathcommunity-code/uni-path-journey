@@ -153,7 +153,7 @@ function useResolvedUserRole() {
           }
         }
 
-        // 2. Membership role for the ACTIVE tenant (one account, many businesses).
+        // 2. Membership role for the ACTIVE tenant (one account, many agencies).
         //    If the user has a tenant_memberships row for the current subdomain's
         //    tenant, that per-business role wins over the global profiles.role.
         let fromMembership = false;

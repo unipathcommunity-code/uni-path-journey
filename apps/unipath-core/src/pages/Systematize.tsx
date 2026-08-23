@@ -409,8 +409,8 @@ export default function Systematize() {
                 className="space-y-8"
               >
                 <div className="text-center">
-                  <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">Biznes turini tanlang</h1>
-                  <p className="text-white/60 max-w-lg mx-auto">Platforma konsalting agentliklari uchun mo‘ljallangan.</p>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">Agentligingizni ro‘yxatdan o‘tkazing</h1>
+                  <p className="text-white/60 max-w-lg mx-auto">UniPath — xorijda ta’lim konsalting agentliklari uchun tizim.</p>
                 </div>
 
                 <div className="max-w-md mx-auto">
@@ -451,7 +451,7 @@ export default function Systematize() {
               >
                 <div className="text-center">
                   <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">Tarif rejangizni tanlang</h1>
-                  <p className="text-white/60 max-w-lg mx-auto">Sizning biznesingizga to'g'ri keladigan eng maqbul tarif rejasini tanlang va professional boshqaruvga ega bo'ling.</p>
+                  <p className="text-white/60 max-w-lg mx-auto">Agentligingizga to'g'ri keladigan tarif rejasini tanlang.</p>
                 </div>
 
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">

@@ -1,6 +1,6 @@
 /**
  * AdminNotificationCenter — Yagona bildirishnomalar markazi
- * Barcha vertikal uchun ishlaydi: Tour, Academy, Clinic, Restaurant va boshqalar.
+ * Agentlikning barcha murojaat va tizim xabarlari bitta joyda.
  * Manbalar: contact_requests, notification_queue
  */
 import { useState, useEffect, useCallback } from 'react';

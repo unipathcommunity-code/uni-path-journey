@@ -110,11 +110,11 @@ export default function OwnerHub() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Mening Bizneslarim</h1>
-            <p className="text-white/60">Boshqarmoqchi bo'lgan biznesingizni tanlang yoki yangisini qo'shing.</p>
+            <p className="text-white/60">Boshqarmoqchi bo'lgan agentligingizni tanlang yoki yangisini qo'shing.</p>
           </div>
           <Link to="/tizimlashtirish">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-              <Plus className="w-5 h-5 mr-2" /> Yangi biznes qo'shish
+              <Plus className="w-5 h-5 mr-2" /> Yangi agentlik qo'shish
             </Button>
           </Link>
         </div>
@@ -124,7 +124,7 @@ export default function OwnerHub() {
             <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Hali bizneslaringiz yo'q</h2>
             <p className="text-white/50 mb-6 max-w-md mx-auto">
-              Siz hali hech qanday biznes qo'shmagansiz. UniPath platformasi orqali o'z biznesingizni onlayn boshqaring.
+              Siz hali hech qanday agentlik qo'shmagansiz. UniPath orqali o'z agentligingizni onlayn boshqaring.
             </p>
             <Link to="/tizimlashtirish">
               <Button className="bg-primary text-primary-foreground">

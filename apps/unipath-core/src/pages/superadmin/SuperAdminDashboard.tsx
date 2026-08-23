@@ -9,13 +9,10 @@ import {
   Plus,
   Search,
   UserCheck,
-  Coins,
   Hourglass,
   Clock,
   Trash2,
   Database,
-  Percent,
-  Smartphone,
   Settings,
   Wrench,
   Globe,
@@ -744,10 +741,10 @@ export default function SuperAdminDashboard() {
                 <div className="grid md:grid-cols-2 gap-6 py-4 text-xs">
                   {/* Left Column: Business Info */}
                   <div className="space-y-4">
-                    <h3 className="font-bold text-primary text-xs border-b border-white/5 pb-1 uppercase tracking-wider">Biznes Ma'lumotlari</h3>
+                    <h3 className="font-bold text-primary text-xs border-b border-white/5 pb-1 uppercase tracking-wider">Agentlik Ma'lumotlari</h3>
                     
                     <div className="space-y-1.5">
-                      <Label className="text-white/80 font-bold">Firma nomi</Label>
+                      <Label className="text-white/80 font-bold">Agentlik nomi</Label>
                       <Input
                         value={newTenant.name}
                         onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
@@ -1138,7 +1135,7 @@ export default function SuperAdminDashboard() {
 
                                   {/* Firma nomi */}
                                   <div className="space-y-1.5">
-                                    <Label className="text-white/80 font-bold">Firma nomi</Label>
+                                    <Label className="text-white/80 font-bold">Agentlik nomi</Label>
                                     <Input
                                       value={themeForm.name}
                                       onChange={(e) => setThemeForm({ ...themeForm, name: e.target.value })}
@@ -1413,87 +1410,12 @@ export default function SuperAdminDashboard() {
                           
                           <TabsContent value="modules" className="space-y-6">
 
-                            {/* Section II: Sorted Vertical Specific Custom Controls */}
+                            {/* Section II: Consulting-specific controls */}
                             <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">
                               <h4 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
-                                <Settings className="w-4 h-4 text-sky-400" /> II. Vertical Maxsus Sozlamalari
+                                <Settings className="w-4 h-4 text-sky-400" /> II. Konsalting Sozlamalari
                               </h4>
 
-                              {selectedTenant.business_type === 'tour' && (
-                                <div className="space-y-4 text-xs">
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl space-y-3">
-                                    <div className="flex justify-between items-center">
-                                      <span className="font-semibold text-white/80 flex items-center gap-2">
-                                        <Percent className="w-4 h-4 text-sky-400" /> Sayohat Komissiyasi (Markup %)
-                                      </span>
-                                      <span className="font-bold text-sky-400">{(selectedTenant.config?.settings as any)?.commissionRate ?? tenantConfigs[selectedTenant.id]?.commissionRate ?? 10}%</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min="5"
-                                      max="30"
-                                      className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-sky-400"
-                                      value={(selectedTenant.config?.settings as any)?.commissionRate ?? tenantConfigs[selectedTenant.id]?.commissionRate ?? 10}
-                                      onChange={(e) => updateTenantConfig(selectedTenant.id, 'commissionRate', parseInt(e.target.value))}
-                                    />
-                                    <p className="text-[9px] text-white/40 leading-relaxed">Aviabiletlar va turoperatorlar takliflariga avtomatik qo'shiladigan o'rtacha ustama foiz.</p>
-                                  </div>
-
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl flex items-center justify-between">
-                                    <div className="space-y-0.5 pr-4">
-                                      <span className="font-semibold text-white/80 block">GDS Flight & Hotel API Integratsiyasi</span>
-                                      <span className="text-[9px] text-white/40 leading-relaxed block">Amadeus, Sabre va Booking.com xalqaro integratsiyalarini faollashtirish.</span>
-                                    </div>
-                                    <Switch
-                                      checked={(selectedTenant.config?.settings as any)?.gdsEnabled ?? tenantConfigs[selectedTenant.id]?.gdsEnabled ?? false}
-                                      onCheckedChange={(checked) => updateTenantConfig(selectedTenant.id, 'gdsEnabled', checked)}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              {selectedTenant.business_type === 'academy' && (
-                                <div className="space-y-4 text-xs">
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl space-y-3">
-                                    <div className="flex justify-between items-center">
-                                      <span className="font-semibold text-white/80 flex items-center gap-2">
-                                        <Coins className="w-4 h-4 text-emerald-400" /> UniCoin Multiplikatori
-                                      </span>
-                                      <span className="font-bold text-emerald-400">{(selectedTenant.config?.settings as any)?.coinMultiplier ?? tenantConfigs[selectedTenant.id]?.coinMultiplier ?? 1.5}x rate</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min="10"
-                                      max="50"
-                                      step="5"
-                                      className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-emerald-400"
-                                      value={((selectedTenant.config?.settings as any)?.coinMultiplier ?? tenantConfigs[selectedTenant.id]?.coinMultiplier ?? 1.5) * 10}
-                                      onChange={(e) => updateTenantConfig(selectedTenant.id, 'coinMultiplier', parseFloat(e.target.value) / 10)}
-                                    />
-                                    <p className="text-[9px] text-white/40 leading-relaxed">Har bir dars scan qilinganda va qatnashuvda beriladigan virtual tangalar koeffitsiyenti.</p>
-                                  </div>
-
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl flex items-center justify-between">
-                                    <div className="space-y-0.5 pr-4">
-                                      <span className="font-semibold text-white/80 flex items-center gap-1.5">
-                                        <Smartphone className="w-4 h-4 text-emerald-400" /> SMS Debt Collection Gateway
-                                      </span>
-                                      <span className="text-[9px] text-white/40 leading-relaxed block">Qarzdorlik bo'yicha ogohlantirish yuborish provayderi.</span>
-                                    </div>
-                                    <select
-                                      className="bg-[#171717] border border-white/10 rounded-lg text-white px-2.5 py-1.5 text-xs font-semibold"
-                                      value={(selectedTenant.config?.settings as any)?.smsProvider ?? tenantConfigs[selectedTenant.id]?.smsProvider ?? "Eskiz SMS"}
-                                      onChange={(e) => updateTenantConfig(selectedTenant.id, 'smsProvider', e.target.value)}
-                                    >
-                                      <option value="Eskiz SMS">Eskiz SMS</option>
-                                      <option value="PlayMobile">PlayMobile</option>
-                                      <option value="Twilio Global">Twilio Global</option>
-                                    </select>
-                                  </div>
-                                </div>
-                              )}
-
-                              {selectedTenant.business_type === 'consulting' && (
                                 <div className="space-y-4 text-xs">
                                   <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl flex items-center justify-between">
                                     <div className="space-y-0.5 pr-4">
@@ -1506,52 +1428,8 @@ export default function SuperAdminDashboard() {
                                     />
                                   </div>
                                 </div>
-                              )}
-
-                              {selectedTenant.business_type === 'hotel' && (
-                                <p className="text-[10px] text-white/40 py-2">Mehmonxona boshqaruv tizimi uchun global xonalar kategoriyalari sozlamalari faqat joriy sub-domen ma'muriyatida o'zgaradi.</p>
-                              )}
-
-                              {selectedTenant.business_type === 'car_showroom' && (
-                                <div className="space-y-4 text-xs">
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl space-y-3">
-                                    <div className="flex justify-between items-center">
-                                      <span className="font-semibold text-white/80 flex items-center gap-2">
-                                        <Percent className="w-4 h-4 text-blue-400" /> Kredit Yillik Foizi (Base APR)
-                                      </span>
-                                      <span className="font-bold text-blue-400">{(selectedTenant.config?.settings as any)?.baseApr ?? tenantConfigs[selectedTenant.id]?.baseApr ?? 18}% APR</span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min="10"
-                                      max="36"
-                                      step="1"
-                                      className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-400"
-                                      value={(selectedTenant.config?.settings as any)?.baseApr ?? tenantConfigs[selectedTenant.id]?.baseApr ?? 18}
-                                      onChange={(e) => updateTenantConfig(selectedTenant.id, 'baseApr', parseInt(e.target.value))}
-                                    />
-                                    <p className="text-[9px] text-white/40 leading-relaxed">Mijozlar lizing/kredit hisoblagichida foydalaniladigan boshlang'ich yillik foiz stavkasi Stavka.</p>
-                                  </div>
-
-                                  <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-xl flex items-center justify-between">
-                                    <div className="space-y-0.5 pr-4">
-                                      <span className="font-semibold text-white/80 block">Test-drive Kunlik Limiti</span>
-                                      <span className="text-[9px] text-white/40 leading-relaxed block">Kunlik maksimal test-drive buyurtmalari soni.</span>
-                                    </div>
-                                    <select
-                                      className="bg-[#171717] border border-white/10 rounded-lg text-white px-2.5 py-1.5 text-xs font-semibold"
-                                      value={(selectedTenant.config?.settings as any)?.testDriveLimit ?? tenantConfigs[selectedTenant.id]?.testDriveLimit ?? 15}
-                                      onChange={(e) => updateTenantConfig(selectedTenant.id, 'testDriveLimit', parseInt(e.target.value))}
-                                    >
-                                      <option value="5">5 ta bandlik</option>
-                                      <option value="10">10 ta bandlik</option>
-                                      <option value="15">15 ta bandlik</option>
-                                      <option value="30">30 ta bandlik</option>
-                                    </select>
-                                  </div>
-                                </div>
-                              )}
                             </div>
+
 
                             {/* Section III: Global Platform Features */}
                             <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">

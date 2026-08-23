@@ -21,38 +21,48 @@ export const translations = {
       getStarted: "Get Started",
     },
     hero: {
-      badge: "Multi-Tenant SaaS Platform for Any Business",
-      title: "Precision SaaS, Designed to Elevate Your Business Workflow",
+      badge: "The operating system for study-abroad agencies",
+      title: "Every applicant, from first enquiry to boarding the plane",
       description:
-        "A unified system of intelligent components that analyze, organize, and automate your workflow, CRM, finance, and branches.",
-      cta: "Experience the Platform",
-      painLine: "Tired of stitching together Excel sheets and scattered apps? Bring CRM, finance, attendance and branches into one system.",
+        "One pipeline for leads, documents, university applications, visas and payments — so nothing about a student lives in someone's notebook.",
+      cta: "See the platform",
+      painLine: "Applicant files in Excel, documents in Telegram, payments in a notebook? Bring the whole journey into one system.",
       metrics: [
-        { title: "Smart CRM", desc: "Track leads and clients automatically." },
-        { title: "Effortless Accounting", desc: "Real-time P&L and multi-branch finance." },
-        { title: "AI Integrations", desc: "Telegram bot and AI camera attendance." },
+        { title: "Applications pipeline", desc: "Lead, contact, documents, visa, enrolment." },
+        { title: "Document control", desc: "Upload, review and approve — with a full history." },
+        { title: "Telegram built in", desc: "Applicants hear from your own bot, automatically." },
       ],
     },
     stats: {
       items: [
-        { value: "5 min", label: "to launch your business online" },
-        { value: "15+", label: "ready-made vertical solutions" },
+        { value: "5 min", label: "to put your agency online" },
+        { value: "6", label: "stages from lead to enrolment" },
         { value: "3", label: "languages — Uzbek, Russian, English" },
-        { value: "90%", label: "less manual attendance work with AI cameras" },
+        { value: "0", label: "applicant files left in a notebook" },
       ],
     },
-    aiVision: {
-      badge: "AI Camera & Computer Vision",
-      title: "Automatic attendance with face recognition",
+    applicantPortal: {
+      badge: "Applicant portal",
+      title: "Your applicant can see exactly where their file stands",
       subtitle:
-        "Built in, not bolted on. Our AI cameras and QR check-in mark attendance the moment a student or employee walks in — no paper, no manual roll calls.",
+        "Every student gets their own login. No more \"what is happening with my documents?\" calls — they open the portal and see the answer, and your bot tells them the moment it changes.",
       points: [
-        "Face-recognition check-in straight from any camera or phone",
-        "Instant QR self check-in with offline queue support",
-        "Live timeline so admins and parents see arrivals in real time",
-        "Works for single offices and multi-branch agencies alike",
+        "Live status: lead, contact, documents, visa, enrolment",
+        "Missing documents uploaded from a phone, straight into your review queue",
+        "Universities, grants, jobs and housing browsable in one place",
+        "Telegram messages sent from your agency's own bot, automatically",
       ],
-      note: "Already included in your plan — no extra hardware required.",
+      note: "Included in every plan — the portal is branded as your agency.",
+      cardLabel: "Application status",
+      cardName: "Jasur Karimov · Germany, Bachelor",
+      steps: [
+        "Enquiry received",
+        "Consultant assigned",
+        "Documents approved",
+        "Visa in progress",
+        "Enrolled",
+        "Departure arranged",
+      ],
     },
     demo: {
       trigger: "Book a Demo",
@@ -62,8 +72,8 @@ export const translations = {
       namePh: "e.g. Aziz Karimov",
       phone: "Phone",
       phonePh: "+998 90 123 45 67",
-      business: "Business type",
-      businessPh: "e.g. education consulting agency…",
+      business: "Agency name",
+      businessPh: "e.g. Bright Future Education…",
       message: "Message (optional)",
       messagePh: "Tell us a bit about what you need…",
       submit: "Send request",
@@ -72,8 +82,8 @@ export const translations = {
       error: "Could not send the request. Please try again or reach us by phone.",
     },
     modules: {
-      badge: "Vertical Modules",
-      title: "A New Layer of Intelligence",
+      badge: "What is inside",
+      title: "Everything the agency runs on",
       subtitle:
         "Each module works independently and seamlessly together to support your entire organization.",
       cards: [
@@ -165,7 +175,7 @@ export const translations = {
     },
     features: {
       badge: "Product Features",
-      title: "Features Crafted for Intelligent Business",
+      title: "Konsultantning kunini qisqartiradigan imkoniyatlar",
       subtitle:
         "Each feature enhances a different part of your workflow, together forming a seamless, powerful experience.",
       cards: [
@@ -188,7 +198,7 @@ export const translations = {
     },
     cta: {
       badge: "Intelligent Work Starts Here",
-      title: "Unlock a Smarter Way to Scale Your Business",
+      title: "Agentligingizni bir tizimga jamlang",
       subtitle:
         "Experience a refined SaaS platform built for clarity, intelligence and exceptional performance.",
       primary: "Get Started Now",
@@ -250,49 +260,59 @@ export const translations = {
       getStarted: "Начать",
     },
     hero: {
-      badge: "Мультитенантная SaaS-платформа для любого бизнеса",
-      title: "Точный SaaS, созданный для роста вашего бизнеса",
+      badge: "Операционная система для агентств по обучению за рубежом",
+      title: "Каждый абитуриент — от первой заявки до вылета",
       description:
-        "Единая система интеллектуальных компонентов, которые анализируют, организуют и автоматизируют ваши процессы, CRM, финансы и филиалы.",
-      cta: "Попробовать платформу",
-      painLine: "Устали склеивать Excel-таблицы и разрозненные приложения? Объедините CRM, финансы, посещаемость и филиалы в одной системе.",
+        "Одна воронка для лидов, документов, заявок в университеты, виз и платежей — чтобы данные о студенте не жили в чьём-то блокноте.",
+      cta: "Посмотреть платформу",
+      painLine: "Дела абитуриентов в Excel, документы в Telegram, платежи в тетради? Соберите весь путь в одной системе.",
       metrics: [
-        { title: "Умная CRM", desc: "Автоматически отслеживайте лиды и клиентов." },
-        { title: "Простой учёт", desc: "P&L в реальном времени и финансы по филиалам." },
-        { title: "AI-интеграции", desc: "Telegram-бот и AI-камера для посещаемости." },
+        { title: "Воронка заявок", desc: "Лид, контакт, документы, виза, зачисление." },
+        { title: "Контроль документов", desc: "Загрузка, проверка и утверждение — с историей." },
+        { title: "Telegram внутри", desc: "Абитуриенты получают сообщения от вашего бота." },
       ],
     },
     stats: {
       items: [
-        { value: "5 мин", label: "чтобы запустить бизнес онлайн" },
-        { value: "15+", label: "готовых вертикальных решений" },
+        { value: "5 мин", label: "чтобы вывести агентство онлайн" },
+        { value: "6", label: "этапов от лида до зачисления" },
         { value: "3", label: "языка — узбекский, русский, английский" },
-        { value: "90%", label: "меньше ручной работы с посещаемостью благодаря AI-камерам" },
+        { value: "0", label: "дел абитуриентов остаётся в тетради" },
       ],
     },
-    aiVision: {
-      badge: "AI-камера и компьютерное зрение",
-      title: "Автоматическая посещаемость с распознаванием лиц",
+    applicantPortal: {
+      badge: "Кабинет абитуриента",
+      title: "Абитуриент сам видит, на каком этапе его дело",
       subtitle:
-        "Встроено, а не добавлено сбоку. AI-камеры и QR-отметка фиксируют посещаемость, как только ученик или сотрудник входит — без бумаги и ручных перекличек.",
+        "У каждого студента свой вход. Больше никаких звонков «что с моими документами?» — он открывает кабинет и видит ответ, а бот сообщает об изменении сразу.",
       points: [
-        "Отметка по распознаванию лица с любой камеры или телефона",
-        "Мгновенная QR-самоотметка с поддержкой офлайн-очереди",
-        "Живая лента — админы и родители видят приходы в реальном времени",
-        "Подходит как для одного офиса, так и для мультифилиальных агентств",
+        "Статус в реальном времени: лид, контакт, документы, виза, зачисление",
+        "Недостающие документы загружаются с телефона прямо к вам на проверку",
+        "Университеты, гранты, работа и жильё — в одном месте",
+        "Сообщения в Telegram от бота вашего агентства, автоматически",
       ],
-      note: "Уже включено в ваш тариф — без дополнительного оборудования.",
+      note: "Входит в любой тариф — кабинет оформлен под ваш бренд.",
+      cardLabel: "Статус заявки",
+      cardName: "Жасур Каримов · Германия, бакалавр",
+      steps: [
+        "Заявка получена",
+        "Назначен консультант",
+        "Документы приняты",
+        "Виза в процессе",
+        "Зачислен",
+        "Вылет организован",
+      ],
     },
     demo: {
       trigger: "Заказать демо",
       title: "Запросить бесплатное демо",
-      subtitle: "Оставьте контакты — наша команда покажет UniPath для вашего бизнеса в течение 24 часов.",
+      subtitle: "Оставьте контакты — наша команда покажет UniPath для вашего агентства в течение 24 часов.",
       name: "Ваше имя",
       namePh: "напр. Азиз Каримов",
       phone: "Телефон",
       phonePh: "+998 90 123 45 67",
-      business: "Тип бизнеса",
-      businessPh: "напр. консалтинговое агентство…",
+      business: "Название агентства",
+      businessPh: "напр. Bright Future Education…",
       message: "Сообщение (необязательно)",
       messagePh: "Коротко опишите, что вам нужно…",
       submit: "Отправить запрос",
@@ -301,8 +321,8 @@ export const translations = {
       error: "Не удалось отправить запрос. Попробуйте ещё раз или позвоните нам.",
     },
     modules: {
-      badge: "Вертикальные модули",
-      title: "Новый уровень интеллекта",
+      badge: "Что внутри",
+      title: "Всё, на чём работает агентство",
       subtitle:
         "Каждый модуль работает независимо и вместе, поддерживая всю вашу организацию.",
       cards: [
@@ -394,7 +414,7 @@ export const translations = {
     },
     features: {
       badge: "Возможности продукта",
-      title: "Функции для интеллектуального бизнеса",
+      title: "Возможности, которые экономят день консультанта",
       subtitle:
         "Каждая функция усиливает свою часть процесса, формируя единый и мощный опыт.",
       cards: [
@@ -417,7 +437,7 @@ export const translations = {
     },
     cta: {
       badge: "Умная работа начинается здесь",
-      title: "Откройте умный способ масштабировать бизнес",
+      title: "Соберите агентство в одну систему",
       subtitle:
         "Утончённая SaaS-платформа, созданная для ясности, интеллекта и выдающейся производительности.",
       primary: "Начать сейчас",
@@ -479,49 +499,59 @@ export const translations = {
       getStarted: "Boshlash",
     },
     hero: {
-      badge: "Biznesingiz uchun ko'p ijarali (Multi-Tenant) SaaS platforma",
-      title: "Biznesingizni Tizimlashtirish va Avtomatlashtirish Uchun Aqlli Platforma",
+      badge: "Xorijda ta'lim konsalting agentliklari uchun tizim",
+      title: "Har bir abituriyent — birinchi murojaatdan samolyotgacha",
       description:
-        "Mijozlar bilan ishlash (CRM), moliya, xodimlar davomati va filiallar nazoratini bitta tizimda birlashtiring. UniPath yordamida biznesingizni yangi bosqichga olib chiqing.",
-      cta: "Tizimni Bepul Sinab Ko'ring",
-      painLine: "Excel jadvallar va tarqoq ilovalarni bir-biriga ulashdan charchadingizmi? CRM, moliya, davomat va filiallarni bitta tizimga jamlang.",
+        "Lidlar, hujjatlar, universitet arizalari, viza va to'lovlar — hammasi bitta voronkada. Talaba haqidagi ma'lumot endi hech kimning daftarida qolmaydi.",
+      cta: "Tizimni bepul sinab ko'ring",
+      painLine: "Abituriyentlar Excel'da, hujjatlar Telegram'da, to'lovlar daftarda? Butun jarayonni bitta tizimga jamlang.",
       metrics: [
-        { title: "Aqlli CRM", desc: "Lidlar va mijozlarni avtomatik kuzating." },
-        { title: "Oson buxgalteriya", desc: "Real vaqtda P&L va filiallar moliyasi." },
-        { title: "AI integratsiyalar", desc: "Telegram bot va AI kamera davomati." },
+        { title: "Arizalar voronkasi", desc: "Lid, aloqa, hujjat, viza, o'qishga kirish." },
+        { title: "Hujjatlar nazorati", desc: "Yuklash, tekshirish, tasdiqlash — tarixi bilan." },
+        { title: "Telegram ichida", desc: "Abituriyentlar sizning botingizdan xabar oladi." },
       ],
     },
     stats: {
       items: [
-        { value: "5 daqiqa", label: "biznesingiz onlayn ishga tushadi" },
-        { value: "15+", label: "tayyor vertikal yo'nalish" },
+        { value: "5 daqiqa", label: "agentligingiz onlayn ishga tushadi" },
+        { value: "6", label: "bosqich — liddan o'qishga kirishgacha" },
         { value: "3", label: "til — o'zbek, rus, ingliz" },
-        { value: "90%", label: "AI kamera bilan qo'lda davomat ishi kamayadi" },
+        { value: "0", label: "abituriyent ishi daftarda qolmaydi" },
       ],
     },
-    aiVision: {
-      badge: "AI Kamera & Computer Vision",
-      title: "Yuzni aniqlash bilan avtomatik davomat",
+    applicantPortal: {
+      badge: "Talaba kabineti",
+      title: "Abituriyent o'z ishi qaysi bosqichda ekanini o'zi ko'radi",
       subtitle:
-        "Yondan ulangan emas, ichiga qurilgan. AI kameralar va QR belgilash o'quvchi yoki xodim kirishi bilanoq davomatni qayd etadi — qog'ozsiz, qo'lda yo'qlamasiz.",
+        "Har bir talabaning o'z kirishi bor. \"Hujjatlarim nima bo'ldi?\" degan qo'ng'iroqlar tugaydi — u kabinetni ochib javobni ko'radi, o'zgarish bo'lsa bot darrov xabar beradi.",
       points: [
-        "Istalgan kamera yoki telefondan yuzni aniqlash orqali belgilash",
-        "Oflayn navbat bilan bir zumda QR o'z-o'zini belgilash",
-        "Jonli lenta — adminlar va ota-onalar kelishlarni real vaqtda ko'radi",
-        "Yakka ofis va ko‘p filialli agentliklar uchun bir xil mos",
+        "Jonli holat: lid, aloqa, hujjatlar, viza, o'qishga kirish",
+        "Yetishmayotgan hujjat telefondan yuklanadi — to'g'ridan-to'g'ri tekshiruvingizga",
+        "Universitet, grant, ish va turar joy — bitta joyda",
+        "Telegram xabarlari agentligingizning o'z botidan, avtomatik",
       ],
-      note: "Tarifingizga allaqachon kiritilgan — qo'shimcha qurilma talab qilinmaydi.",
+      note: "Har bir tarifga kiradi — kabinet sizning brendingizda.",
+      cardLabel: "Ariza holati",
+      cardName: "Jasur Karimov · Germaniya, bakalavr",
+      steps: [
+        "Murojaat qabul qilindi",
+        "Konsultant biriktirildi",
+        "Hujjatlar tasdiqlandi",
+        "Viza jarayonda",
+        "O'qishga qabul qilindi",
+        "Yo'lga tayyor",
+      ],
     },
     demo: {
       trigger: "Demo buyurtma qilish",
       title: "Bepul demo so'rang",
-      subtitle: "Ma'lumotlaringizni qoldiring — jamoamiz 24 soat ichida UniPath'ni biznesingiz uchun ko'rsatadi.",
+      subtitle: "Ma'lumotlaringizni qoldiring — jamoamiz 24 soat ichida UniPath'ni agentligingiz uchun ko'rsatadi.",
       name: "Ismingiz",
       namePh: "masalan, Aziz Karimov",
       phone: "Telefon",
       phonePh: "+998 90 123 45 67",
-      business: "Biznes turi",
-      businessPh: "masalan, konsalting agentligi…",
+      business: "Agentlik nomi",
+      businessPh: "masalan, Bright Future Education…",
       message: "Xabar (ixtiyoriy)",
       messagePh: "Sizga nima kerakligini qisqacha yozing…",
       submit: "So'rovni yuborish",
@@ -530,8 +560,8 @@ export const translations = {
       error: "So'rovni yuborib bo'lmadi. Qayta urinib ko'ring yoki telefon orqali bog'laning.",
     },
     modules: {
-      badge: "Vertikal modullar",
-      title: "Biznesingiz Uchun Maxsus Vertikal Yechimlar",
+      badge: "Tizim tarkibi",
+      title: "Agentlik ishlaydigan hamma narsa",
       subtitle:
         "Har bir modul mustaqil va birgalikda ishlab, butun tashkilotingizni qo'llab-quvvatlaydi.",
       cards: [
@@ -623,7 +653,7 @@ export const translations = {
     },
     features: {
       badge: "Mahsulot imkoniyatlari",
-      title: "Aqlli biznes uchun yaratilgan imkoniyatlar",
+      title: "Konsultantning kunini qisqartiradigan imkoniyatlar",
       subtitle:
         "Har bir imkoniyat jarayoningizning bir qismini kuchaytirib, yagona kuchli tajriba hosil qiladi.",
       cards: [
@@ -646,7 +676,7 @@ export const translations = {
     },
     cta: {
       badge: "Aqlli ish shu yerdan boshlanadi",
-      title: "Biznesingizni kengaytirishning aqlli yo'lini oching",
+      title: "Agentligingizni bir tizimga jamlang",
       subtitle:
         "Aniqlik, intellekt va yuqori unumdorlik uchun yaratilgan nafis SaaS platforma.",
       primary: "Hozir boshlash",
