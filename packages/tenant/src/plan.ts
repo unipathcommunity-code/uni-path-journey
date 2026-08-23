@@ -33,8 +33,19 @@ export interface TierFeatures {
 /** Map a raw DB plan string to the internal PlanTier key. */
 export function planToTier(plan: string | null | undefined): PlanTier {
   const p = (plan ?? '').toLowerCase().trim();
-  if (p === 'pro' || p === 'growth' || p === 'growth (pro)') return 'growth';
-  if (p === 'enterprise') return 'enterprise';
+  if (!p) return 'starter';
+
+  // Plan names in `pricing_plans` are full product names — "Consulting Pro",
+  // "Consulting Premium", "Office Enterprise" — not the bare tier words. Exact
+  // matching sent every paying agency to the Starter tier and silently capped
+  // them at 3 staff and 1 branch, so match on the keyword instead.
+  // Order matters: check the top tier first.
+  if (p.includes('enterprise') || p.includes('premium') || p.includes('unlimited')) {
+    return 'enterprise';
+  }
+  if (p.includes('pro') || p.includes('growth') || p.includes('business')) {
+    return 'growth';
+  }
   return 'starter';
 }
 

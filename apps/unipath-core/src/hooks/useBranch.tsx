@@ -7,7 +7,6 @@ export interface Branch {
   id: string;
   name: string;
   city: string | null;
-  is_main: boolean;
   is_active: boolean;
 }
 
@@ -58,10 +57,9 @@ export const BranchProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     let query = supabase
       .from("branches")
-      .select("id, name, city, is_main, is_active")
-      .eq("organization_id", orgId)
+      .select("id, name, city, is_active")
+      .eq("tenant_id", orgId)
       .eq("is_active", true)
-      .order("is_main", { ascending: false })
       .order("name");
 
     // For non-owner/superadmin, restrict to assigned branches
@@ -86,8 +84,7 @@ export const BranchProvider = ({ children }: { children: ReactNode }) => {
     // Resolve active branch: stored value if still valid, else main, else first
     setActiveBranchIdState((current) => {
       if (current && list.some((b) => b.id === current)) return current;
-      const main = list.find((b) => b.is_main);
-      const next = main?.id || list[0]?.id || null;
+      const next = list[0]?.id || null;
       if (next && typeof window !== "undefined") localStorage.setItem(keyFor(userId), next);
       return next;
     });

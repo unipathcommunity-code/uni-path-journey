@@ -22,6 +22,7 @@ export default function OwnerHub() {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [entering, setEntering] = useState(false);
 
   useEffect(() => {
     async function fetchMyTenants() {
@@ -38,12 +39,30 @@ export default function OwnerHub() {
 
       if (!error && data) {
         setTenants(data);
+
+        // One agency, and the owner has not chosen one yet -> go straight in.
+        const alreadyChosen = localStorage.getItem('active_tenant');
+        if (data.length === 1 && !alreadyChosen) {
+          setEntering(true);
+          localStorage.setItem('active_tenant', JSON.stringify(data[0]));
+          window.location.href = '/admin';
+          return;
+        }
       }
       setLoading(false);
     }
 
     fetchMyTenants();
   }, [user]);
+
+  if (entering) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#0A0A0A] text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-white/60">Boshqaruv paneli ochilmoqda…</p>
+      </div>
+    );
+  }
 
   const handleSelectTenant = (tenant: Tenant) => {
     localStorage.setItem('active_tenant', JSON.stringify(tenant));

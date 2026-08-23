@@ -11,7 +11,6 @@ interface Notif {
   message: string;
   type: string;
   is_read: boolean;
-  is_alarm: boolean;
   created_at: string;
 }
 
@@ -27,7 +26,7 @@ const NotificationsBell = () => {
     if (!user) return;
     const { data } = await supabase
       .from("notifications")
-      .select("id, title, message, type, is_read, is_alarm, created_at")
+      .select("id, title, message, type, is_read, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -121,12 +120,12 @@ const NotificationsBell = () => {
                 <div className="space-y-1.5">
                   {items.map((n) => {
                     const Icon =
-                      n.is_alarm
+                      false
                         ? AlertTriangle
                         : n.type === "success"
                           ? CheckCircle2
                           : Info;
-                    const colorClass = n.is_alarm
+                    const colorClass = false
                       ? "text-destructive"
                       : n.type === "success"
                         ? "text-success"

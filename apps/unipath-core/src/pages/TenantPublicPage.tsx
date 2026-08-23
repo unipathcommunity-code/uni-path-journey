@@ -63,6 +63,7 @@ export default function TenantPublicPage() {
   const [form, setForm] = useState({ name: '', phone: '', note: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   // ── Fetch the featured universities / programmes ─────────────────────────
   useEffect(() => {
@@ -84,18 +85,26 @@ export default function TenantPublicPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) return;
+    setSubmitError(false);
     setSubmitting(true);
 
     try {
-      // Save to contact_requests table (if exists) or leads
-      await (supabase as any).from('contact_requests').insert({
-        tenant_id: activeTenant?.id,
-        name: form.name,
-        phone: form.phone,
-        message: form.note,
-        source: 'public_page',
-        status: 'new',
-      }).catch(() => null); // silently ignore if table doesn't exist
+      // The lead itself. `contact_requests` has no tenant column yet, so the
+      // agency is carried in source_page; the admin notification centre reads
+      // it back from there.
+      const { error: leadError } = await (supabase as any)
+        .from('contact_requests')
+        .insert({
+          tenant_id: activeTenant?.id,
+          full_name: form.name,
+          phone: form.phone,
+          message: form.note,
+          source_page: `public:${activeTenant?.subdomain ?? 'unknown'}`,
+          status: 'new',
+        });
+
+      // A lost lead must not be reported as success.
+      if (leadError) throw leadError;
 
       // Also save to notification_queue for Telegram
       await (supabase as any).from('notification_queue').insert({
@@ -132,8 +141,9 @@ export default function TenantPublicPage() {
 
       setSubmitted(true);
       setForm({ name: '', phone: '', note: '' });
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('Contact request failed:', err);
+      setSubmitError(true);
     } finally {
       setSubmitting(false);
     }
@@ -368,6 +378,13 @@ export default function TenantPublicPage() {
                   className="bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-12"
                 />
               </div>
+
+              {submitError && (
+                <p className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  Murojaatni yuborib bo'lmadi. Internet aloqasini tekshirib, qaytadan urinib ko'ring —
+                  yoki quyidagi telefon raqamiga qo'ng'iroq qiling.
+                </p>
+              )}
 
               <Button
                 type="submit"

@@ -176,10 +176,18 @@ export default function AdminConsulting() {
           rejectedApplications: apps.filter(a => a.status === 'rejected').length,
         });
 
-        const { data: documents } = await supabase
-          .from('documents')
-          .select('status')
+        // `documents` has no tenant_id — it is keyed by user. Scope through the
+        // agency's own profiles instead.
+        const { data: tenantProfiles } = await supabase
+          .from('profiles')
+          .select('user_id')
           .eq('tenant_id', tid);
+
+        const memberIds = (tenantProfiles ?? []).map((p: { user_id: string }) => p.user_id);
+
+        const { data: documents } = memberIds.length
+          ? await supabase.from('documents').select('status').in('user_id', memberIds)
+          : { data: [] as { status: string | null }[] };
 
         if (documents) {
           setDocumentStats({

@@ -93,7 +93,7 @@ export default function AdminNotificationCenter() {
       // 1. Contact requests
       const { data: contacts } = await supabase
         .from('contact_requests')
-        .select('id, name, phone, message, source, created_at, status')
+        .select('id, full_name, phone, message, source_page, created_at, status')
         .eq('tenant_id', tid)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -102,11 +102,11 @@ export default function AdminNotificationCenter() {
         all.push({
           id: `contact_${c.id}`,
           type: 'contact',
-          title: `📩 Yangi murojaat — ${c.name || 'Noma\'lum'}`,
+          title: `📩 Yangi murojaat — ${c.full_name || 'Noma\'lum'}`,
           body: c.message || 'Aloqa so\'rovi yuborildi',
-          from_name: c.name,
+          from_name: c.full_name,
           from_phone: c.phone,
-          source: c.source || 'sayt',
+          source: c.source_page || 'sayt',
           created_at: c.created_at,
           read: false,
         });

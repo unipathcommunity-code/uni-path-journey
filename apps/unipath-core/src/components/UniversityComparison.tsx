@@ -22,13 +22,15 @@ interface University {
   country: string;
   city?: string | null;
   ranking?: number | null;
-  tuition_fee?: string | null;
-  program_duration?: string | null;
+  tuition_min?: number | null;
+  tuition_max?: number | null;
+  currency?: string | null;
+
   language?: string | null;
-  acceptance_rate?: number | null;
-  website_url?: string | null;
+
+  website?: string | null;
   description?: string | null;
-  image_url?: string | null;
+  images?: string[] | null;
 }
 
 interface Props {
@@ -109,10 +111,16 @@ function getValue(uni: University, key: typeof ROWS[number]['key'], l: typeof LA
     case 'country': return uni.country || l.notAvailable;
     case 'city': return uni.city || l.notAvailable;
     case 'ranking': return uni.ranking ? `#${uni.ranking}` : l.noRanking;
-    case 'tuition': return uni.tuition_fee || l.notAvailable;
-    case 'duration': return uni.program_duration || l.notAvailable;
-    case 'language': return uni.language || l.notAvailable;
-    case 'acceptRate': return uni.acceptance_rate != null ? `${uni.acceptance_rate}%` : l.notAvailable;
+    case 'tuition': {
+      const cur = uni.currency || 'USD';
+      if (uni.tuition_min && uni.tuition_max)
+        return `${uni.tuition_min.toLocaleString()}–${uni.tuition_max.toLocaleString()} ${cur}`;
+      if (uni.tuition_min) return `${uni.tuition_min.toLocaleString()} ${cur}`;
+      return l.notAvailable;
+    }
+    case 'duration': return l.notAvailable;
+    case 'language': return l.notAvailable;
+    case 'acceptRate': return l.notAvailable;
     default: return l.notAvailable;
   }
 }
@@ -134,7 +142,7 @@ export function UniversityComparison({ open, onClose, language }: Props) {
     const timer = setTimeout(async () => {
       const { data } = await supabase
         .from('universities')
-        .select('id, name, country, city, ranking, tuition_fee, program_duration, language, acceptance_rate, website_url, description, image_url')
+        .select('id, name, country, city, ranking, tuition_min, tuition_max, currency, website, description, images')
         .ilike('name', `%${searchQuery}%`)
         .limit(8);
       setSearchResults((data as University[]) || []);

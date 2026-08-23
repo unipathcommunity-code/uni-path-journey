@@ -44,24 +44,41 @@ function useResolvedUserRole() {
 
   useEffect(() => {
     let active = true;
+    let attempt = 0;
     queryFinishedRef.current = false;
 
-    // Safety timeout of 3.5 seconds to prevent infinite hangs. For a known
-    // super-admin email, default to 'super_admin' (not 'user') so the platform
-    // owner is never locked out by a slow role lookup.
-    const timeoutId = setTimeout(() => {
-      if (active && !queryFinishedRef.current && userId) {
+    // A slow lookup used to be resolved by guessing 'user' after 3.5s. Guards
+    // act on that guess, so an owner whose query was slow got redirected out of
+    // their own panel. Retry once instead, and keep the guard waiting; only
+    // fall back when the retry has failed too.
+    const ROLE_TIMEOUT_MS = 8000;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const armTimeout = () => {
+      timeoutId = setTimeout(() => {
+        if (!active || queryFinishedRef.current || !userId) return;
+
+        if (attempt < 2) {
+          console.warn('useUserRole: role lookup slow, retrying (attempt %d).', attempt + 1);
+          armTimeout();
+          checkUserRole();
+          return;
+        }
+
         const email = userEmail?.toLowerCase();
         const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
-        console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role. isSa:', isSa);
+        console.warn('useUserRole: role lookup failed twice. Falling back. isSa:', isSa);
         setRole(isSa ? 'super_admin' : 'user');
         setLoadedUserId(userId);
         setIsLoading(false);
         queryFinishedRef.current = true;
-      }
-    }, 3500);
+      }, ROLE_TIMEOUT_MS);
+    };
+
+    armTimeout();
 
     async function checkUserRole() {
+      attempt += 1;
       setIsLoading(true);
       if (!userId) {
         // Nothing to resolve — settle immediately and stand the timer down.

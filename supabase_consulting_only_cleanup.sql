@@ -21,6 +21,62 @@
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- 0-BO'LIM · 🔴 ENG MUHIM — ommaviy sayt murojaatlarini yoqish
+-- ─────────────────────────────────────────────────────────────────────────────
+--  Hozir agentlikning ommaviy saytidagi "Biz bilan bog'laning" formasi
+--  ISHLAMAYDI. Tekshirdim: anon kalit bilan `contact_requests` ga yozishga
+--  urinilganda RLS rad etadi (42501). Ya'ni har bir mijoz murojaati yo'qoladi.
+--  Konsalting agentligi uchun butun voronka shu formadan boshlanadi.
+--
+--  Bundan tashqari jadvalda `tenant_id` ustuni umuman yo'q — murojaat qaysi
+--  agentlikka kelgani yozilmaydi.
+
+-- 0.1  Murojaat qaysi agentlikka kelganini saqlash uchun ustun
+alter table public.contact_requests
+  add column if not exists tenant_id uuid references public.tenants(id) on delete cascade;
+
+create index if not exists contact_requests_tenant_id_idx
+  on public.contact_requests (tenant_id);
+
+-- 0.2  Har kim (ro'yxatdan o'tmagan mehmon ham) murojaat qoldira olsin
+drop policy if exists "anyone can submit a contact request" on public.contact_requests;
+create policy "anyone can submit a contact request"
+  on public.contact_requests
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- 0.3  Murojaatni faqat o'sha agentlik xodimlari ko'rsin
+drop policy if exists "tenant members read their contact requests" on public.contact_requests;
+create policy "tenant members read their contact requests"
+  on public.contact_requests
+  for select
+  to authenticated
+  using (
+    tenant_id in (
+      select p.tenant_id from public.profiles p where p.user_id = auth.uid()
+    )
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = auth.uid() and ur.role = 'super_admin'
+    )
+  );
+
+-- 0.4  Telegram bildirishnomasi navbatiga ham yozish kerak
+drop policy if exists "anyone can queue a notification" on public.notification_queue;
+create policy "anyone can queue a notification"
+  on public.notification_queue
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- 0.5  Tekshirish: quyidagi INSERT xatosiz o'tishi kerak
+-- insert into public.contact_requests (full_name, phone, message, source_page, status)
+-- values ('Sinov', '+998900000000', 'test', 'public:test', 'new');
+-- delete from public.contact_requests where source_page = 'public:test';
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- 1-BO'LIM · 🚨 XAVFSIZLIK — birinchi navbatda shuni bajaring
 -- ─────────────────────────────────────────────────────────────────────────────
 --  `delete_tenant_cascade` funksiyasi hozir HAR KIMGA ochiq. Men uni oddiy

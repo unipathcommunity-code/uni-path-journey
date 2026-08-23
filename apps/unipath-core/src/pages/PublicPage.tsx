@@ -10,9 +10,7 @@ interface SiteHeader {
   id: string;
   slug: string;
   title: string;
-  theme: string;
-  primary_color: string | null;
-  accent_color: string | null;
+  theme: string | null;
 }
 interface Branding { logo_url: string | null; name: string }
 interface NavPage { page_id: string; page_slug: string; page_title: string; show_in_nav: boolean }
@@ -54,7 +52,7 @@ const PublicPage = () => {
 
       const { data: s } = await supabase
         .from("websites")
-        .select("id, slug, title, theme, primary_color, accent_color")
+        .select("id, slug, title, theme")
         .eq("slug", slug)
         .eq("is_published", true)
         .maybeSingle();
@@ -89,8 +87,8 @@ const PublicPage = () => {
     const root = document.documentElement;
     const prevP = root.style.getPropertyValue("--primary");
     const prevA = root.style.getPropertyValue("--accent");
-    if (site.primary_color) root.style.setProperty("--primary", site.primary_color);
-    if (site.accent_color) root.style.setProperty("--accent", site.accent_color);
+    // `websites` has no colour columns — the palette comes from the THEMES
+    // preset keyed by `theme` below, so there is nothing to inject here.
     return () => {
       if (prevP) root.style.setProperty("--primary", prevP); else root.style.removeProperty("--primary");
       if (prevA) root.style.setProperty("--accent", prevA); else root.style.removeProperty("--accent");
@@ -112,7 +110,7 @@ const PublicPage = () => {
     </div>
   );
 
-  const theme = THEMES[site.theme] || THEMES.aurora;
+  const theme = THEMES[site.theme ?? ''] || THEMES.aurora;
   const displayName = brand?.name || site.title;
   const loginPath = siteLoginPath(site.slug);
   const homePath = siteHomePath(site.slug);
