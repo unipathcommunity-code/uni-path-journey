@@ -49,6 +49,26 @@ Subdomain detection flow in `TenantProvider` / `AppContext.resolveTenant()`:
 3. Check `custom_domain` column
 4. If authenticated and not core root → resolve tenant from `profiles.tenant_id`
 
+### Provider order (load-bearing)
+
+`App.tsx` nests these in a fixed order. Moving one breaks the app:
+
+```
+QueryClientProvider → ErrorBoundary → ThemeProvider
+  → TenantProvider          (packages/tenant — resolves the agency)
+    → AuthProvider          (contexts/AuthContext → packages/auth — the session)
+      → UserRoleProvider    (hooks/useUserRole — resolves the role ONCE)
+        → RoleAuthProvider  (hooks/useAuth — the role-aware auth facade)
+          → Wishlist / Organization / Branch / FeatureFlag
+            → AppProvider   (owns language, selected country, tenant mirror)
+              → LanguageProvider → TenantRouter → CreditProvider → Routes
+```
+
+`useUserRole()` and `useAuth()` (the one from `@/hooks/useAuth`, not the
+session one from `@/contexts/AuthContext`) both throw outside their provider.
+That is deliberate: they used to be plain hooks, and every call site ran its
+own Supabase round-trips — 24 profile lookups on a single page load.
+
 ### Routing
 
 `App.tsx` holds a single flat `<Routes>` tree — there is no `EcosystemRouter` and no lazy vertical route trees.
@@ -139,6 +159,25 @@ Deploy: Vercel git integration on the repo root (`pnpm -r build && node scripts/
 ## Architecture decisions to respect
 
 - **One vertical only.** Never add `business_type` / vertical branching back into routing, layouts, dashboards or onboarding.
+- **Never call Supabase inside an `onAuthStateChange` callback.** supabase-js holds
+  its auth lock for the callback's lifetime; `auth.getSession()` or any `.from()`
+  query made inside it waits on that lock and deadlocks. Symptom: after login the
+  tab issues zero further requests and every page sits on a spinner. Always
+  `setTimeout(() => { void doWork(); }, 0)`. See `packages/tenant/TenantProvider.tsx`.
+- **Depend on `user?.id`, never the `user` object.** supabase-js re-emits the
+  session on token refresh and tab focus with a new object each time; effects
+  keyed on the object re-run forever.
+- **Shared queries over per-component fetches.** `useProfile`, `useMyDocuments`
+  and `useProfileCompletion` are TanStack Query hooks — use them instead of a new
+  `from('profiles')` / `from('documents')` call. After writing to `profiles`, call
+  `useInvalidateProfile()`.
+- **All Supabase traffic goes through `resilientFetch`** (wired into the client):
+  max 6 concurrent requests, backoff retry on network-layer failures only. Without
+  it a dashboard mount overflows one HTTP/2 connection and Supabase answers
+  REFUSED_STREAM, which surfaces as silently empty widgets.
+- **Verify a column exists before selecting it.** PostgREST rejects the entire
+  select on one unknown column, so a widget loses *all* its data, not one field.
+  (`profiles.date_of_birth` did exactly this.)
 - Every agency that registers automatically gets a public site at their subdomain via `TenantPublicPage`.
 - All tenant state goes through `AppContext` / `TenantProvider` — do not create parallel tenant state.
 - Telegram bot config lives in `tenants.config.branding.telegram_bot_token/username/chat_id`.
