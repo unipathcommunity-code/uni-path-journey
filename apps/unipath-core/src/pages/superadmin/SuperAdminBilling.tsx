@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { useSuperAdminStats, verticalLabel } from "@/hooks/useSuperAdminStats";
+import PricingPlansPanel from "@/components/superadmin/PricingPlansPanel";
 import { tenantStatusLabel, tenantStatusBadgeClass } from "@/lib/tenantStatus";
 
 const fmt = (n: number) => n.toLocaleString("uz-UZ").replace(/,/g, " ");
@@ -181,6 +182,8 @@ export default function SuperAdminBilling() {
           </CardContent>
         </Card>
       </div>
+      {/* Plan management — the tariffs the figures above are computed from */}
+      <PricingPlansPanel />
     </div>
   );
 }

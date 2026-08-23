@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp, type SelectedCountry } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useProfile, useInvalidateProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n';
 import { Logo } from '@/components/Logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -138,26 +139,13 @@ export function StudentLayout({ children }: StudentLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isComplete, loading: profileLoading } = useProfileCompletion();
   const { isUniCoin } = useBusinessMode();
-  const [identityComplete, setIdentityComplete] = useState<boolean | null>(null);
-  const [identityChecked, setIdentityChecked] = useState(false);
-
-  // Check if basic identity fields are filled (name, phone, telegram)
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, phone, telegram_username')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      const hasIdentity = !!(
-        data?.full_name?.trim() &&
-        data?.phone?.trim()
-      );
-      setIdentityComplete(hasIdentity);
-      setIdentityChecked(true);
-    })();
-  }, [user]);
+  // Basic identity fields (name + phone) come from the shared profile query.
+  const { profile, isLoading: identityLoading } = useProfile();
+  const invalidateProfile = useInvalidateProfile();
+  const identityChecked = !!user && !identityLoading;
+  const identityComplete = identityChecked
+    ? !!(profile?.full_name?.trim() && profile?.phone?.trim())
+    : null;
 
 
 
@@ -422,7 +410,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
 
       {/* Identity Gate Modal - blocks everything until identity is completed */}
       {identityChecked && identityComplete === false && (
-        <IdentityGateModal onComplete={() => setIdentityComplete(true)} />
+        <IdentityGateModal onComplete={() => { void invalidateProfile(); }} />
       )}
     </div>
   );

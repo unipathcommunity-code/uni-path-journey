@@ -8,7 +8,7 @@ import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AuthProvider as RoleAuthProvider } from "@/hooks/useAuth";
 import { TenantProvider } from "@unipath/tenant";
-import { SUPER_ADMIN_EMAILS } from "@/hooks/useUserRole";
+import { SUPER_ADMIN_EMAILS, UserRoleProvider } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditProvider } from "@/contexts/CreditContext";
 import { TenantRouter } from "@/core/TenantRouter";
@@ -196,6 +196,7 @@ const App = () => (
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <TenantProvider client={supabase as any} superAdminEmails={SUPER_ADMIN_EMAILS}>
         <AuthProvider>
+        <UserRoleProvider>
         <RoleAuthProvider>
         <WishlistProvider>
         <OrganizationProvider>
@@ -631,6 +632,7 @@ const App = () => (
       </OrganizationProvider>
       </WishlistProvider>
       </RoleAuthProvider>
+      </UserRoleProvider>
       </AuthProvider>
       </TenantProvider>
     </ThemeProvider>

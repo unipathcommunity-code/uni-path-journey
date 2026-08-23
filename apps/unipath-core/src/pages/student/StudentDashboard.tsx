@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCredits } from '@/contexts/CreditContext';
 import { useTranslation } from '@/lib/i18n';
 import { useStudentJourney } from '@/hooks/useStudentJourney';
+import { useProfile } from '@/hooks/useProfile';
+import { useMyDocuments } from '@/hooks/useMyDocuments';
 import { useBusinessMode } from '@/hooks/useBusinessMode';
 import { CreditBalanceWidget } from '@/components/CreditBalanceWidget';
 import { ProfileCompletionBar } from '@/components/ProfileCompletionBar';
@@ -166,6 +168,9 @@ const STEP_LABELS: Record<string, Record<string, Record<string, string>>> = {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const { language } = useApp();
+  const { profile } = useProfile();
+  const { count: myDocumentCount } = useMyDocuments();
+  const hasDocuments = myDocumentCount > 0;
 
   const { balance } = useCredits();
   const { isUniCoin } = useBusinessMode();
@@ -176,10 +181,7 @@ export default function StudentDashboard() {
   const [applications, setApplications] = useState<ApplicationData[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasDocuments, setHasDocuments] = useState(false);
-  const [missingContactInfo, setMissingContactInfo] = useState(false);
   const [referralCode, setReferralCode] = useState('');
-  const [profileName, setProfileName] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
 
@@ -210,12 +212,6 @@ export default function StudentDashboard() {
     fetchApplications();
     if (user) {
       (async () => {
-        const { count } = await supabase.from('documents').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
-        setHasDocuments((count || 0) > 0);
-        const { data: profile } = await supabase.from('profiles').select('phone, telegram_username, full_name').eq('user_id', user.id).maybeSingle();
-        setMissingContactInfo(!profile?.phone?.trim() || !profile?.telegram_username?.trim());
-        if (profile?.full_name?.trim()) setProfileName(profile.full_name.trim());
-
         const { data: refs } = await supabase.from('referrals').select('referral_code').eq('referrer_id', user.id).limit(1);
         if (refs && refs.length > 0) {
           setReferralCode(refs[0].referral_code);
@@ -234,7 +230,12 @@ export default function StudentDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchApplications]);
 
-  const userName = profileName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student';
+  const userName =
+    profile?.full_name?.trim() ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Student';
+  const missingContactInfo = !profile?.phone?.trim() || !profile?.telegram_username?.trim();
 
   const getStatusInfo = (status: string | null) => {
     switch (status) {

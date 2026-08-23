@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import type { TypedSupabaseClient } from '@unipath/db';
@@ -82,6 +83,7 @@ export function TenantProvider({
   });
 
   const [isTenantLoading, setIsTenantLoading] = useState(true);
+  const resolveInFlight = useRef<Promise<void> | null>(null);
   const [activeBranch, setActiveBranch] = useState<BranchConfig | null>(null);
   const [availableBranches, setAvailableBranches] = useState<BranchConfig[]>([]);
   const [isImpersonating, setIsImpersonating] = useState(false);
@@ -93,10 +95,11 @@ export function TenantProvider({
   useEffect(() => {
     resolveTenant();
     
-    // Force loading to false after 3 seconds to prevent infinite hangs
+    // Safety net: never leave the spinner up indefinitely. Must be longer than
+    // the resolution budget above, or it hides a resolution still in flight.
     const timeout = setTimeout(() => {
       setIsTenantLoading(false);
-    }, 3000);
+    }, 18000);
     
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,10 +109,13 @@ export function TenantProvider({
   // Re-fetch tenant when the user logs in (profile.tenant_id becomes readable)
   // and clear it on sign-out (unless impersonation is active).
   useEffect(() => {
+    // NOTE: supabase-js holds its auth lock for the lifetime of this callback.
+    // Any Supabase call made synchronously inside it deadlocks, so every branch
+    // that touches the client must be deferred with setTimeout(..., 0).
     const { data: { subscription } } = client.auth.onAuthStateChange(
-      async (event) => {
+      (event) => {
         if (event === 'SIGNED_IN') {
-          await resolveTenant();
+          setTimeout(() => { void resolveTenant(); }, 0);
         } else if (event === 'SIGNED_OUT') {
           const hasImpersonation =
             typeof window !== 'undefined' &&
@@ -126,7 +132,13 @@ export function TenantProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
 
-  async function resolveTenant() {
+  async function resolveTenant(attempt = 1) {
+    // Coalesce overlapping calls (mount effect + SIGNED_IN + StrictMode
+    // double-invoke) onto a single in-flight resolution.
+    if (attempt === 1 && resolveInFlight.current) {
+      return resolveInFlight.current;
+    }
+
     setIsTenantLoading(true);
 
     const resolvePromise = (async () => {
@@ -321,18 +333,32 @@ export function TenantProvider({
       setIsImpersonating(false);
     })();
 
+    // 8s is generous enough for a cold connection while still bounding the
+    // spinner. A slow answer is not the same as "no such workspace", so the
+    // timeout branch must never clear an already-resolved tenant.
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<void>((_, reject) => {
-      setTimeout(() => reject(new Error("Timeout")), 2500);
+      timer = setTimeout(() => reject(new Error("Timeout")), 8000);
     });
+
+    if (attempt === 1) {
+      resolveInFlight.current = resolvePromise.catch(() => undefined);
+    }
 
     try {
       await Promise.race([resolvePromise, timeoutPromise]);
     } catch (err) {
-      console.warn("TenantProvider: resolveTenant query timed out or failed. Falling back to null tenant.", err);
-      // Fallback: clear tenant to let landing page mount
-      setActiveTenant(null);
-      setIsImpersonating(false);
+      if (attempt < 2) {
+        console.warn("TenantProvider: resolveTenant slow, retrying once.", err);
+        if (timer) clearTimeout(timer);
+        return resolveTenant(attempt + 1);
+      }
+      // Give up, but keep whatever tenant we already had rather than
+      // downgrading a real workspace to "not found".
+      console.warn("TenantProvider: resolveTenant failed twice; keeping current tenant.", err);
     } finally {
+      if (timer) clearTimeout(timer);
+      if (attempt === 1) resolveInFlight.current = null;
       setIsTenantLoading(false);
     }
   }
@@ -408,7 +434,8 @@ export function TenantProvider({
   useEffect(() => {
     const { data: { subscription } } = client.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
-        fetchOwnedTenants();
+        // Deferred: see the auth-lock note above.
+        setTimeout(() => { void fetchOwnedTenants(); }, 0);
       } else if (event === 'SIGNED_OUT') {
         setOwnedTenants([]);
         setIsOwnerSwitch(false);

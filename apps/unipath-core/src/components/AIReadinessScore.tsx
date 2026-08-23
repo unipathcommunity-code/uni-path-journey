@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
+import { useMyDocuments } from '@/hooks/useMyDocuments';
 import { useAuth } from '@/contexts/AuthContext';
 import { Brain, ChevronRight, TrendingUp } from 'lucide-react';
 
@@ -19,7 +21,7 @@ const LABELS = {
       noPhone: 'Add phone number',
       noTelegram: 'Add Telegram username',
       noName: 'Add full name',
-      noDob: 'Add date of birth',
+      noDob: 'Add a parent contact number',
       noDocs: 'Upload documents',
       noApp: 'Start an application',
       noVisa: 'Check visa requirements',
@@ -36,7 +38,7 @@ const LABELS = {
       noPhone: 'Telefon raqam qo\'shing',
       noTelegram: 'Telegram nomini qo\'shing',
       noName: 'To\'liq ismingizni kiriting',
-      noDob: 'Tug\'ilgan kun kiriting',
+      noDob: "Ota-ona telefonini kiriting",
       noDocs: 'Hujjatlarni yuklang',
       noApp: 'Ariza boshlang',
       noVisa: 'Viza talablarini tekshiring',
@@ -53,7 +55,7 @@ const LABELS = {
       noPhone: 'Добавить номер телефона',
       noTelegram: 'Добавить Telegram',
       noName: 'Добавить полное имя',
-      noDob: 'Добавить дату рождения',
+      noDob: 'Добавьте телефон родителя',
       noDocs: 'Загрузить документы',
       noApp: 'Начать заявку',
       noVisa: 'Проверить визовые требования',
@@ -79,6 +81,8 @@ const levelLabel = (score: number, l: typeof LABELS.en) => {
 
 export function AIReadinessScore({ language }: Props) {
   const { user } = useAuth();
+  const { profile } = useProfile();
+  const { count: docCount } = useMyDocuments();
   const l = LABELS[language as keyof typeof LABELS] || LABELS.en;
   const [score, setScore] = useState(0);
   const [displayScore, setDisplayScore] = useState(0);
@@ -92,24 +96,13 @@ export function AIReadinessScore({ language }: Props) {
       let total = 0;
       const tips: string[] = [];
 
-      // Profile fields (50 pts total)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('phone, telegram_username, full_name, date_of_birth')
-        .eq('user_id', user!.id)
-        .maybeSingle();
-
+      // Profile fields (50 pts total) — from the shared profile query
       if (profile?.full_name?.trim()) total += 10; else tips.push(l.tips.noName);
       if (profile?.phone?.trim()) total += 10; else tips.push(l.tips.noPhone);
       if (profile?.telegram_username?.trim()) total += 10; else tips.push(l.tips.noTelegram);
-      if (profile?.date_of_birth) total += 10; else tips.push(l.tips.noDob);
+      if (profile?.parent_phone?.trim()) total += 10; else tips.push(l.tips.noDob);
 
-      // Documents (20 pts)
-      const { count: docCount } = await supabase
-        .from('documents')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user!.id);
-
+      // Documents (20 pts) — from the shared documents query
       if ((docCount || 0) >= 3) total += 20;
       else if ((docCount || 0) >= 1) total += 10;
       else tips.push(l.tips.noDocs);
@@ -141,7 +134,7 @@ export function AIReadinessScore({ language }: Props) {
     }
 
     calculate();
-  }, [user, language]);
+  }, [user, language, profile, docCount]);
 
   if (loading) return null;
 

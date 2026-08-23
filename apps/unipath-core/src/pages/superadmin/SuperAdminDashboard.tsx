@@ -13,27 +13,11 @@ import {
   Hourglass,
   Clock,
   Trash2,
-  Plane,
-  Bed,
-  LayoutGrid,
   Database,
   Percent,
   Smartphone,
-  GraduationCap,
-  ClipboardList,
-  TrendingUp,
   Settings,
   Wrench,
-  Pill,
-  Factory,
-  Car,
-  Heart,
-  Baby,
-  BookOpen,
-  Scissors,
-  Trophy,
-  Edit,
-  Trash,
   Globe,
   Send,
   Loader2,
@@ -41,7 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -85,8 +69,6 @@ const THEME_PRESETS = [
 
 const getModulesForVertical = (_vertical?: string) => CONSULTING_MODULES;
 
-
-
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,25 +103,9 @@ export default function SuperAdminDashboard() {
   const [themeForm, setThemeForm] = useState({ preset: '', name: '', primary: '', accent: '' });
   const [savingTheme, setSavingTheme] = useState(false);
 
-  // Dynamic Pricing Plan states
-  const [globalPlans, setGlobalPlans] = useState<any[]>([]);
-  const [loadingGlobalPlans, setLoadingGlobalPlans] = useState(false);
-  const selectedVerticalFilter = 'consulting';
+  // Plans shown in the "new tenant" dialog (CRUD lives on the billing page)
   const [dialogPlans, setDialogPlans] = useState<any[]>([]);
   const [loadingDialogPlans, setLoadingDialogPlans] = useState(false);
-  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<any>(null);
-  const [isSavingPlan, setIsSavingPlan] = useState(false);
-  const [newFeatureText, setNewFeatureText] = useState("");
-  const [planForm, setPlanForm] = useState({
-    vertical: 'consulting',
-    name: '',
-    price: '',
-    currency: 'UZS',
-    description: '',
-    features: [] as string[],
-    popular: false
-  });
   
   // Delete state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -156,25 +122,8 @@ export default function SuperAdminDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const fetchGlobalPlans = async () => {
-    setLoadingGlobalPlans(true);
-    try {
-      const { data, error } = await supabase
-        .from('pricing_plans')
-        .select('*')
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      setGlobalPlans(data || []);
-    } catch (err: any) {
-      console.error("Error fetching pricing plans:", err);
-    } finally {
-      setLoadingGlobalPlans(false);
-    }
-  };
-
   useEffect(() => {
     fetchTenants();
-    fetchGlobalPlans();
   }, []);
 
   // Fetch plans for dialog based on selected businessType
@@ -452,63 +401,6 @@ export default function SuperAdminDashboard() {
       toast({ title: "Xatolik", description: error.message, variant: "destructive" });
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleSavePlan = async () => {
-    if (!planForm.name || !planForm.price) {
-      toast({ title: "Xatolik", description: "Nom va narxni kiriting", variant: "destructive" });
-      return;
-    }
-
-    try {
-      setIsSavingPlan(true);
-      const payload = {
-        vertical: planForm.vertical,
-        name: planForm.name,
-        price: planForm.price,
-        currency: planForm.currency,
-        description: planForm.description,
-        features: planForm.features,
-        popular: planForm.popular
-      };
-
-      if (editingPlan) {
-        const { error } = await supabase
-          .from('pricing_plans')
-          .update(payload)
-          .eq('id', editingPlan.id);
-        if (error) throw error;
-        toast({ title: "Muvaffaqiyatli", description: "Tarif rejasi yangilandi!" });
-      } else {
-        const { error } = await supabase
-          .from('pricing_plans')
-          .insert(payload);
-        if (error) throw error;
-        toast({ title: "Muvaffaqiyatli", description: "Yangi tarif rejasi qo'shildi!" });
-      }
-
-      setIsPlanDialogOpen(false);
-      fetchGlobalPlans();
-    } catch (err: any) {
-      toast({ title: "Xatolik", description: err.message, variant: "destructive" });
-    } finally {
-      setIsSavingPlan(false);
-    }
-  };
-
-  const handleDeletePlan = async (planId: string) => {
-    if (!window.confirm("Haqiqatan ham ushbu tarif rejasini o'chirmoqchisiz?")) return;
-    try {
-      const { error } = await supabase
-        .from('pricing_plans')
-        .delete()
-        .eq('id', planId);
-      if (error) throw error;
-      toast({ title: "Muvaffaqiyatli", description: "Tarif rejasi o'chirildi!" });
-      fetchGlobalPlans();
-    } catch (err: any) {
-      toast({ title: "Xatolik", description: err.message, variant: "destructive" });
     }
   };
 
@@ -829,9 +721,9 @@ export default function SuperAdminDashboard() {
         {/* Content Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">B2B SaaS Multi-Vertical Engine</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Firmalar boshqaruvi</h1>
             <p className="text-white/50 mt-1 text-sm">
-              SaaS arxitekturasidagi barcha biznes sub-domenlari, turlari (Tour, Academy, Hotel, CRM) va to'lovlarini nazorat qilish paneli.
+              Platformadagi barcha konsalting agentliklari, ularning sub-domenlari, tariflari va holatini nazorat qiling.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -839,14 +731,14 @@ export default function SuperAdminDashboard() {
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold gap-2 px-6 py-5 rounded-2xl shadow-[0_0_15px_rgba(212,175,55,0.2)]">
                   <Plus className="w-5 h-5" />
-                  Yangi B2B Firma Qo'shish
+                  Yangi firma qo'shish
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[650px] bg-[#111111]/95 border border-white/5 text-white rounded-[2rem] backdrop-blur-xl p-6">
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-bold text-white">Yangi Multi-Tenant B2B Kompaniya</DialogTitle>
+                  <DialogTitle className="text-lg font-bold text-white">Yangi konsalting agentligi</DialogTitle>
                   <DialogDescription className="text-white/50 text-xs">
-                    Tizimda yangi mijoz oching, uning tarifini, biznes yo'nalishini va egasini (owner) yarating.
+                    Tizimda yangi agentlik oching, uning tarifini va egasini (owner) yarating.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid md:grid-cols-2 gap-6 py-4 text-xs">
@@ -971,17 +863,7 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        <Tabs defaultValue="tenants" className="w-full space-y-6">
-          <TabsList className="bg-white/5 border border-white/5 justify-start rounded-xl p-1 gap-1 w-fit">
-            <TabsTrigger value="tenants" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-bold px-4 py-2">
-              Kompaniyalar Boshqaruvi
-            </TabsTrigger>
-            <TabsTrigger value="pricing" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-bold px-4 py-2">
-              Global Tariflar va Rejalar
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="tenants" className="space-y-6">
+        <div className="space-y-6">
             {/* Bento Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <div className="bg-[#111111]/80 border border-white/5 p-5 rounded-2xl relative overflow-hidden group">
@@ -1899,282 +1781,8 @@ export default function SuperAdminDashboard() {
                 )}
               </div>
             </div>
-          </TabsContent>
+        </div>
 
-          <TabsContent value="pricing" className="space-y-6">
-            <div className="bg-[#111111]/80 border border-white/5 rounded-2xl p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-white">Global Tarif Rejalari</h2>
-                  <p className="text-white/50 text-xs mt-1">
-                    Konsalting agentliklari uchun dinamik tarif rejalarini boshqaring.
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button
-                    onClick={() => {
-                      setEditingPlan(null);
-                      setPlanForm({
-                        vertical: selectedVerticalFilter,
-                        name: '',
-                        price: '',
-                        currency: 'UZS',
-                        description: '',
-                        features: [],
-                        popular: false
-                      });
-                      setIsPlanDialogOpen(true);
-                    }}
-                    className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold gap-1.5 h-10 px-4 rounded-xl text-xs"
-                  >
-                    <Plus className="w-4 h-4" /> Yangi Tarif Qo'shish
-                  </Button>
-                </div>
-              </div>
-
-              {loadingGlobalPlans ? (
-                <div className="flex justify-center py-16">
-                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                </div>
-              ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {globalPlans.filter(p => p.vertical === selectedVerticalFilter).length === 0 ? (
-                    <div className="col-span-full text-center py-16 text-white/30 text-xs">
-                      Ushbu biznes turi uchun tariflar topilmadi. Yangi tarif qo'shing.
-                    </div>
-                  ) : (
-                    globalPlans.filter(p => p.vertical === selectedVerticalFilter).map((plan) => (
-                      <div
-                        key={plan.id}
-                        className={`relative border p-6 rounded-[2rem] flex flex-col justify-between hover:bg-[#151515] transition-all ${
-                          plan.popular ? 'border-primary/45 bg-primary/5' : 'border-white/5 bg-white/[0.01]'
-                        }`}
-                      >
-                        {plan.popular && (
-                          <span className="absolute -top-3 right-6 bg-primary text-primary-foreground text-[8px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                            Mashhur
-                          </span>
-                        )}
-                        
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-start gap-2">
-                            <div>
-                              <h3 className="font-extrabold text-white text-lg">{plan.name}</h3>
-                              <p className="text-white/50 text-xs mt-1 min-h-[32px]">{plan.description}</p>
-                            </div>
-                            <Badge className="bg-white/5 border border-white/10 text-white/70 capitalize text-[9px]">
-                              {plan.vertical}
-                            </Badge>
-                          </div>
-
-                          <div className="py-2">
-                            <span className="text-3xl font-black text-white">{plan.price}</span>
-                            <span className="text-white/40 text-xs ml-1 font-semibold">{plan.currency}/oy</span>
-                          </div>
-
-                          <div className="border-t border-white/5 pt-4 space-y-2">
-                            {Array.isArray(plan.features) && plan.features.map((feat: string, idx: number) => (
-                              <div key={idx} className="flex items-start gap-2 text-xs">
-                                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                <span className="text-white/70 leading-normal">{feat}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="mt-6 flex gap-2 border-t border-white/5 pt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingPlan(plan);
-                              setPlanForm({
-                                vertical: plan.vertical,
-                                name: plan.name,
-                                price: plan.price,
-                                currency: plan.currency || 'UZS',
-                                description: plan.description || '',
-                                features: Array.isArray(plan.features) ? plan.features : [],
-                                popular: !!plan.popular
-                              });
-                              setIsPlanDialogOpen(true);
-                            }}
-                            className="flex-1 h-9 rounded-xl text-xs font-bold bg-white/5 border-white/10 text-white/80 hover:text-white"
-                          >
-                            <Edit className="w-3.5 h-3.5 mr-1.5" /> Tahrirlash
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeletePlan(plan.id)}
-                            className="flex-1 h-9 rounded-xl text-xs font-bold border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white"
-                          >
-                            <Trash className="w-3.5 h-3.5 mr-1.5" /> O'chirish
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {/* Global Dialog for Adding/Editing Pricing Plans */}
-        <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
-          <DialogContent className="sm:max-w-[480px] bg-[#111111]/95 border border-white/5 text-white rounded-[2rem] backdrop-blur-xl p-6">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-white">
-                {editingPlan ? "Tarif Rejasini Tahrirlash" : "Yangi Tarif Rejasi Qo'shish"}
-              </DialogTitle>
-              <DialogDescription className="text-white/50 text-xs">
-                Tarif rejasining narxi, nomi va imkoniyatlari ro'yxatini belgilang.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-3 text-xs">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-white/80 font-bold">Reja nomi (Plan Name)</Label>
-                  <Input
-                    value={planForm.name}
-                    onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
-                    placeholder="Masalan: Center Pro, Pro"
-                    className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-1.5">
-                  <Label className="text-white/80 font-bold">Narxi (Price)</Label>
-                  <Input
-                    value={planForm.price}
-                    onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })}
-                    placeholder="Masalan: 499 000"
-                    className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-white/80 font-bold">Valyuta (Currency)</Label>
-                  <select
-                    className="w-full h-10 px-3 bg-[#171717] border border-white/10 rounded-xl text-white text-xs"
-                    value={planForm.currency}
-                    onChange={(e) => setPlanForm({ ...planForm, currency: e.target.value })}
-                  >
-                    <option value="UZS" className="bg-[#111111]">UZS</option>
-                    <option value="USD" className="bg-[#111111]">USD</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-white/80 font-bold">Tavsif (Description)</Label>
-                <Input
-                  value={planForm.description}
-                  onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
-                  placeholder="Masalan: Rivojlanayotgan markazlar uchun to'liq boshqaruv"
-                  className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
-                />
-              </div>
-
-              {/* Feature list management */}
-              <div className="space-y-2">
-                <Label className="text-white/80 font-bold">Tarif imkoniyatlari / Modullar</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={newFeatureText}
-                    onChange={(e) => setNewFeatureText(e.target.value)}
-                    placeholder="Yangi imkoniyat yozing (masalan: 100 ta o'quvchi)"
-                    className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (newFeatureText.trim()) {
-                          setPlanForm(prev => ({
-                            ...prev,
-                            features: [...prev.features, newFeatureText.trim()]
-                          }));
-                          setNewFeatureText("");
-                        }
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (newFeatureText.trim()) {
-                        setPlanForm(prev => ({
-                          ...prev,
-                          features: [...prev.features, newFeatureText.trim()]
-                        }));
-                        setNewFeatureText("");
-                      }
-                    }}
-                    className="bg-sky-500 hover:bg-sky-600 text-white h-10 rounded-xl px-3 font-bold"
-                  >
-                    Qo'shish
-                  </Button>
-                </div>
-
-                <div className="max-h-36 overflow-y-auto border border-white/5 bg-[#171717]/30 p-2.5 rounded-xl space-y-1.5 custom-scrollbar">
-                  {planForm.features.length === 0 ? (
-                    <p className="text-[10px] text-white/30 text-center py-4 font-sans">Hozircha hech qanday imkoniyat qo'shilmagan.</p>
-                  ) : (
-                    planForm.features.map((feat, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-lg text-[10px] font-sans">
-                        <span className="text-white/80 truncate pr-2">{feat}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPlanForm(prev => ({
-                              ...prev,
-                              features: prev.features.filter((_, i) => i !== idx)
-                            }));
-                          }}
-                          className="text-rose-400 hover:text-rose-300 font-bold"
-                        >
-                          O'chirish
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl">
-                <div className="space-y-0.5">
-                  <Label className="text-white/80 font-bold">Mashhur (Popular) tarif</Label>
-                  <p className="text-[9px] text-white/40">Ushbu tarif onboardingda ko'rinarli va belgilangan holda ochiladi.</p>
-                </div>
-                <Switch
-                  checked={planForm.popular}
-                  onCheckedChange={(checked) => setPlanForm(prev => ({ ...prev, popular: checked }))}
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="mt-4 gap-2 border-t border-white/5 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsPlanDialogOpen(false)}
-                className="border-white/10 text-xs font-semibold rounded-xl text-white bg-white/5 hover:bg-white/10 h-10 flex-1 md:flex-initial"
-              >
-                Bekor qilish
-              </Button>
-              <Button
-                onClick={handleSavePlan}
-                disabled={isSavingPlan}
-                className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold h-10 px-6 rounded-xl flex-1 md:flex-initial"
-              >
-                {isSavingPlan ? "Saqlanmoqda..." : "Saqlash"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

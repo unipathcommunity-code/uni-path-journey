@@ -1,4 +1,12 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+  useMemo,
+  createContext,
+  type ReactNode,
+} from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { TenantContext } from '@unipath/tenant';
@@ -17,8 +25,11 @@ export const SUPER_ADMIN_EMAILS: string[] = [
   'unipath.community@gmail.com',
 ];
 
-export function useUserRole() {
+function useResolvedUserRole() {
   const { user } = useAuth();
+  // Identity of `user` churns on every token refresh; the id does not.
+  const userId = user?.id ?? null;
+  const userEmail = user?.email ?? null;
   // Read the resolved tenant directly from context (not useTenant()) so this
   // hook stays safe even when mounted outside a TenantProvider.
   const tenantCtx = useContext(TenantContext as any) as any;
@@ -39,12 +50,12 @@ export function useUserRole() {
     // super-admin email, default to 'super_admin' (not 'user') so the platform
     // owner is never locked out by a slow role lookup.
     const timeoutId = setTimeout(() => {
-      if (active && !queryFinishedRef.current) {
-        const email = user?.email?.toLowerCase();
+      if (active && !queryFinishedRef.current && userId) {
+        const email = userEmail?.toLowerCase();
         const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
         console.warn('useUserRole: checkUserRole timed out after 3.5s. Defaulting role. isSa:', isSa);
         setRole(isSa ? 'super_admin' : 'user');
-        setLoadedUserId(user ? user.id : null);
+        setLoadedUserId(userId);
         setIsLoading(false);
         queryFinishedRef.current = true;
       }
@@ -52,7 +63,10 @@ export function useUserRole() {
 
     async function checkUserRole() {
       setIsLoading(true);
-      if (!user) {
+      if (!userId) {
+        // Nothing to resolve — settle immediately and stand the timer down.
+        queryFinishedRef.current = true;
+        clearTimeout(timeoutId);
         if (active) {
           setRole(null);
           setTenantId(null);
@@ -216,22 +230,57 @@ export function useUserRole() {
       active = false;
       clearTimeout(timeoutId);
     };
-  }, [user, activeTenantId]);
+    // Keyed by identity, not by object reference — see `userId` above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, userEmail, activeTenantId]);
 
-  const isFetching = isLoading || (user !== null && loadedUserId !== user.id);
+  const isFetching = isLoading || (userId !== null && loadedUserId !== userId);
 
-  return {
-    role,
-    roleSource,
-    tenantId,
-    tenantStatus,
-    isLoading: isFetching,
-    isSuperAdmin: role === 'super_admin',
-    isAdmin: ADMIN_ROLES.includes(role),
-    isOwner: role === 'owner' || role === 'admin',
-    isManager: role === 'manager',
-    isAccountant: role === 'accountant',
-    isAgent: AGENT_ROLES.includes(role),
-    isStudent: role === 'user' || role === 'student',
-  };
+  return useMemo(
+    () => ({
+      role,
+      roleSource,
+      tenantId,
+      tenantStatus,
+      isLoading: isFetching,
+      isSuperAdmin: role === 'super_admin',
+      isAdmin: ADMIN_ROLES.includes(role),
+      isOwner: role === 'owner' || role === 'admin',
+      isManager: role === 'manager',
+      isAccountant: role === 'accountant',
+      isAgent: AGENT_ROLES.includes(role),
+      isStudent: role === 'user' || role === 'student',
+    }),
+    [role, roleSource, tenantId, tenantStatus, isFetching],
+  );
+}
+
+
+// ---------------------------------------------------------------------------
+// Single-resolution context
+// ---------------------------------------------------------------------------
+// useUserRole used to be a plain hook called from 13 components. Each call site
+// mounted its own effect and fired its own `profiles` + `tenants` round-trips,
+// so a single page load hammered Supabase hard enough to get answered with
+// ERR_HTTP2_SERVER_REFUSED_STREAM. The role is now resolved once, at the top of
+// the tree, and shared.
+
+export type UserRoleValue = ReturnType<typeof useResolvedUserRole>;
+
+const UserRoleContext = createContext<UserRoleValue | undefined>(undefined);
+
+export function UserRoleProvider({ children }: { children: ReactNode }) {
+  const value = useResolvedUserRole();
+  return <UserRoleContext.Provider value={value}>{children}</UserRoleContext.Provider>;
+}
+
+export function useUserRole(): UserRoleValue {
+  const ctx = useContext(UserRoleContext);
+  if (!ctx) {
+    throw new Error(
+      'useUserRole must be used within <UserRoleProvider> (mounted in App.tsx ' +
+        'below TenantProvider and AuthProvider).',
+    );
+  }
+  return ctx;
 }

@@ -3,7 +3,7 @@ import {
   Shield, Mail, Lock, User, ArrowRight, Loader2, Building2
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useApp } from "@/contexts/AppContext";
@@ -14,6 +14,8 @@ type AuthMode = "login" | "signup" | "forgot";
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
+  const [searchParams] = useSearchParams();
+  const authError = searchParams.get("error");
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -28,7 +30,7 @@ const Auth = () => {
   const color = "text-primary";
   const logoUrl     = activeTenant?.config?.branding?.logo_url;
 
-  const { user } = useAuth(); // Import useAuth from contexts/AuthContext or hooks/useAuth
+  const { user, signOut } = useAuth();
 
   // Consulting end-users follow the study-abroad "student" flow.
   const defaultRole = 'student';
@@ -49,10 +51,13 @@ const Auth = () => {
   };
 
   useEffect(() => {
+    // Do NOT bounce back to /dashboard when DashboardRedirect is what sent us
+    // here — that pair would redirect at each other forever.
+    if (authError) return;
     if (user && !loading) {
       navigate("/dashboard");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, authError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +161,35 @@ const Auth = () => {
         )}
         <p className="text-muted-foreground text-sm mt-2">{modeLabel}</p>
       </motion.div>
+
+      {/* Why the user was sent back here */}
+      {authError === "wrong_domain" && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-sm z-10 mb-4 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-left"
+        >
+          <p className="text-sm font-bold text-amber-500">Agentligingiz manzilidan kiring</p>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            Hisobingiz muayyan agentlikka biriktirilgan. Umumiy{" "}
+            <span className="font-semibold text-foreground">unipath.me</span> manzilidan emas, balki
+            agentligingizning o'z manzilidan kiring — masalan{" "}
+            <span className="font-mono text-foreground">agentlik.unipath.me</span>.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Manzilni bilmasangiz, agentligingiz administratoriga murojaat qiling.
+          </p>
+          {user && (
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="mt-3 text-xs font-semibold text-amber-500 underline underline-offset-2 hover:text-amber-400"
+            >
+              Boshqa hisob bilan kirish
+            </button>
+          )}
+        </motion.div>
+      )}
 
       {/* Card */}
       <motion.div

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import type { TypedSupabaseClient } from '@unipath/db';
 import type { AuthContextValue, UniPathJWTClaims, UserRole } from './types';
@@ -50,13 +50,23 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [claims, setClaims] = useState<UniPathJWTClaims | null>(null);
 
+  // supabase-js re-emits the session on token refresh and on tab focus. Those
+  // carry a NEW user object with identical contents; storing it would change
+  // the identity every consumer depends on, so only store real changes.
+  const applySession = useCallback((s: Session | null) => {
+    setSession((prev) => (prev?.access_token === s?.access_token ? prev : s));
+    setUser((prev) => (prev?.id === s?.user?.id ? prev : (s?.user ?? null)));
+    setClaims((prev) => {
+      const next = extractJWTClaims(s?.user ?? null);
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+    });
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     // Subscribe FIRST, then read existing session to avoid race conditions.
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setClaims(extractJWTClaims(s?.user ?? null));
-      setIsLoading(false);
+      applySession(s);
     });
 
     // Add a race condition timeout to avoid infinite loading if getSession hangs
@@ -67,10 +77,7 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
     }, 3000);
 
     client.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setClaims(extractJWTClaims(s?.user ?? null));
-      setIsLoading(false);
+      applySession(s);
       clearTimeout(timeout);
     }).catch(() => {
       setIsLoading(false);
@@ -81,7 +88,10 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, [client]);
+    // isLoading is read only inside the timeout guard; re-subscribing on it
+    // would tear down the auth listener on every load flip.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, applySession]);
 
   const origin = siteUrl ?? (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -154,25 +164,26 @@ export function AuthProvider({ client, children, siteUrl }: AuthProviderProps) {
     return { error: error as Error | null };
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isLoading,
-        claims,
-        signUp,
-        signIn,
-        signOut,
-        resetPassword,
-        updatePassword,
-        verifyOtp,
-        resendOtp,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      session,
+      isLoading,
+      claims,
+      signUp,
+      signIn,
+      signOut,
+      resetPassword,
+      updatePassword,
+      verifyOtp,
+      resendOtp,
+    }),
+    // The auth action closures only read `client` and `origin`, both stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, session, isLoading, claims, client, origin],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ---------------------------------------------------------------------------

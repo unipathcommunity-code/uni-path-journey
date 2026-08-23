@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
+import { useMyDocuments } from '@/hooks/useMyDocuments';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import {
@@ -130,6 +132,8 @@ const urgencyStyles = {
 
 export function DeadlineTracker({ language }: { language: string }) {
   const { user } = useAuth();
+  const { profile } = useProfile();
+  const { documents } = useMyDocuments();
   const l = LABELS[language as keyof typeof LABELS] || LABELS.en;
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,14 +168,11 @@ export function DeadlineTracker({ language }: { language: string }) {
         });
       });
 
-      // 2. Documents pending review → reminder
-      const { data: pendingDocs } = await supabase
-        .from('documents')
-        .select('id, document_type, created_at')
-        .eq('user_id', user!.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true })
-        .limit(3);
+      // 2. Documents pending review → reminder (from the shared query)
+      const pendingDocs = documents
+        .filter((d) => d.status === 'pending')
+        .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+        .slice(0, 3);
 
       pendingDocs?.forEach((doc: any) => {
         const created = new Date(doc.created_at);
@@ -189,18 +190,12 @@ export function DeadlineTracker({ language }: { language: string }) {
         });
       });
 
-      // 3. Profile completeness — no phone/telegram → nudge
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('phone, telegram_username, full_name, date_of_birth')
-        .eq('user_id', user!.id)
-        .maybeSingle();
-
+      // 3. Profile completeness — from the shared profile query
       const missingFields = [
         !profile?.phone?.trim(),
         !profile?.telegram_username?.trim(),
         !profile?.full_name?.trim(),
-        !profile?.date_of_birth,
+        !profile?.parent_phone?.trim(),
       ].filter(Boolean).length;
 
       if (missingFields >= 2) {
