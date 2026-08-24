@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AutoApplyModal } from '@/components/public/AutoApplyModal';
 
 // ─── Consulting page identity ────────────────────────────────────────────────
 const META = {
@@ -59,6 +60,7 @@ export default function TenantPublicPage() {
   const [countries, setCountries] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [autoApplyTarget, setAutoApplyTarget] = useState<any>(null);
 
   // Contact form
   const [form, setForm] = useState({ name: '', phone: '', note: '' });
@@ -157,15 +159,22 @@ export default function TenantPublicPage() {
   // ── Render a destination / programme card ────────────────────────────────
   const renderCard = (item: any, idx: number) => (
     <div key={item.id || idx}
-      className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 hover:border-white/20 transition-all">
+      className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 hover:border-white/20 transition-all flex flex-col h-full">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
         style={{ background: `${brandColor}22` }}>
         <Globe className="w-5 h-5" style={{ color: brandColor }} />
       </div>
-      <h3 className="font-bold text-white text-sm mb-1">{item.name}</h3>
-      <p className="text-xs text-white/50 flex items-center gap-1">
+      <h3 className="font-bold text-white text-sm mb-1 flex-1">{item.name}</h3>
+      <p className="text-xs text-white/50 flex items-center gap-1 mb-4">
         <MapPin className="w-3 h-3" />{item.country || '—'}
       </p>
+      <Button 
+        onClick={() => setAutoApplyTarget(item)}
+        className="w-full mt-auto"
+        style={{ backgroundColor: brandColor, color: '#fff' }}
+      >
+        Hujjat topshirish
+      </Button>
     </div>
   );
 
@@ -489,6 +498,15 @@ export default function TenantPublicPage() {
           </p>
         </div>
       </footer>
+
+      {/* AutoApply Modal for students */}
+      <AutoApplyModal 
+        isOpen={!!autoApplyTarget}
+        onClose={() => setAutoApplyTarget(null)}
+        targetUniversity={autoApplyTarget}
+        tenantId={activeTenant?.id}
+        brandColor={brandColor}
+      />
     </div>
   );
 }
