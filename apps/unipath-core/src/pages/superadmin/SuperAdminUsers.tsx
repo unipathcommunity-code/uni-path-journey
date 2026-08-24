@@ -11,7 +11,8 @@ import {
   CreditCard,
   Loader2,
   Trash2,
-  ShieldCheck
+  ShieldCheck,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ import {
   tenantStatusLabel,
   tenantStatusBadgeClass,
 } from "@/lib/tenantStatus";
+import { AssignAdminModal } from "./AssignAdminModal";
 
 export default function SuperAdminUsers() {
   const [users, setUsers] = useState<any[]>([]);
@@ -42,6 +44,7 @@ export default function SuperAdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -207,11 +210,20 @@ export default function SuperAdminUsers() {
   return (
     <div className="text-foreground font-sans space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Firma Egalari (Adminlar) Boshqaruvi</h1>
-        <p className="text-white/50 mt-1 text-sm">
-          Platformadagi barcha agentlik egalarini va ularning tariflarini boshqarish
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Firma Egalari (Adminlar) Boshqaruvi</h1>
+          <p className="text-white/50 mt-1 text-sm">
+            Platformadagi barcha agentlik egalarini va ularning tariflarini boshqarish
+          </p>
+        </div>
+        <Button 
+          onClick={() => setAssignModalOpen(true)}
+          className="bg-primary text-black font-bold"
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          Admin Tayinlash
+        </Button>
       </div>
 
       {/* Pending Alert Banner */}
@@ -509,6 +521,15 @@ export default function SuperAdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Assign Admin Modal */}
+      <AssignAdminModal 
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        onSuccess={() => {
+          fetchAdmins();
+        }}
+      />
     </div>
   );
 }
