@@ -56,6 +56,7 @@ export default function TenantPublicPage() {
 
   // Public data
   const [items, setItems] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -70,14 +71,18 @@ export default function TenantPublicPage() {
     if (!activeTenant?.id) { setLoadingItems(false); return; }
 
     (async () => {
-      const { data } = await (supabase as any)
-        .from('universities')
-        .select('id, name, country, programs')
-        .limit(6);
-      return data || [];
+      const [{ data: unis }, { data: cntrs }] = await Promise.all([
+        (supabase as any).from('universities').select('*').eq('is_active', true),
+        (supabase as any).from('countries').select('*').eq('is_active', true).order('display_order', { ascending: true })
+      ]);
+      setCountries(cntrs || []);
+      return unis || [];
     })()
       .then(setItems)
-      .catch(() => setItems([]))
+      .catch(() => {
+        setItems([]);
+        setCountries([]);
+      })
       .finally(() => setLoadingItems(false));
   }, [activeTenant]);
 
@@ -271,7 +276,36 @@ export default function TenantPublicPage() {
         </div>
       </section>
 
-      {/* ── DESTINATIONS / PROGRAMMES ───────────────────────────────────────── */}
+      {/* COUNTRIES */}
+      <section id="countries" className="max-w-6xl mx-auto px-4 pb-12">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-black mb-2">Davlatlar</h2>
+          <p className="text-white/50 text-sm">
+            {countries.length === 0 && !loadingItems
+              ? "Tez orada qo'shiladi..."
+              : `Biz ishlaydigan ${countries.length} ta davlat`}
+          </p>
+        </div>
+
+        {loadingItems ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-white/5 rounded-2xl h-32 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {countries.map((c, idx) => (
+              <div key={c.id || idx} className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-white/20 transition-all">
+                <span className="text-4xl mb-2">{c.flag || '??'}</span>
+                <h3 className="font-bold text-white text-sm">{c.name_uz || c.name}</h3>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* UNIVERSITIES */}
       <section id="services" className="max-w-6xl mx-auto px-4 pb-20">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-black mb-2">🎓 Yo'nalishlar</h2>

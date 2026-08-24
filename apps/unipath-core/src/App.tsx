@@ -162,16 +162,9 @@ function TenantRootRoute() {
     );
   }
 
-  // On a tenant subdomain with no logged-in user → public site
-  if (effectiveTenant && !user) {
-    const vertical = effectiveTenant?.business_type || effectiveTenant?.config?.business_type || effectiveTenant?.vertical;
-    const slug = effectiveTenant?.subdomain || '';
+  // On a tenant subdomain, always show the public site
+  if (effectiveTenant) {
     return <TenantPublicPage />;
-  }
-
-  // Authenticated user on tenant subdomain → redirect to their dashboard
-  if (effectiveTenant && user) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   // Root domain (unipath.me) → redirect to auth or dashboard
