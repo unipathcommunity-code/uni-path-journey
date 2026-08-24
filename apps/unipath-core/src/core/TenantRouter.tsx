@@ -69,37 +69,8 @@ export const TenantRouter = ({ children }: { children: React.ReactNode }) => {
   //    behind the spinner until it resolves.
   if (isTenantLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#030712] text-white">
-        {/* Abstract glowing background blobs */}
-        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-indigo-500/10 blur-[100px] animate-pulse" />
-
-        <div className="relative z-10 flex flex-col items-center">
-          {/* Glassmorphic spinner */}
-          <div className="relative flex h-24 w-24 items-center justify-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-              className="absolute h-16 w-16 rounded-full border-t-2 border-r-2 border-emerald-500/20 border-t-emerald-400 border-r-emerald-400"
-            />
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-              className="absolute h-10 w-10 rounded-full border-b-2 border-l-2 border-indigo-500/20 border-b-indigo-400 border-l-indigo-400"
-            />
-            <div className="h-4 w-4 rounded-full bg-emerald-400 shadow-[0_0_15px_#34d399]" />
-          </div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6 text-center"
-          >
-            <h3 className="font-sans text-sm font-semibold tracking-widest text-emerald-400 uppercase">{loadingName}</h3>
-            <p className="mt-2 text-xs font-medium text-neutral-400">Loading secure workspace...</p>
-          </motion.div>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-[#030712]">
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

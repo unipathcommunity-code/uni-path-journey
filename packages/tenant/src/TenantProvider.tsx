@@ -99,7 +99,7 @@ export function TenantProvider({
     // the resolution budget above, or it hides a resolution still in flight.
     const timeout = setTimeout(() => {
       setIsTenantLoading(false);
-    }, 18000);
+    }, 13000);
     
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -338,7 +338,7 @@ export function TenantProvider({
     // timeout branch must never clear an already-resolved tenant.
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<void>((_, reject) => {
-      timer = setTimeout(() => reject(new Error("Timeout")), 8000);
+      timer = setTimeout(() => reject(new Error("Timeout")), 3000);
     });
 
     if (attempt === 1) {
