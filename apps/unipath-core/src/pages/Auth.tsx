@@ -128,9 +128,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Glow blobs */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full bg-accent/5 blur-[90px] pointer-events-none" />
+      {/* Glow blobs — tenant themed */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none opacity-[0.06]"
+        style={{ background: activeTenant?.config?.branding?.theme_color || 'hsl(var(--primary))' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full blur-[90px] pointer-events-none opacity-[0.04]"
+        style={{ background: activeTenant?.config?.branding?.theme_color || 'hsl(var(--accent))' }} />
 
       {/* Top-right switcher */}
       <div className="absolute top-4 right-4 z-20">

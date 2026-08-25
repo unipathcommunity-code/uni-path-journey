@@ -14,19 +14,6 @@ export default function DashboardRedirect() {
 
   const isLoading = authLoading || roleLoading || isTenantLoading;
 
-  useEffect(() => {
-    console.log("DashboardRedirect state diagnostics:", {
-      isLoading,
-      authLoading,
-      roleLoading,
-      isTenantLoading,
-      userId: user?.id,
-      userRole: role,
-      tenantStatus,
-      activeTenantId: activeTenant?.id,
-    });
-  }, [isLoading, authLoading, roleLoading, isTenantLoading, user, role, tenantStatus, activeTenant]);
-
   const impersonatedTenantRaw = localStorage.getItem('active_tenant');
   let impersonatedTenant: any = null;
   if (impersonatedTenantRaw) {
@@ -35,12 +22,12 @@ export default function DashboardRedirect() {
   }
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-primary animate-pulse" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+            <Building2 className="w-7 h-7 text-primary animate-pulse" />
           </div>
-          <span className="text-lg font-medium">Yuklanmoqda...</span>
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );

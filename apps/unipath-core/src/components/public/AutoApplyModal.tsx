@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,18 @@ export function AutoApplyModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Reset all state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setStep('form');
+      setLoading(false);
+      setError(null);
+      setName('');
+      setEmail('');
+      setPassword('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

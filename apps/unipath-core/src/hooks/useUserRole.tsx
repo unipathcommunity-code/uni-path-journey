@@ -101,7 +101,7 @@ function useResolvedUserRole() {
       const isSa = !!email && (SUPER_ADMIN_EMAILS.includes(email));
 
       if (isSa) {
-        console.log('useUserRole: detected super admin email, executing fast-path role resolution');
+        // Super admin fast-path — skip DB lookup
         let tId: string | null = null;
         let tStatus: string | null = null;
 
@@ -113,7 +113,7 @@ function useResolvedUserRole() {
             if (parsed && parsed.id) {
               tId = parsed.id;
               tStatus = parsed.status || null;
-              console.log('useUserRole: loaded impersonated tenant:', tId);
+              // Loaded impersonated tenant
             }
           } catch (e) {
             console.warn('useUserRole: failed to parse active_tenant:', e);
